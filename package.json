@@ -4,7 +4,12 @@
   "type": "module",
   "scripts": {
     "build": "nuxt build",
-    "dev": "nuxt dev",
+    "dev": "docker network create memrok-dev 2>/dev/null || true && docker compose --env-file .env -f deployment/traefik/docker-compose.yml -f deployment/traefik/docker-compose.dev.yml -f deployment/authelia/docker-compose.yml up -d && nuxt dev --host",
+    "dev:mini": "docker compose --env-file .env -f deployment/authelia/docker-compose.yml up -d && nuxt dev --host",
+    "stop": "docker compose --env-file .env -f deployment/traefik/docker-compose.yml -f deployment/traefik/docker-compose.dev.yml -f deployment/authelia/docker-compose.yml down",
+    "stop:mini": "docker compose --env-file .env -f deployment/authelia/docker-compose.yml down",
+    "restart": "bun run stop && bun run dev",
+    "restart:mini": "bun run stop:mini && bun run dev:mini",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare"

@@ -5,6 +5,10 @@
 </template>
 
 <script setup lang="ts">
+definePageMeta({
+  public: true
+})
+
 const { t } = useI18n()
 
 useHead({

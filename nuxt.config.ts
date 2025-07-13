@@ -7,6 +7,11 @@ export default defineNuxtConfig({
   devtools: {
     enabled: true,
   },
+  vite: {
+    server: {
+      allowedHosts: [process.env.MEMROK_APP_DOMAIN || 'app.dev.memrok.com'],
+    },
+  },
   i18n: {
     bundle: {
       optimizeTranslationDirective: false,

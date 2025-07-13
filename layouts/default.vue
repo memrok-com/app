@@ -48,7 +48,7 @@ const items = computed<NavigationMenuItem[][]>(() => [
       icon: 'i-ph-github-logo-fill',
       label: t('navigation.github'),
       target: '_blank',
-      to: 'https://github.com/MichaelSchmidle/memrok',
+      to: 'https://github.com/memrok-com',
     },
   ]
 ])
