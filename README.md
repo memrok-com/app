@@ -1,4 +1,4 @@
-![memrok logo](assets/2025-memrok-logo.svg)
+![memrok logo](assets/logo/2025-memrok-logo.svg)
 
 # memrok
 
