@@ -31,6 +31,8 @@ memrok is a self-hosted memory system that:
 
 ### 🚀 Self-Hosting Made Easy
 - Single `docker-compose up` deployment
+- Production-ready with Let's Encrypt SSL
+- Modern OIDC authentication via Zitadel
 - Works with any reverse proxy (nginx, Traefik, Caddy)
 - Configuration via environment variables
 
@@ -112,10 +114,11 @@ Example: Configure LM Studio to access all categories, but Claude Desktop only "
 
 ### Security Features
 
-- API key authentication
+- Modern OIDC authentication via Zitadel
 - Category-based access control for different AI clients
 - Emotional context tracking for sensitive memories
 - Audit logs for all memory access and modifications
+- Self-hosted authentication (no external auth dependencies)
 
 ## 📋 MVP Roadmap
 

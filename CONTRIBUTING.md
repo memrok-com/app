@@ -20,39 +20,39 @@ cp .env.example .env
 
 ### Development Setup
 
-The development environment uses Traefik and Authelia with trusted SSL certificates via mkcert.
+The development environment uses Traefik and Zitadel with trusted SSL certificates via mkcert.
 
 **Quick Start:**
 ```bash
 # Generate SSL certificates (first time only)
-bun run dev:certs
+bun run certs
 
-# Start infrastructure (Traefik + Authelia)
-bun run dev:infra
+# Start infrastructure (Traefik + Zitadel)
+bun run infra:start
 
 # Start Nuxt development server
 bun run dev
 
 # Or start everything together
-bun run dev:full
+bun run setup
 ```
 
 **Access URLs:**
 - https://app.dev.memrok.com - memrok app (proxied to local Nuxt dev server)
-- https://auth.dev.memrok.com - Authelia authentication portal  
+- https://auth.dev.memrok.com - Zitadel authentication portal  
 - https://proxy.dev.memrok.com - Traefik dashboard
 
 **Authentication:**
-- Username: `admin` or `dev`
-- Password: `admin123`
+- Setup required in Zitadel console first
+- Access Zitadel at https://auth.dev.memrok.com/ui/console
 - No certificate warnings with mkcert!
 
 **How it works:**
-- Uses Docker Compose with Traefik + Authelia
+- Uses Docker Compose with Traefik + Zitadel
 - Trusted SSL certificates via mkcert (no browser warnings)
 - Public DNS: `*.dev.memrok.com` → `127.0.0.1` (no hosts file needed!)
 - Traefik proxies to local Nuxt dev server via host.docker.internal
-- One-factor auth for development (easier than production two-factor)
+- OIDC authentication via Zitadel for modern auth flows
 
 
 ### Development Commands
@@ -62,27 +62,23 @@ bun run dev:full
 bun install
 
 # SSL Certificate management
-bun run dev:certs              # Generate SSL certificates (first time only)
+bun run certs                  # Generate SSL certificates (first time only)
 
 # Infrastructure management  
-bun run dev:infra              # Start infrastructure (Traefik + Authelia)
-bun run dev:infra:stop         # Stop infrastructure
-bun run dev:infra:restart      # Restart infrastructure
-bun run dev:infra:logs         # View infrastructure logs
+bun run infra:start            # Start infrastructure (Traefik + Zitadel)
+bun run infra:stop             # Stop infrastructure
+bun run infra:restart          # Restart infrastructure
+bun run infra:logs             # View infrastructure logs
+bun run infra:status           # Check infrastructure status
 
 # Application development
 bun run dev                    # Start Nuxt development server
-bun run dev:full               # Start infrastructure + Nuxt together
+bun run setup                  # Setup everything (certs + infra)
 
 # Production builds
 bun run build                  # Build for production
 bun run preview                # Preview production build
 bun run generate               # Generate static site
-
-# Production deployment (when memrok container is ready)
-bun run prod:up                # Start production stack
-bun run prod:down              # Stop production stack  
-bun run prod:logs              # View production logs
 
 # Run tests (when implemented)
 bun test
@@ -94,7 +90,7 @@ bun test
 - **Runtime**: Bun
 - **Framework**: Nitro (universal server framework)
 - **Database**: PostgreSQL + Qdrant (vector)
-- **Authentication**: JWT
+- **Authentication**: Zitadel (OIDC)
 
 **Frontend**
 - **Framework**: Nuxt 3

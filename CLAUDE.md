@@ -18,7 +18,7 @@ memrok is a self-hosted, privacy-first memory service for AI assistants. It impl
 - **Frontend**: Nuxt 3, Vue 3, Nuxt UI Pro 3 (incl. Tailwind CSS 4)
 - **Backend**: Nitro server, Bun runtime
 - **Database**: PostgreSQL (planned), Qdrant vector DB (planned)
-- **Authentication**: JWT (planned)
+- **Authentication**: Zitadel (OIDC)
 - **Deployment**: Docker + Docker Compose
 
 ### Deployment Architecture
@@ -30,18 +30,18 @@ memrok is a self-hosted, privacy-first memory service for AI assistants. It impl
 **Development Setup:**
 - Dev configs in app root (CONTRIBUTING.md, package.json scripts)
 - Deployment configs in `./deployment` submodule
-- Infrastructure: Traefik + Authelia containers + local Nuxt dev server
+- Infrastructure: Traefik + Zitadel containers + local Nuxt dev server
 - SSL: mkcert for trusted certificates (no browser warnings)
 - Domains: `*.dev.memrok.com` (public DNS → 127.0.0.1)
 
 **Production Setup:**
 - All configs in deployment submodule
-- Infrastructure: Traefik + Authelia + memrok app containers  
+- Infrastructure: Traefik + Zitadel + memrok app containers  
 - SSL: Let's Encrypt via Traefik
-- Based on Authelia's official bundle with overrides
+- Production-ready base configuration with development overrides
 
 **Service Organization:**
-- `/deployment/authelia/` - Authentication service configs
+- `/deployment/` - Docker Compose configurations
 - `/deployment/traefik/` - Reverse proxy configs  
 - `/deployment/memrok/` - App-specific deployment files
 - `/deployment/scripts/` - Utility scripts (cert generation, etc.)
@@ -65,14 +65,14 @@ bun run dev
 # Generate SSL certificates (first time only)  
 bun run certs
 
-# Start infrastructure (Traefik + Authelia)
+# Start infrastructure (Traefik + Zitadel)
 bun run infra:start
 
 # Start Nuxt development server
 bun run dev
 
 # Access: https://app.dev.memrok.com
-# Auth: admin/admin123 or dev/admin123
+# Auth: Setup required in Zitadel console at https://auth.dev.memrok.com/ui/console
 ```
 
 ### Infrastructure Management
@@ -118,7 +118,7 @@ Not yet implemented:
 - Memory storage and retrieval
 - Database connections
 - API endpoints
-- Authentication system
+- Full authentication integration (Zitadel configuration needed)
 - Docker deployment
 
 ## Key Files to Know
@@ -140,7 +140,7 @@ Not yet implemented:
 
 ### Docker Services
 - **Traefik**: Reverse proxy with SSL termination
-- **Authelia**: Authentication service (dev: one-factor, prod: two-factor)
+- **Zitadel**: Authentication service (OIDC/OAuth2)
 - **memrok**: Main application (when containerized)
 
 ### SSL & Domains
@@ -149,10 +149,9 @@ Not yet implemented:
 - No hosts file needed - public DNS resolves to 127.0.0.1
 
 ### Configuration Files
-- `deployment/docker-compose.yml`: Base services
-- `deployment/docker-compose.dev.yml`: Development overrides
-- `deployment/docker-compose.prod.yml`: Production overrides
-- `deployment/authelia/configuration.yml`: Auth service config
+- `deployment/docker-compose.yml`: Production-ready base configuration
+- `deployment/docker-compose.dev.yml`: Development overrides only
+- `deployment/docker-compose.prod.yml`: Small production override (memrok app only)
 
 ## Future Implementation Notes
 
@@ -160,6 +159,6 @@ When implementing core features:
 1. MCP server should be in `/server/api/mcp/`
 2. Memory storage logic should handle entities, relations, and observations as separate concepts
 3. Vector embeddings for semantic search should integrate with Qdrant
-4. Authentication should use JWT with secure HTTP-only cookies
+4. Authentication uses Zitadel OIDC with nuxt-oidc-auth module
 5. Docker setup should include PostgreSQL, Qdrant, and the Nuxt app
 6. Tests should be added using Vitest when implemented
