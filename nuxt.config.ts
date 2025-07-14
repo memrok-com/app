@@ -9,7 +9,8 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     public: {
-      autheliaUrl: process.env.MEMROK_AUTH_DOMAIN ? `https://${process.env.MEMROK_AUTH_DOMAIN}` : 'https://auth.dev.memrok.com',
+      MEMROK_AUTH_DOMAIN: process.env.MEMROK_AUTH_DOMAIN || 'auth.dev.memrok.com',
+      MEMROK_VERSION: process.env.MEMROK_VERSION || 'v0.0.1',
     },
   },
   vite: {

@@ -13,7 +13,12 @@
     :items="items"
   />
     <template #right>
-      <UColorModeButton class="cursor-pointer" />
+      <div class="flex items-center gap-2">
+        <ULink :to="`https://${authDomain}`">
+          <UAvatar icon="i-ph-user" />
+        </ULink>
+        <UColorModeButton class="cursor-pointer" />
+      </div>
     </template>
   </UHeader>
   <NuxtPage />
@@ -23,7 +28,9 @@
 import type { NavigationMenuItem } from '@nuxt/ui'
 
 const { locale, t } = useI18n()
-const version = process.env.MEMROK_VERSION || 'v0.1.0'
+const config = useRuntimeConfig()
+const version = config.public.MEMROK_VERSION
+const authDomain = config.public.MEMROK_AUTH_DOMAIN
 
 const items = computed<NavigationMenuItem[][]>(() => [
   [

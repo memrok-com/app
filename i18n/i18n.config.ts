@@ -6,7 +6,7 @@ export default defineI18nConfig(() => ({
         memory: 'Memory',
         assistants: 'Assistants',
         settings: 'Settings',
-        github: 'GitHub'
+        github: 'GitHub',
       },
       index: {
         hero: {

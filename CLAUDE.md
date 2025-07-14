@@ -48,21 +48,46 @@ memrok is a self-hosted, privacy-first memory service for AI assistants. It impl
 
 ## Development Commands
 
+### Quick Start
 ```bash
 # Install dependencies
 bun install
 
-# Development server (http://localhost:3000)
+# Setup development environment (first time only)
+bun run setup
+
+# Start development server
+bun run dev
+```
+
+### Full Development Setup
+```bash
+# Generate SSL certificates (first time only)  
+bun run certs
+
+# Start infrastructure (Traefik + Authelia)
+bun run infra:start
+
+# Start Nuxt development server
 bun run dev
 
-# Build for production
-bun run build
+# Access: https://app.dev.memrok.com
+# Auth: admin/admin123 or dev/admin123
+```
 
-# Preview production build
-bun run preview
+### Infrastructure Management
+```bash
+# Infrastructure control
+bun run infra:start    # Start containers
+bun run infra:stop     # Stop containers  
+bun run infra:restart  # Restart containers
+bun run infra:logs     # View logs
+bun run infra:status   # Check status
 
-# Generate static site
-bun run generate
+# Build and preview
+bun run build          # Build for production
+bun run preview        # Preview production build
+bun run generate       # Generate static site
 ```
 
 ## Project Structure
@@ -111,6 +136,24 @@ Not yet implemented:
 - Icons: Phosphor Icons via @iconify-json/ph
 - UI components: Nuxt UI Pro library
 
+## Development Infrastructure
+
+### Docker Services
+- **Traefik**: Reverse proxy with SSL termination
+- **Authelia**: Authentication service (dev: one-factor, prod: two-factor)
+- **memrok**: Main application (when containerized)
+
+### SSL & Domains
+- Development: `*.dev.memrok.com` with mkcert certificates
+- Production: Let's Encrypt via Traefik
+- No hosts file needed - public DNS resolves to 127.0.0.1
+
+### Configuration Files
+- `deployment/docker-compose.yml`: Base services
+- `deployment/docker-compose.dev.yml`: Development overrides
+- `deployment/docker-compose.prod.yml`: Production overrides
+- `deployment/authelia/configuration.yml`: Auth service config
+
 ## Future Implementation Notes
 
 When implementing core features:
@@ -119,3 +162,4 @@ When implementing core features:
 3. Vector embeddings for semantic search should integrate with Qdrant
 4. Authentication should use JWT with secure HTTP-only cookies
 5. Docker setup should include PostgreSQL, Qdrant, and the Nuxt app
+6. Tests should be added using Vitest when implemented
