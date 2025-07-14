@@ -9,6 +9,7 @@ Thanks for your interest in contributing! memrok is a community-driven project, 
 - [Bun](https://bun.sh/) runtime
 - [Docker](https://docs.docker.com/get-docker/)
 - [mkcert](https://mkcert.dev) for trusted SSL certificates
+- **SMTP service** (e.g., Mailgun, Gmail, SendGrid) for email notifications
 
 ```bash
 git clone --recursive https://github.com/memrok-com/app.git
@@ -42,9 +43,43 @@ bun run setup
 - https://auth.dev.memrok.com - Zitadel authentication portal  
 - https://proxy.dev.memrok.com - Traefik dashboard
 
-**Authentication:**
-- Setup required in Zitadel console first
-- Access Zitadel at https://auth.dev.memrok.com/ui/console
+**Authentication Setup:**
+
+1. **Generate OIDC Secrets** (required for authentication):
+   ```bash
+   # Generate session secrets and token keys
+   openssl rand -hex 32  # For NUXT_OIDC_SESSION_SECRET
+   openssl rand -hex 32  # For NUXT_OIDC_AUTH_SESSION_SECRET  
+   openssl rand -hex 24  # For NUXT_OIDC_TOKEN_KEY
+   ```
+   Add these to your `.env` file.
+
+1.5. **Configure SMTP** (required for email notifications):
+   ```bash
+   # Example for Mailgun
+   ZITADEL_SMTP_HOST=smtp.eu.mailgun.org:587
+   ZITADEL_SMTP_USER=postmaster@your-domain.mailgun.org
+   ZITADEL_SMTP_PASSWORD=your-mailgun-password
+   ZITADEL_SMTP_FROM=auth@yourdomain.com
+   ```
+   **Note:** SMTP configuration must be provided with valid values, as empty SMTP variables will cause Zitadel initialization to fail.
+
+2. **Configure Zitadel Application** (required):
+   - Access Zitadel console: https://auth.dev.memrok.com/ui/console
+   - Login with default admin or create account
+   - Create new Application:
+     - Type: **Web Application**
+     - Name: `memrok-app`
+     - Redirect URIs: `https://app.dev.memrok.com/auth/zitadel/callback`
+     - Post Logout URIs: `https://app.dev.memrok.com`
+     - Authentication Method: **PKCE** (Public Client)
+   - Copy the generated **Client ID** and **Client Secret**
+   - Add to `.env` file:
+     ```
+     ZITADEL_CLIENT_ID=<your-client-id>
+     ZITADEL_CLIENT_SECRET=<your-client-secret>
+     ```
+
 - No certificate warnings with mkcert!
 
 **How it works:**

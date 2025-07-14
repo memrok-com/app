@@ -10,11 +10,12 @@
     "postinstall": "nuxt prepare",
     "setup": "bun run certs && bun run infra:start",
     "certs": "cd deployment && ./scripts/generate-certs.sh",
-    "infra:start": "docker compose --env-file .env -f deployment/docker-compose.yml -f deployment/docker-compose.dev.yml down && docker compose --env-file .env -f deployment/docker-compose.yml -f deployment/docker-compose.dev.yml up -d",
-    "infra:restart": "docker compose --env-file .env -f deployment/docker-compose.yml -f deployment/docker-compose.dev.yml restart",
-    "infra:stop": "docker compose --env-file .env -f deployment/docker-compose.yml -f deployment/docker-compose.dev.yml down",
-    "infra:logs": "docker compose --env-file .env -f deployment/docker-compose.yml -f deployment/docker-compose.dev.yml logs -f",
-    "infra:status": "docker compose --env-file .env -f deployment/docker-compose.yml -f deployment/docker-compose.dev.yml ps"
+    "infra:start": "docker compose --project-name memrok --env-file .env -f deployment/docker-compose.yml -f deployment/docker-compose.dev.yml down && docker compose --project-name memrok --env-file .env -f deployment/docker-compose.yml -f deployment/docker-compose.dev.yml up -d",
+    "infra:restart": "docker compose --project-name memrok --env-file .env -f deployment/docker-compose.yml -f deployment/docker-compose.dev.yml restart",
+    "infra:stop": "docker compose --project-name memrok --env-file .env -f deployment/docker-compose.yml -f deployment/docker-compose.dev.yml down",
+    "infra:logs": "docker compose --project-name memrok --env-file .env -f deployment/docker-compose.yml -f deployment/docker-compose.dev.yml logs -f",
+    "infra:status": "docker compose --project-name memrok --env-file .env -f deployment/docker-compose.yml -f deployment/docker-compose.dev.yml ps",
+    "auth:config": "cd deployment && ./scripts/extract-client-config.sh"
   },
   "dependencies": {
     "@formkit/auto-animate": "^0.8.2",
