@@ -30,17 +30,17 @@ const items = computed<NavigationMenuItem[][]>(() => [
     {
       icon: 'i-ph-memory-fill',
        label: t('navigation.memory'),
-       to: `/${locale.value}/memory`,
+       to: `/${locale.value}/my/memory`,
        },
        {
        icon: 'i-ph-head-circuit-fill',
        label: t('navigation.assistants'),
-       to: `/${locale.value}/assistants`,
+       to: `/${locale.value}/my/assistants`,
        },
     {
       icon: 'i-ph-gear-fill',
       label: t('navigation.settings'),
-      to: `/${locale.value}/settings`,
+      to: `/${locale.value}/my/settings`,
     },
   ],
   [
@@ -48,7 +48,7 @@ const items = computed<NavigationMenuItem[][]>(() => [
       icon: 'i-ph-github-logo-fill',
       label: t('navigation.github'),
       target: '_blank',
-      to: 'https://github.com/memrok-com',
+      to: 'https://github.com/memrok-com/memrok',
     },
   ]
 ])

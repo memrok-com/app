@@ -4,15 +4,17 @@
   "type": "module",
   "scripts": {
     "build": "nuxt build",
-    "dev": "docker network create memrok-dev 2>/dev/null || true && docker compose --env-file .env -f deployment/traefik/docker-compose.yml -f deployment/traefik/docker-compose.dev.yml -f deployment/authelia/docker-compose.yml up -d && nuxt dev --host",
-    "dev:mini": "docker compose --env-file .env -f deployment/authelia/docker-compose.yml up -d && nuxt dev --host",
-    "stop": "docker compose --env-file .env -f deployment/traefik/docker-compose.yml -f deployment/traefik/docker-compose.dev.yml -f deployment/authelia/docker-compose.yml down",
-    "stop:mini": "docker compose --env-file .env -f deployment/authelia/docker-compose.yml down",
-    "restart": "bun run stop && bun run dev",
-    "restart:mini": "bun run stop:mini && bun run dev:mini",
+    "dev": "nuxt dev --host",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "setup": "bun run certs && bun run infra:start",
+    "certs": "cd deployment && ./scripts/generate-certs.sh",
+    "infra:start": "docker compose --env-file .env -f deployment/docker-compose.yml -f deployment/docker-compose.dev.yml down && docker compose --env-file .env -f deployment/docker-compose.yml -f deployment/docker-compose.dev.yml up -d",
+    "infra:restart": "docker compose --env-file .env -f deployment/docker-compose.yml -f deployment/docker-compose.dev.yml restart",
+    "infra:stop": "docker compose --env-file .env -f deployment/docker-compose.yml -f deployment/docker-compose.dev.yml down",
+    "infra:logs": "docker compose --env-file .env -f deployment/docker-compose.yml -f deployment/docker-compose.dev.yml logs -f",
+    "infra:status": "docker compose --env-file .env -f deployment/docker-compose.yml -f deployment/docker-compose.dev.yml ps"
   },
   "dependencies": {
     "@formkit/auto-animate": "^0.8.2",

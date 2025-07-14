@@ -10,8 +10,8 @@ export default defineI18nConfig(() => ({
       },
       index: {
         hero: {
-          title: 'Rock-Solid Assistant Memory',
-          description: 'memrok is a shared memory for all your AI assistants, helping them keep track of your conversations and interactions.'
+          title: 'Rock-Solid Memory to Personalize All Your AI Assistants',
+          description: 'Keep your data on your infrastructure under your control.'
         },
       },
     },

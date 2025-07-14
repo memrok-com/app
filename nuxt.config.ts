@@ -7,6 +7,11 @@ export default defineNuxtConfig({
   devtools: {
     enabled: true,
   },
+  runtimeConfig: {
+    public: {
+      autheliaUrl: process.env.MEMROK_AUTH_DOMAIN ? `https://${process.env.MEMROK_AUTH_DOMAIN}` : 'https://auth.dev.memrok.com',
+    },
+  },
   vite: {
     server: {
       allowedHosts: [process.env.MEMROK_APP_DOMAIN || 'app.dev.memrok.com'],

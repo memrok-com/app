@@ -19,7 +19,32 @@ memrok is a self-hosted, privacy-first memory service for AI assistants. It impl
 - **Backend**: Nitro server, Bun runtime
 - **Database**: PostgreSQL (planned), Qdrant vector DB (planned)
 - **Authentication**: JWT (planned)
-- **Deployment**: Docker + Docker Compose (planned)
+- **Deployment**: Docker + Docker Compose
+
+### Deployment Architecture
+
+**Repository Structure:**
+- `memrok-com/app` - Full development environment (this repo)
+- `memrok-com/memrok` - Production deployment repo (submodule at `./deployment`)
+
+**Development Setup:**
+- Dev configs in app root (CONTRIBUTING.md, package.json scripts)
+- Deployment configs in `./deployment` submodule
+- Infrastructure: Traefik + Authelia containers + local Nuxt dev server
+- SSL: mkcert for trusted certificates (no browser warnings)
+- Domains: `*.dev.memrok.com` (public DNS → 127.0.0.1)
+
+**Production Setup:**
+- All configs in deployment submodule
+- Infrastructure: Traefik + Authelia + memrok app containers  
+- SSL: Let's Encrypt via Traefik
+- Based on Authelia's official bundle with overrides
+
+**Service Organization:**
+- `/deployment/authelia/` - Authentication service configs
+- `/deployment/traefik/` - Reverse proxy configs  
+- `/deployment/memrok/` - App-specific deployment files
+- `/deployment/scripts/` - Utility scripts (cert generation, etc.)
 
 ## Development Commands
 

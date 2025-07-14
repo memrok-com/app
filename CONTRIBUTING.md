@@ -8,6 +8,7 @@ Thanks for your interest in contributing! memrok is a community-driven project, 
 - [Node.js LTS](https://nodejs.org/) 
 - [Bun](https://bun.sh/) runtime
 - [Docker](https://docs.docker.com/get-docker/)
+- [mkcert](https://mkcert.dev) for trusted SSL certificates
 
 ```bash
 git clone --recursive https://github.com/memrok-com/app.git
@@ -19,42 +20,39 @@ cp .env.example .env
 
 ### Development Setup
 
-Choose your development environment:
+The development environment uses Traefik and Authelia with trusted SSL certificates via mkcert.
 
-#### Full Stack (Traefik + Authelia + memrok)
-
-Complete development environment with included Traefik:
-
+**Quick Start:**
 ```bash
-# Edit .env with domains and secrets (uses *.dev.memrok.com by default)
+# Generate SSL certificates (first time only)
+bun run dev:certs
 
-# Start full stack (creates network, starts Traefik + Authelia + memrok)
+# Start infrastructure (Traefik + Authelia)
+bun run dev:infra
+
+# Start Nuxt development server
 bun run dev
 
-# Available endpoints:
-# http://app.dev.memrok.com - memrok app
-# http://auth.dev.memrok.com - Authelia auth portal  
-# http://proxy.dev.memrok.com - Traefik dashboard
+# Or start everything together
+bun run dev:full
 ```
 
-#### Minimal Stack (BYORP - Bring Your Own Reverse Proxy)
+**Access URLs:**
+- https://app.dev.memrok.com - memrok app (proxied to local Nuxt dev server)
+- https://auth.dev.memrok.com - Authelia authentication portal  
+- https://proxy.dev.memrok.com - Traefik dashboard
 
-Use your existing reverse proxy with Authelia:
+**Authentication:**
+- Username: `admin` or `dev`
+- Password: `admin123`
+- No certificate warnings with mkcert!
 
-```bash
-# Edit .env with your domains and network settings
-
-# Start minimal stack (starts Authelia + memrok)
-bun run dev:mini
-
-# Available endpoints:
-# http://localhost:3000 - memrok app (direct)
-# http://localhost:9091 - Authelia (direct)
-
-# Configure your reverse proxy to route:
-# - ${MEMROK_APP_DOMAIN} → host.docker.internal:3000
-# - ${MEMROK_AUTH_DOMAIN} → host.docker.internal:9091
-```
+**How it works:**
+- Uses Docker Compose with Traefik + Authelia
+- Trusted SSL certificates via mkcert (no browser warnings)
+- Public DNS: `*.dev.memrok.com` → `127.0.0.1` (no hosts file needed!)
+- Traefik proxies to local Nuxt dev server via host.docker.internal
+- One-factor auth for development (easier than production two-factor)
 
 
 ### Development Commands
@@ -63,20 +61,28 @@ bun run dev:mini
 # Install dependencies
 bun install
 
-# Full development stack (Traefik + Authelia + memrok)
-bun run dev
+# SSL Certificate management
+bun run dev:certs              # Generate SSL certificates (first time only)
 
-# Minimal development stack (Authelia + memrok)
-bun run dev:mini
+# Infrastructure management  
+bun run dev:infra              # Start infrastructure (Traefik + Authelia)
+bun run dev:infra:stop         # Stop infrastructure
+bun run dev:infra:restart      # Restart infrastructure
+bun run dev:infra:logs         # View infrastructure logs
 
-# Build for production
-bun run build
+# Application development
+bun run dev                    # Start Nuxt development server
+bun run dev:full               # Start infrastructure + Nuxt together
 
-# Preview production build
-bun run preview
+# Production builds
+bun run build                  # Build for production
+bun run preview                # Preview production build
+bun run generate               # Generate static site
 
-# Generate static site
-bun run generate
+# Production deployment (when memrok container is ready)
+bun run prod:up                # Start production stack
+bun run prod:down              # Stop production stack  
+bun run prod:logs              # View production logs
 
 # Run tests (when implemented)
 bun test
