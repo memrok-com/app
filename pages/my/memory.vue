@@ -1,9 +1,7 @@
 <template></template>
 
 <script setup lang="ts">
-definePageMeta({
-  middleware: 'auth'
-})
+// Auth is handled globally, no need for page-specific middleware
 
 useHead({
   title: 'Memories',

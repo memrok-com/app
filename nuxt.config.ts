@@ -10,6 +10,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       MEMROK_VERSION: process.env.MEMROK_VERSION || 'v0.0.1',
+      MEMROK_AUTH_CONFIGURED: !!(process.env.ZITADEL_CLIENT_ID && process.env.ZITADEL_CLIENT_SECRET),
     },
   },
   vite: {
@@ -22,7 +23,7 @@ export default defineNuxtConfig({
       optimizeTranslationDirective: false,
     },
     locales: ['en'],
-    vueI18n: './i18n.config.ts'
+    vueI18n: './i18n/i18n.config.ts'
   },
   modules: [
     '@nuxt/fonts',
