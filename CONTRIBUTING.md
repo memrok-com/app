@@ -25,17 +25,16 @@ The development environment uses Traefik and Zitadel with trusted SSL certificat
 
 **Quick Start:**
 ```bash
-# Generate SSL certificates (first time only)
-bun run certs
-
-# Start infrastructure (Traefik + Zitadel)
-bun run infra:start
-
-# Start Nuxt development server
-bun run dev
-
-# Or start everything together
+# Full automated setup (recommended)
 bun run setup
+# This will:
+# 1. Generate SSL certificates
+# 2. Start infrastructure (Traefik + Zitadel) 
+# 3. Provision Zitadel project and application
+# 4. Output OIDC configuration for your .env
+
+# Then start development server
+bun run dev
 ```
 
 **Access URLs:**
@@ -45,7 +44,13 @@ bun run setup
 
 **Authentication Setup:**
 
-1. **Generate OIDC Secrets** (required for authentication):
+1. **Configure Admin User** (in `.env`):
+   ```bash
+   ZITADEL_ADMIN_EMAIL=admin@yourdomain.com
+   ZITADEL_ADMIN_PASSWORD=your-secure-password
+   ```
+
+2. **Generate OIDC Secrets** (required for Nuxt authentication):
    ```bash
    # Generate session secrets and token keys
    openssl rand -hex 32  # For NUXT_OIDC_SESSION_SECRET
@@ -54,7 +59,7 @@ bun run setup
    ```
    Add these to your `.env` file.
 
-1.5. **Configure SMTP** (required for email notifications):
+3. **Configure SMTP** (optional but recommended for email notifications):
    ```bash
    # Example for Mailgun
    ZITADEL_SMTP_HOST=smtp.eu.mailgun.org:587
@@ -62,32 +67,28 @@ bun run setup
    ZITADEL_SMTP_PASSWORD=your-mailgun-password
    ZITADEL_SMTP_FROM=auth@yourdomain.com
    ```
-   **Note:** SMTP configuration must be provided with valid values, as empty SMTP variables will cause Zitadel initialization to fail.
 
-2. **Configure Zitadel Application** (required):
-   - Access Zitadel console: https://auth.dev.memrok.com/ui/console
-   - Login with default admin or create account
-   - Create new Application:
-     - Type: **Web Application**
-     - Name: `memrok-app`
-     - Redirect URIs: `https://app.dev.memrok.com/auth/zitadel/callback`
-     - Post Logout URIs: `https://app.dev.memrok.com`
-     - Authentication Method: **PKCE** (Public Client)
-   - Copy the generated **Client ID** and **Client Secret**
-   - Add to `.env` file:
+4. **Run Automated Provisioning**:
+   The `bun run setup` command automatically:
+   - Creates a service account for provisioning
+   - Creates the "memrok" project in Zitadel
+   - Grants the admin user access to the project
+   - Creates a User Agent (SPA) application with PKCE
+   - Outputs the OIDC configuration for your `.env`:
      ```
-     ZITADEL_CLIENT_ID=<your-client-id>
-     ZITADEL_CLIENT_SECRET=<your-client-secret>
+     NUXT_OIDC_CLIENT_ID="your-generated-client-id"
+     NUXT_OIDC_ISSUER="https://auth.dev.memrok.com"
+     NUXT_OIDC_REDIRECT_URI="https://app.dev.memrok.com/auth/callback"
+     NUXT_OIDC_POST_LOGOUT_REDIRECT_URI="https://app.dev.memrok.com/"
      ```
-
-- No certificate warnings with mkcert!
 
 **How it works:**
 - Uses Docker Compose with Traefik + Zitadel
 - Trusted SSL certificates via mkcert (no browser warnings)
 - Public DNS: `*.dev.memrok.com` → `127.0.0.1` (no hosts file needed!)
 - Traefik proxies to local Nuxt dev server via host.docker.internal
-- OIDC authentication via Zitadel for modern auth flows
+- Automated Zitadel provisioning creates project and application
+- OIDC authentication via Zitadel using PKCE flow (no client secrets)
 
 
 ### Development Commands
@@ -108,7 +109,8 @@ bun run infra:status           # Check infrastructure status
 
 # Application development
 bun run dev                    # Start Nuxt development server
-bun run setup                  # Setup everything (certs + infra)
+bun run setup                  # Full setup (certs + infra + auth provisioning)
+bun run auth                   # Run Zitadel provisioning only
 
 # Production builds
 bun run build                  # Build for production
