@@ -9,6 +9,11 @@
 </template>
 
 <script setup lang="ts">
+// Make this page public (accessible without authentication)
+definePageMeta({
+  auth: false
+})
+
 const { t } = useI18n()
 
 useHead({

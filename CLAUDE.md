@@ -42,53 +42,16 @@ memrok is a self-hosted, privacy-first memory service for AI assistants. It impl
 
 **Service Organization:**
 - `/deployment/` - Docker Compose configurations
-- `/deployment/traefik/` - Reverse proxy configs  
+- `/deployment/traefik/` - Reverse proxy configs
+- `/deployment/zitadel/` - Zitadel secrets and configurations
 - `/deployment/memrok/` - App-specific deployment files
 - `/deployment/scripts/` - Utility scripts (cert generation, etc.)
 
 ## Development Commands
+See [CONTRIBUTING.md](/CONTRIBUTING.md)
 
-### Quick Start
-```bash
-# Install dependencies
-bun install
-
-# Setup development environment (first time only)
-bun run setup
-
-# Start development server
-bun run dev
-```
-
-### Full Development Setup
-```bash
-# Generate SSL certificates (first time only)  
-bun run certs
-
-# Start infrastructure (Traefik + Zitadel)
-bun run infra:start
-
-# Start Nuxt development server
-bun run dev
-
-# Access: https://app.dev.memrok.com
-# Auth: Setup required in Zitadel console at https://auth.dev.memrok.com/ui/console
-```
-
-### Infrastructure Management
-```bash
-# Infrastructure control
-bun run infra:start    # Start containers
-bun run infra:stop     # Stop containers  
-bun run infra:restart  # Restart containers
-bun run infra:logs     # View logs
-bun run infra:status   # Check status
-
-# Build and preview
-bun run build          # Build for production
-bun run preview        # Preview production build
-bun run generate       # Generate static site
-```
+## SSL Certificate Trust in Development
+The dev server automatically trusts mkcert certificates by setting NODE_EXTRA_CA_CERTS to the mkcert root CA. This ensures secure communication with Zitadel during development.
 
 ## Project Structure
 
@@ -112,13 +75,6 @@ Nuxt 4 uses an organized directory structure with application code in the `/app/
 - `/deployment/`: Docker deployment configuration
 - `nuxt.config.ts`: Nuxt framework configuration
 
-## Environment Setup
-
-Create `.env` file from `.env.example`:
-```bash
-NUXT_UI_PRO_LICENSE=your-license-key-here
-```
-
 ## Implementation Status
 
 Currently implemented:
@@ -137,9 +93,9 @@ Not yet implemented:
 ## Key Files to Know
 
 - `nuxt.config.ts`: Framework configuration
-- `app.config.ts`: UI theme and runtime config
+- `app/app.config.ts`: UI theme and runtime config
 - `server/tsconfig.json`: Server-specific TypeScript config
-- `/assets/css/main.css`: Global styles and font imports
+- `app/assets/css/main.css`: Global styles and font imports
 
 ## UI Conventions
 
@@ -157,9 +113,8 @@ Not yet implemented:
 - **memrok**: Main application (when containerized)
 
 ### SSL & Domains
-- Development: `*.dev.memrok.com` with mkcert certificates
-- Production: Let's Encrypt via Traefik
-- No hosts file needed - public DNS resolves to 127.0.0.1
+- Development: `*.dev.memrok.com` with mkcert certificates (no hosts file needed - public DNS resolves to 127.0.0.1)
+- Production: Let's Encrypt via Traefik 
 
 ### Configuration Files
 - `deployment/docker-compose.yml`: Production-ready base configuration

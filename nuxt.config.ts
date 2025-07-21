@@ -7,18 +7,6 @@ export default defineNuxtConfig({
   devtools: {
     enabled: true,
   },
-  runtimeConfig: {
-    public: {
-      MEMROK_VERSION: process.env.MEMROK_VERSION || 'v0.0.1',
-      MEMROK_AUTH_CONFIGURED: !!(process.env.NUXT_OIDC_CLIENT_ID),
-      MEMROK_AUTH_DOMAIN: process.env.MEMROK_AUTH_DOMAIN || 'auth.dev.memrok.com',
-    },
-  },
-  vite: {
-    server: {
-      allowedHosts: [process.env.MEMROK_APP_DOMAIN || 'app.dev.memrok.com'],
-    },
-  },
   i18n: {
     bundle: {
       optimizeTranslationDirective: false,
@@ -36,17 +24,33 @@ export default defineNuxtConfig({
   ],
   oidc: {
     defaultProvider: 'zitadel',
+    middleware: {
+      globalMiddlewareEnabled: true, // Enable built-in global middleware
+    },
     providers: {
       zitadel: {
-        clientId: process.env.NUXT_OIDC_CLIENT_ID || '',
-        baseUrl: process.env.NUXT_OIDC_ISSUER || 'https://auth.dev.memrok.com',
-        redirectUri: process.env.NUXT_OIDC_REDIRECT_URI || 'https://app.dev.memrok.com/auth/callback',
-        logoutRedirectUri: process.env.NUXT_OIDC_POST_LOGOUT_REDIRECT_URI || 'https://app.dev.memrok.com',
+        audience: process.env.NUXT_OIDC_CLIENT_ID,
+        clientId: process.env.NUXT_OIDC_CLIENT_ID,
+        baseUrl: process.env.NUXT_OIDC_ISSUER,
+        redirectUri: process.env.NUXT_OIDC_REDIRECT_URI,
+        logoutRedirectUri: process.env.NUXT_OIDC_POST_LOGOUT_REDIRECT_URI,
         authenticationScheme: 'none', // PKCE flow
       },
     },
     session: {
       automaticRefresh: true,
+    },
+  },
+  runtimeConfig: {
+    public: {
+      MEMROK_VERSION: process.env.MEMROK_VERSION,
+      MEMROK_AUTH_CONFIGURED: !!(process.env.NUXT_OIDC_CLIENT_ID),
+      MEMROK_AUTH_DOMAIN: process.env.MEMROK_AUTH_DOMAIN,
+    },
+  },
+  vite: {
+    server: {
+      allowedHosts: [process.env.MEMROK_APP_DOMAIN || 'app.dev.memrok.com'],
     },
   },
 })
