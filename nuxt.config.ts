@@ -10,7 +10,8 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       MEMROK_VERSION: process.env.MEMROK_VERSION || 'v0.0.1',
-      MEMROK_AUTH_CONFIGURED: !!(process.env.ZITADEL_CLIENT_ID && process.env.ZITADEL_CLIENT_SECRET),
+      MEMROK_AUTH_CONFIGURED: !!(process.env.NUXT_OIDC_CLIENT_ID),
+      MEMROK_AUTH_DOMAIN: process.env.MEMROK_AUTH_DOMAIN || 'auth.dev.memrok.com',
     },
   },
   vite: {
@@ -23,7 +24,7 @@ export default defineNuxtConfig({
       optimizeTranslationDirective: false,
     },
     locales: ['en'],
-    vueI18n: './i18n/i18n.config.ts'
+    vueI18n: '~/i18n/i18n.config.ts'
   },
   modules: [
     '@nuxt/fonts',
@@ -37,11 +38,10 @@ export default defineNuxtConfig({
     defaultProvider: 'zitadel',
     providers: {
       zitadel: {
-        clientId: process.env.ZITADEL_CLIENT_ID || '',
-        clientSecret: process.env.ZITADEL_CLIENT_SECRET || '',
-        baseUrl: process.env.ZITADEL_BASE_URL || 'https://auth.dev.memrok.com',
-        redirectUri: process.env.ZITADEL_REDIRECT_URI || 'https://app.dev.memrok.com/auth/zitadel/callback',
-        logoutRedirectUri: process.env.ZITADEL_LOGOUT_REDIRECT_URI || 'https://app.dev.memrok.com',
+        clientId: process.env.NUXT_OIDC_CLIENT_ID || '',
+        baseUrl: process.env.NUXT_OIDC_ISSUER || 'https://auth.dev.memrok.com',
+        redirectUri: process.env.NUXT_OIDC_REDIRECT_URI || 'https://app.dev.memrok.com/auth/callback',
+        logoutRedirectUri: process.env.NUXT_OIDC_POST_LOGOUT_REDIRECT_URI || 'https://app.dev.memrok.com',
         authenticationScheme: 'none', // PKCE flow
       },
     },

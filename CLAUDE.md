@@ -15,7 +15,7 @@ memrok is a self-hosted, privacy-first memory service for AI assistants. It impl
 - **Multi-Assistant Support**: Works with Claude, Cursor, VS Code, and other MCP-compatible tools
 
 ### Tech Stack
-- **Frontend**: Nuxt 3, Vue 3, Nuxt UI Pro 3 (incl. Tailwind CSS 4)
+- **Frontend**: Nuxt 4, Vue 3, Nuxt UI Pro 3 (incl. Tailwind CSS 4)
 - **Backend**: Nitro server, Bun runtime
 - **Database**: PostgreSQL (planned), Qdrant vector DB (planned)
 - **Authentication**: Zitadel (OIDC)
@@ -92,12 +92,25 @@ bun run generate       # Generate static site
 
 ## Project Structure
 
-Key directories and their purposes:
-- `/pages/`: File-based routing - memories.vue, assistants.vue, settings.vue
-- `/components/`: Reusable Vue components
+Nuxt 4 uses an organized directory structure with application code in the `/app/` directory:
+
+**Application Code (in `/app/` directory):**
+- `/app/pages/`: File-based routing - memories.vue, assistants.vue, settings.vue
+- `/app/components/`: Reusable Vue components
+- `/app/layouts/`: Page layouts with navigation
+- `/app/assets/`: CSS and static assets
+- `/app/plugins/`: Client-side plugins
+- `/app/middleware/`: Route middleware
+- `/app/utils/`: Utility functions
+- `/app/i18n/`: Internationalization configuration
+- `/app/app.vue`: Root application component
+- `/app/app.config.ts`: Application configuration
+
+**Project Root:**
 - `/server/`: Nitro server code (API endpoints, MCP implementation)
-- `/layouts/`: Page layouts with navigation
-- `/assets/`: CSS and static assets
+- `/public/`: Static files
+- `/deployment/`: Docker deployment configuration
+- `nuxt.config.ts`: Nuxt framework configuration
 
 ## Environment Setup
 

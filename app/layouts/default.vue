@@ -14,9 +14,14 @@
   />
     <template #right>
       <div class="flex items-center gap-2">
-        <ULink :to="`https://${authDomain}`">
-          <UAvatar icon="i-ph-user" />
-        </ULink>
+        <UDropdown v-if="user" :items="userMenuItems">
+          <UAvatar 
+            :src="user.picture" 
+            :alt="user.name" 
+            :icon="user.picture ? undefined : 'i-ph-user'"
+            class="cursor-pointer"
+          />
+        </UDropdown>
         <UColorModeButton class="cursor-pointer" />
       </div>
     </template>
@@ -29,8 +34,9 @@ import type { NavigationMenuItem } from '@nuxt/ui'
 
 const { locale, t } = useI18n()
 const config = useRuntimeConfig()
+const { user, loggedIn } = useOidcAuth()
+
 const version = config.public.MEMROK_VERSION
-const authDomain = config.public.MEMROK_AUTH_DOMAIN
 
 const items = computed<NavigationMenuItem[][]>(() => [
   [
@@ -59,4 +65,30 @@ const items = computed<NavigationMenuItem[][]>(() => [
     },
   ]
 ])
+
+const userMenuItems = computed(() => [
+  [
+    {
+      label: user.value?.name || user.value?.email || 'User',
+      icon: 'i-ph-user',
+      disabled: true
+    }
+  ],
+  [
+    {
+      label: 'Profile',
+      icon: 'i-ph-user-circle',
+      click: () => navigateTo(`https://${config.public.MEMROK_AUTH_DOMAIN}/ui/login`, { external: true })
+    },
+    {
+      label: 'Logout',
+      icon: 'i-ph-sign-out',
+      click: () => logout()
+    }
+  ]
+])
+
+async function logout() {
+  await navigateTo(`https://${config.public.MEMROK_AUTH_DOMAIN}/ui/login/logout`, { external: true })
+}
 </script>
