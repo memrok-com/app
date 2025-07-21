@@ -31,7 +31,7 @@ bun run setup
 # 1. Generate SSL certificates
 # 2. Start infrastructure (Traefik + Zitadel) 
 # 3. Provision Zitadel project and application
-# 4. Output OIDC configuration for your .env
+# 4. Automatically update your .env with OIDC configuration
 
 # Then start development server
 bun run dev
@@ -74,7 +74,7 @@ bun run dev
    - Creates the "memrok" project in Zitadel
    - Grants the admin user access to the project
    - Creates a User Agent (SPA) application with PKCE
-   - Outputs the OIDC configuration for your `.env`:
+   - **Automatically updates your `.env` file** with:
      ```
      NUXT_OIDC_CLIENT_ID="your-generated-client-id"
      NUXT_OIDC_ISSUER="https://auth.dev.memrok.com"
@@ -88,6 +88,7 @@ bun run dev
 - Public DNS: `*.dev.memrok.com` → `127.0.0.1` (no hosts file needed!)
 - Traefik proxies to local Nuxt dev server via host.docker.internal
 - Automated Zitadel provisioning creates project and application
+- OIDC configuration automatically written to your .env file
 - OIDC authentication via Zitadel using PKCE flow (no client secrets)
 
 
@@ -98,7 +99,7 @@ bun run dev
 bun install
 
 # SSL Certificate management
-bun run certs                  # Generate SSL certificates (first time only)
+bun run certs                  # Generate SSL certificates (cross-platform TypeScript)
 
 # Infrastructure management  
 bun run infra:start            # Start infrastructure (Traefik + Zitadel)
@@ -110,7 +111,7 @@ bun run infra:status           # Check infrastructure status
 # Application development
 bun run dev                    # Start Nuxt development server
 bun run setup                  # Full setup (certs + infra + auth provisioning)
-bun run auth                   # Run Zitadel provisioning only
+bun run infra:provision        # Run Zitadel provisioning only
 
 # Production builds
 bun run build                  # Build for production
