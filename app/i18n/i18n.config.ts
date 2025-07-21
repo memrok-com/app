@@ -7,6 +7,10 @@ export default defineI18nConfig(() => ({
         assistants: 'Assistants',
         settings: 'Settings',
         github: 'GitHub',
+        darkMode: 'Dark Mode',
+        lightMode: 'Light Mode',
+        profile: 'Profile',
+        logout: 'Logout',
       },
       index: {
         hero: {

@@ -24,17 +24,16 @@ export default defineNuxtConfig({
   ],
   oidc: {
     defaultProvider: 'zitadel',
-    middleware: {
-      globalMiddlewareEnabled: true, // Enable built-in global middleware
-    },
     providers: {
       zitadel: {
         audience: process.env.NUXT_OIDC_CLIENT_ID,
         clientId: process.env.NUXT_OIDC_CLIENT_ID,
+        clientSecret: '', // PKCE flow
         baseUrl: process.env.NUXT_OIDC_ISSUER,
         redirectUri: process.env.NUXT_OIDC_REDIRECT_URI,
         logoutRedirectUri: process.env.NUXT_OIDC_POST_LOGOUT_REDIRECT_URI,
         authenticationScheme: 'none', // PKCE flow
+        scope: ['openid', 'profile', 'email'],
       },
     },
     session: {
@@ -46,6 +45,7 @@ export default defineNuxtConfig({
       MEMROK_VERSION: process.env.MEMROK_VERSION,
       MEMROK_AUTH_CONFIGURED: !!(process.env.NUXT_OIDC_CLIENT_ID),
       MEMROK_AUTH_DOMAIN: process.env.MEMROK_AUTH_DOMAIN,
+      authDomain: process.env.MEMROK_AUTH_DOMAIN,
     },
   },
   vite: {

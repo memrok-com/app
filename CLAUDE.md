@@ -81,13 +81,13 @@ Currently implemented:
 - Basic UI structure with navigation
 - Page routing setup
 - Branding and visual design
+- Full authentication integration
 
 Not yet implemented:
 - MCP server functionality
 - Memory storage and retrieval
 - Database connections
 - API endpoints
-- Full authentication integration (Zitadel configuration needed)
 - Docker deployment
 
 ## Key Files to Know

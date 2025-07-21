@@ -13,7 +13,22 @@
     :items="items"
   />
     <template #right>
-        <UColorModeButton class="cursor-pointer" />
+        <UDropdownMenu
+          :content="{ align: 'end' }"
+          :items="userMenuItems"
+        >
+          <UAvatar
+            :alt="user?.userInfo?.name"
+            class="cursor-pointer"
+          />
+          <template #loggedInAs>
+            <UUser
+              :avatar="{ alt: user?.userInfo?.name }"
+              :name="user?.userInfo?.name"
+              :description="user?.userInfo?.email"
+            />
+          </template>
+        </UDropdownMenu>
     </template>
   </UHeader>
   <NuxtPage />
@@ -21,14 +36,22 @@
 
 <script setup lang="ts">
 import type { NavigationMenuItem } from '@nuxt/ui'
+import type { DropdownMenuItem } from '@nuxt/ui'
 
 const { locale, t } = useI18n()
 const config = useRuntimeConfig()
-
-// Use auth state - the module's global middleware handles public pages correctly
-const { user, loggedIn } = useOidcAuth()
-
+const { user, logout } = useOidcAuth()
 const version = config.public.MEMROK_VERSION
+const colorMode = useColorMode()
+
+const isDark = computed({
+  get() {
+    return colorMode.value === 'dark'
+  },
+  set(_isDark) {
+    colorMode.preference = _isDark ? 'dark' : 'light'
+  }
+})
 
 const items = computed<NavigationMenuItem[][]>(() => [
   [
@@ -55,6 +78,41 @@ const items = computed<NavigationMenuItem[][]>(() => [
       target: '_blank',
       to: 'https://github.com/memrok-com/memrok',
     },
+  ]
+])
+
+const userMenuItems = computed<DropdownMenuItem[][]>(() => [
+  [
+    {
+      class: 'font-normal',
+      slot: 'loggedInAs',
+      type: 'label',
+    },
+  ],
+  [
+    {
+      class: 'cursor-pointer',
+      icon: isDark.value ? 'i-ph-sun' : 'i-ph-moon',
+      label: isDark.value ? t('navigation.lightMode') : t('navigation.darkMode'),
+      onSelect: () => {
+        isDark.value = !isDark.value
+      },
+    },
+  ],
+  [
+    {
+      icon: 'i-ph-user',
+      label: t('navigation.profile'),
+      to: `https://${config.public.MEMROK_AUTH_DOMAIN}/ui/console/users/me`,
+    },
+    {
+      class: 'cursor-pointer',
+      icon: 'i-ph-sign-out',
+      label: t('navigation.logout'),
+      onSelect: () => {
+        logout()
+      },
+    }
   ]
 ])
 </script>

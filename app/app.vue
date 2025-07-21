@@ -18,9 +18,6 @@ useHead({
     lang,
     dir
   },
-  templateParams: {
-    separator: '·'
-  },
-  titleTemplate: 'memrok %separator %s'
+  titleTemplate: '%s · memrok',
 })
 </script>
