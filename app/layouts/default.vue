@@ -7,11 +7,11 @@
       <UBadge size="sm" variant="soft">{{ version }}</UBadge>
     </template>
     <UNavigationMenu
-    highlight
-    highlight-color="primary"
-    orientation="horizontal"
-    :items="items"
-  />
+      highlight
+      highlight-color="primary"
+      orientation="horizontal"
+      :items="items"
+    />
     <template #right>
         <UDropdownMenu
           :content="{ align: 'end' }"
@@ -57,8 +57,8 @@ const items = computed<NavigationMenuItem[][]>(() => [
   [
     {
       icon: 'i-ph-memory-fill',
-       label: t('navigation.memory'),
-       to: `/${locale.value}/my/memory`,
+       label: t('navigation.memories'),
+       to: `/${locale.value}/my/memories`,
        },
        {
        icon: 'i-ph-head-circuit-fill',

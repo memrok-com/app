@@ -15,7 +15,11 @@
     "infra:stop": "docker compose --project-name memrok --env-file .env -f deployment/docker-compose.yml -f deployment/docker-compose.dev.yml down",
     "infra:logs": "docker compose --project-name memrok --env-file .env -f deployment/docker-compose.yml -f deployment/docker-compose.dev.yml logs -f",
     "infra:status": "docker compose --project-name memrok --env-file .env -f deployment/docker-compose.yml -f deployment/docker-compose.dev.yml ps",
-    "infra:provision": "bun run deployment/scripts/provision-auth.ts"
+    "infra:provision": "bun run deployment/scripts/provision-auth.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
     "@formkit/auto-animate": "^0.8.2",
@@ -25,12 +29,15 @@
     "@nuxt/image": "^1.10.0",
     "@nuxt/ui-pro": "^3.2.0",
     "@nuxtjs/i18n": "^9.5.6",
+    "drizzle-orm": "^0.44.3",
     "nuxt": "^4.0.0",
     "nuxt-oidc-auth": "^1.0.0-beta.5",
+    "postgres": "^3.4.7",
     "vue": "^3.5.17",
     "vue-router": "^4.5.1"
   },
   "devDependencies": {
-    "@iconify-json/ph": "^1.2.2"
+    "@iconify-json/ph": "^1.2.2",
+    "drizzle-kit": "^0.31.4"
   }
 }
