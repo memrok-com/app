@@ -17,7 +17,7 @@ memrok is a self-hosted, privacy-first memory service for AI assistants. It impl
 ### Tech Stack
 - **Frontend**: Nuxt 4, Vue 3, Nuxt UI Pro 3 (incl. Tailwind CSS 4)
 - **Backend**: Nitro server, Bun runtime
-- **Database**: PostgreSQL (planned), Qdrant vector DB (planned)
+- **Database**: PostgreSQL with Drizzle ORM, Qdrant vector DB (planned)
 - **Authentication**: Zitadel (OIDC)
 - **Deployment**: Docker + Docker Compose
 
@@ -30,13 +30,14 @@ memrok is a self-hosted, privacy-first memory service for AI assistants. It impl
 **Development Setup:**
 - Dev configs in app root (CONTRIBUTING.md, package.json scripts)
 - Deployment configs in `./deployment` submodule
-- Infrastructure: Traefik + Zitadel containers + local Nuxt dev server
+- Infrastructure: Traefik + Zitadel + PostgreSQL containers + local Nuxt dev server
 - SSL: mkcert for trusted certificates (no browser warnings)
 - Domains: `*.dev.memrok.com` (public DNS → 127.0.0.1)
+- Database: PostgreSQL on port 5432 (configurable via POSTGRES_HOST_PORT)
 
 **Production Setup:**
 - All configs in deployment submodule
-- Infrastructure: Traefik + Zitadel + memrok app containers  
+- Infrastructure: Traefik + Zitadel + PostgreSQL + memrok app containers  
 - SSL: Let's Encrypt via Traefik
 - Production-ready base configuration with development overrides
 
@@ -44,6 +45,7 @@ memrok is a self-hosted, privacy-first memory service for AI assistants. It impl
 - `/deployment/` - Docker Compose configurations
 - `/deployment/traefik/` - Reverse proxy configs
 - `/deployment/zitadel/` - Zitadel secrets and configurations
+- `/deployment/postgres/` - Database initialization scripts
 - `/deployment/memrok/` - App-specific deployment files
 - `/deployment/scripts/` - Utility scripts (cert generation, etc.)
 
@@ -71,9 +73,11 @@ Nuxt 4 uses an organized directory structure with application code in the `/app/
 
 **Project Root:**
 - `/server/`: Nitro server code (API endpoints, MCP implementation)
+- `/server/database/`: Database schema and utilities
 - `/public/`: Static files
-- `/deployment/`: Docker deployment configuration
+- `/deployment/`: Docker deployment configuration (submodule)
 - `nuxt.config.ts`: Nuxt framework configuration
+- `drizzle.config.ts`: Database ORM configuration
 
 ## Implementation Status
 
@@ -82,13 +86,17 @@ Currently implemented:
 - Page routing setup
 - Branding and visual design
 - Full authentication integration
+- Database schema with Drizzle ORM
+- Knowledge graph structure (entities, relations, observations)
+- Multi-user and assistant support in schema
+- PostgreSQL container configuration with automated setup
+- Database migration system with Drizzle Kit
 
 Not yet implemented:
 - MCP server functionality
-- Memory storage and retrieval
-- Database connections
-- API endpoints
-- Docker deployment
+- Memory storage and retrieval APIs
+- Vector embeddings and Qdrant integration
+- Full Docker deployment for app container
 
 ## Key Files to Know
 
@@ -96,6 +104,9 @@ Not yet implemented:
 - `app/app.config.ts`: UI theme and runtime config
 - `server/tsconfig.json`: Server-specific TypeScript config
 - `app/assets/css/main.css`: Global styles and font imports
+- `drizzle.config.ts`: Database ORM configuration
+- `server/utils/db.ts`: Database connection utility
+- `server/database/schema/`: Database schema definitions
 
 ## UI Conventions
 
@@ -110,6 +121,7 @@ Not yet implemented:
 ### Docker Services
 - **Traefik**: Reverse proxy with SSL termination
 - **Zitadel**: Authentication service (OIDC/OAuth2)
+- **PostgreSQL**: Primary database (shared by memrok and Zitadel)
 - **memrok**: Main application (when containerized)
 
 ### SSL & Domains
@@ -125,8 +137,10 @@ Not yet implemented:
 
 When implementing core features:
 1. MCP server should be in `/server/api/mcp/`
-2. Memory storage logic should handle entities, relations, and observations as separate concepts
+2. Memory storage logic should handle entities, relations, and observations as separate concepts (schema already defined)
 3. Vector embeddings for semantic search should integrate with Qdrant
 4. Authentication uses Zitadel OIDC with nuxt-oidc-auth module
-5. Docker setup should include PostgreSQL, Qdrant, and the Nuxt app
+5. Docker setup includes PostgreSQL (implemented), needs Qdrant and app container
 6. Tests should be added using Vitest when implemented
+7. Database migrations use Drizzle Kit (`bun run db:generate` and `bun run db:migrate`)
+8. Database schema tracks creator (user or assistant) for all records
