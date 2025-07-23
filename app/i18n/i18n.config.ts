@@ -3,7 +3,7 @@ export default defineI18nConfig(() => ({
   messages: {
     en: {
       navigation: {
-        memory: 'Memory',
+        memories: 'Memories',
         assistants: 'Assistants',
         settings: 'Settings',
         github: 'GitHub',

@@ -19,7 +19,7 @@ cd app
 bun install
 cp .env.example .env
 # Configure your .env file (see detailed instructions in .env.example)
-bun run setup  # Automated setup: generates certs, starts infrastructure, provisions auth
+bun run setup  # Automated setup: generates certs, starts infrastructure, sets up database, provisions auth
 bun run dev    # Start development server
 ```
 
@@ -27,27 +27,36 @@ bun run dev    # Start development server
 - https://app.dev.memrok.com - memrok app
 - https://auth.dev.memrok.com - Zitadel authentication  
 - https://proxy.dev.memrok.com - Traefik dashboard
+- db.dev.memrok.com:5432 - PostgreSQL database (maps to localhost:5432)
 
 **Key Features:**
-- Docker Compose with Traefik + Zitadel
+- Docker Compose with Traefik + Zitadel + PostgreSQL
 - Trusted SSL certificates via mkcert (no browser warnings)
 - Public DNS: `*.dev.memrok.com` → `127.0.0.1` (no hosts file needed)
 - Automated Zitadel provisioning with OIDC configuration
 - PKCE authentication flow (no client secrets)
+- Shared PostgreSQL instance for memrok and Zitadel
+- Drizzle ORM for type-safe database access
 
 
 ### Development Commands
 
 ```bash
 # Quick commands
-bun run setup                  # Full automated setup (recommended)
+bun run setup                  # Full automated setup: certs + infrastructure + database + auth (recommended)
 bun run dev                    # Start development server
 
 # Infrastructure management  
-bun run infra:start            # Start Traefik + Zitadel
+bun run infra:start            # Start Traefik + Zitadel + PostgreSQL
 bun run infra:stop             # Stop infrastructure
 bun run infra:logs             # View logs
 bun run infra:provision        # Re-run auth provisioning
+
+# Database management
+bun run db:generate            # Generate migrations from schema changes
+bun run db:migrate             # Apply migrations to database
+bun run db:push                # Push schema directly (dev only)
+bun run db:studio              # Open Drizzle Studio GUI
 
 # Production builds
 bun run build                  # Build for production
@@ -59,7 +68,7 @@ bun run preview                # Preview production build
 **Backend**
 - **Runtime**: Bun
 - **Framework**: Nitro (universal server framework)
-- **Database**: PostgreSQL + Qdrant (vector)
+- **Database**: PostgreSQL with Drizzle ORM + Qdrant (vector, planned)
 - **Authentication**: Zitadel (OIDC)
 
 **Frontend**
@@ -70,7 +79,8 @@ bun run preview                # Preview production build
 
 **Infrastructure**
 - **Containerization**: Docker + Docker Compose
-- **Reverse Proxy**: Compatible with nginx, Traefik, Caddy
+- **Reverse Proxy**: Traefik (development), compatible with nginx, Caddy
+- **Database**: PostgreSQL 17 (shared instance)
 
 ## Development
 
