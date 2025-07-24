@@ -111,7 +111,7 @@ Not yet implemented:
 - `server/database/schema/`: Database schema definitions
 - **`server/api/mcp/server.ts`**: Core MCP server with 5 memory tools
 - **`server/api/mcp/stdio-server.ts`**: Standalone MCP server executable
-- **`docs/mcp-integration.md`**: Complete MCP setup and usage guide
+- **`server/api/mcp/config.get.ts`**: Auto-generates MCP client configurations
 - **`test/mcp-server.test.ts`**: MCP server test suite
 
 ## UI Conventions
@@ -166,7 +166,7 @@ Not yet implemented:
 **Usage:**
 - Run MCP server: `bun run mcp:server`
 - Test functionality: `bun run test:mcp`
-- Integration guide: See `docs/mcp-integration.md`
+- Get client configs: `/api/mcp/config` endpoint (integrated into web UI)
 
 **Important:** The stdio server uses `import.meta.main` guard to prevent auto-execution during dev server startup.
 
