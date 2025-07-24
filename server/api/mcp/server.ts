@@ -129,7 +129,6 @@ export class MemrokMCPServer {
           entityId,
           content,
           metadata,
-          observedAt: new Date(),
           ...creator,
         }).returning()
         
@@ -142,7 +141,6 @@ export class MemrokMCPServer {
                 id: observation.id,
                 entityId: observation.entityId,
                 content: observation.content,
-                observedAt: observation.observedAt,
                 metadata: observation.metadata,
               },
             }, null, 2)
@@ -217,7 +215,6 @@ export class MemrokMCPServer {
                     name: o.entity.name,
                     type: o.entity.type,
                   },
-                  observedAt: o.observation.observedAt,
                 })),
               },
             }, null, 2)

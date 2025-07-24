@@ -122,6 +122,8 @@ Not yet implemented:
 - Icons: Phosphor Icons via @iconify-json/ph
 - UI components: Nuxt UI Pro library
 
+**Important:** When using any Nuxt UI component for the first time in a session, ALWAYS consult the official documentation at https://ui.nuxt.com/components/ to verify the correct prop names, expected data formats, and usage patterns. Component APIs can change and proper documentation ensures correct implementation.
+
 ## Development Infrastructure
 
 ### Docker Services

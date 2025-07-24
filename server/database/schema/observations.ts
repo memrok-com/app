@@ -6,7 +6,6 @@ export const observations = pgTable('observations', {
   id: uuid('id').defaultRandom().primaryKey(),
   entityId: uuid('entity_id').notNull().references(() => entities.id, { onDelete: 'cascade' }),
   content: text('content').notNull(), // The observation text
-  observedAt: timestamp('observed_at').notNull(), // When the observation occurred
   source: text('source'), // Where this observation came from
   metadata: jsonb('metadata'), // Additional observation data
   

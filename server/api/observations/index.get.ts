@@ -32,11 +32,11 @@ export default defineEventHandler(async (event) => {
     }
     
     if (fromDate) {
-      conditions.push(gte(schema.observations.observedAt, new Date(fromDate as string)))
+      conditions.push(gte(schema.observations.createdAt, new Date(fromDate as string)))
     }
     
     if (toDate) {
-      conditions.push(lte(schema.observations.observedAt, new Date(toDate as string)))
+      conditions.push(lte(schema.observations.createdAt, new Date(toDate as string)))
     }
     
     if (createdByUser) {
@@ -52,7 +52,7 @@ export default defineEventHandler(async (event) => {
       .select()
       .from(schema.observations)
       .where(conditions.length > 0 ? and(...conditions) : undefined)
-      .orderBy(desc(schema.observations.observedAt))
+      .orderBy(desc(schema.observations.createdAt))
       .limit(parseInt(limit as string))
       .offset(parseInt(offset as string))
 

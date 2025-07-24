@@ -34,17 +34,6 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Parse observedAt date if provided, otherwise use current time
-    let observedAt = new Date()
-    if (body.observedAt) {
-      observedAt = new Date(body.observedAt)
-      if (isNaN(observedAt.getTime())) {
-        throw createError({
-          statusCode: 400,
-          statusMessage: 'Invalid observedAt date format'
-        })
-      }
-    }
 
     // Create observation
     const [observation] = await db
@@ -52,7 +41,6 @@ export default defineEventHandler(async (event) => {
       .values({
         entityId: body.entityId,
         content: body.content,
-        observedAt: observedAt,
         source: body.source || null,
         metadata: body.metadata || null,
         createdByUser: body.createdByUser || null,

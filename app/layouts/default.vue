@@ -4,7 +4,11 @@
       <ULink :to="`/${locale}/`">
         <Logo class="max-h-6" />
       </ULink>
-      <UBadge size="sm" variant="soft">{{ version }}</UBadge>
+      <UBadge
+        size="sm"
+        variant="soft"
+        >{{ version }}</UBadge
+      >
     </template>
     <UNavigationMenu
       highlight
@@ -13,30 +17,30 @@
       :items="items"
     />
     <template #right>
-        <UDropdownMenu
-          :content="{ align: 'end' }"
-          :items="userMenuItems"
-        >
-          <UAvatar
-            :alt="user?.userInfo?.name"
-            class="cursor-pointer"
+      <UDropdownMenu
+        :content="{ align: 'end' }"
+        :items="userMenuItems"
+      >
+        <UAvatar
+          :alt="user?.userInfo?.name"
+          class="cursor-pointer"
+        />
+        <template #loggedInAs>
+          <UUser
+            :avatar="{ alt: user?.userInfo?.name }"
+            :name="user?.userInfo?.name"
+            :description="user?.userInfo?.email"
           />
-          <template #loggedInAs>
-            <UUser
-              :avatar="{ alt: user?.userInfo?.name }"
-              :name="user?.userInfo?.name"
-              :description="user?.userInfo?.email"
-            />
-          </template>
-        </UDropdownMenu>
+        </template>
+      </UDropdownMenu>
     </template>
   </UHeader>
   <NuxtPage />
 </template>
 
 <script setup lang="ts">
-import type { NavigationMenuItem } from '@nuxt/ui'
-import type { DropdownMenuItem } from '@nuxt/ui'
+import type { NavigationMenuItem } from "#ui/types"
+import type { DropdownMenuItem } from "#ui/types"
 
 const { locale, t } = useI18n()
 const config = useRuntimeConfig()
@@ -46,54 +50,56 @@ const colorMode = useColorMode()
 
 const isDark = computed({
   get() {
-    return colorMode.value === 'dark'
+    return colorMode.value === "dark"
   },
   set(_isDark) {
-    colorMode.preference = _isDark ? 'dark' : 'light'
-  }
+    colorMode.preference = _isDark ? "dark" : "light"
+  },
 })
 
 const items = computed<NavigationMenuItem[][]>(() => [
   [
     {
-      icon: 'i-ph-memory-fill',
-       label: t('navigation.memories'),
-       to: `/${locale.value}/my/memories`,
-       },
-       {
-       icon: 'i-ph-head-circuit-fill',
-       label: t('navigation.assistants'),
-       to: `/${locale.value}/my/assistants`,
-       },
+      icon: "i-ph-memory-fill",
+      label: t("navigation.memories"),
+      to: `/${locale.value}/my/memories/`,
+    },
     {
-      icon: 'i-ph-gear-fill',
-      label: t('navigation.settings'),
-      to: `/${locale.value}/my/settings`,
+      icon: "i-ph-head-circuit-fill",
+      label: t("navigation.assistants"),
+      to: `/${locale.value}/my/assistants/`,
+    },
+    {
+      icon: "i-ph-gear-fill",
+      label: t("navigation.settings"),
+      to: `/${locale.value}/my/settings/`,
     },
   ],
   [
     {
-      icon: 'i-ph-github-logo-fill',
-      label: t('navigation.github'),
-      target: '_blank',
-      to: 'https://github.com/memrok-com/memrok',
+      icon: "i-ph-github-logo-fill",
+      label: t("navigation.github"),
+      target: "_blank",
+      to: "https://github.com/memrok-com/memrok",
     },
-  ]
+  ],
 ])
 
 const userMenuItems = computed<DropdownMenuItem[][]>(() => [
   [
     {
-      class: 'font-normal',
-      slot: 'loggedInAs',
-      type: 'label',
+      class: "font-normal",
+      slot: "loggedInAs",
+      type: "label",
     },
   ],
   [
     {
-      class: 'cursor-pointer',
-      icon: isDark.value ? 'i-ph-sun' : 'i-ph-moon',
-      label: isDark.value ? t('navigation.lightMode') : t('navigation.darkMode'),
+      class: "cursor-pointer",
+      icon: isDark.value ? "i-ph-sun" : "i-ph-moon",
+      label: isDark.value
+        ? t("navigation.lightMode")
+        : t("navigation.darkMode"),
       onSelect: () => {
         isDark.value = !isDark.value
       },
@@ -101,18 +107,18 @@ const userMenuItems = computed<DropdownMenuItem[][]>(() => [
   ],
   [
     {
-      icon: 'i-ph-user',
-      label: t('navigation.profile'),
+      icon: "i-ph-user",
+      label: t("navigation.profile"),
       to: `https://${config.public.MEMROK_AUTH_DOMAIN}/ui/console/users/me`,
     },
     {
-      class: 'cursor-pointer',
-      icon: 'i-ph-sign-out',
-      label: t('navigation.logout'),
+      class: "cursor-pointer",
+      icon: "i-ph-sign-out",
+      label: t("navigation.logout"),
       onSelect: () => {
         logout()
       },
-    }
-  ]
+    },
+  ],
 ])
 </script>
