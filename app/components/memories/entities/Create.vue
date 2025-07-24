@@ -17,6 +17,7 @@
         :schema="schema"
         :state="form"
         @submit="onSubmit"
+        :validate-on="['change', 'input']"
       >
         <UFormField
           name="name"
@@ -208,7 +209,6 @@ const handleModalClose = () => {
   // Close modal
   isOpen.value = false
 }
-
 
 // Watch metadata text and parse JSON
 watch(metadataText, (value) => {
