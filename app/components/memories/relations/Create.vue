@@ -233,7 +233,11 @@ const predicateItems = computed(() => {
 const refreshEntities = async () => {
   entitiesPending.value = true
   try {
-    entitiesData.value = await $fetch("/api/entities")
+    entitiesData.value = await $fetch("/api/entities", {
+      query: {
+        createdByUser: user.value?.userInfo?.sub
+      }
+    })
   } catch (error) {
     console.error("Failed to fetch entities:", error)
   } finally {
@@ -258,10 +262,17 @@ onMounted(() => {
   refreshPredicates()
 })
 
+// Expose methods for parent component
+defineExpose({
+  refreshEntities
+})
+
 // Handle creation of new predicate
 const onCreatePredicate = (newPredicate: string) => {
-  // The new predicate will be automatically added to the form.predicate
-  // We could add it to our local data, but it will be refreshed after form submission
+  // Set the form predicate to the new predicate
+  form.predicate = newPredicate
+  // Close the menu
+  predicateMenuOpen.value = false
 }
 
 // Handle modal closing

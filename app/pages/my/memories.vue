@@ -7,13 +7,7 @@
           :description="t('memories.description')"
         >
           <template #links>
-            <UButton
-              color="error"
-              icon="i-ph-eraser-fill"
-              :label="t('memories.navigation.erase')"
-              size="sm"
-              variant="ghost"
-            />
+            <MemoriesErase @erased="onMemoriesErased" />
           </template>
         </UPageHeader>
         <UPageGrid>
@@ -24,11 +18,11 @@
             spotlight
             variant="subtle"
           >
-            <MemoriesEntitiesCreate @created="refreshEntities" />
+            <MemoriesEntitiesCreate @created="onEntityCreated" />
             <template #footer>
-              <span class="font-extralight text-9xl text-muted">
+              <code class="font-light text-7xl text-muted">
                 {{ entities.toLocaleString() }}
-              </span>
+              </code>
             </template>
           </UPageCard>
           <UPageCard
@@ -38,11 +32,11 @@
             spotlight
             variant="subtle"
           >
-            <MemoriesRelationsCreate @created="refreshRelations" />
+            <MemoriesRelationsCreate ref="relationsCreateRef" @created="refreshRelations" />
             <template #footer>
-              <span class="font-extralight text-9xl text-muted">
+              <code class="font-light text-7xl text-muted">
                 {{ relations.toLocaleString() }}
-              </span>
+              </code>
             </template>
           </UPageCard>
           <UPageCard
@@ -52,11 +46,11 @@
             spotlight
             variant="subtle"
           >
-            <MemoriesObservationsCreate @created="refreshObservations" />
+            <MemoriesObservationsCreate ref="observationsCreateRef" @created="refreshObservations" />
             <template #footer>
-              <span class="font-extralight text-9xl text-muted">
+              <code class="font-light text-7xl text-muted">
                 {{ observations.toLocaleString() }}
-              </span>
+              </code>
             </template>
           </UPageCard>
         </UPageGrid>
@@ -72,15 +66,36 @@ useHead({
   title: t("navigation.memories"),
 })
 
-// Fetch counts from API
+const { user } = useOidcAuth()
+
+// Template refs
+const relationsCreateRef = ref()
+const observationsCreateRef = ref()
+
+// Fetch counts from API, filtered by current user
 const { data: entitiesData, refresh: refreshEntities } = await useFetch(
-  "/api/entities"
+  "/api/entities",
+  {
+    query: {
+      createdByUser: user.value?.userInfo?.sub
+    }
+  }
 )
 const { data: relationsData, refresh: refreshRelations } = await useFetch(
-  "/api/relations"
+  "/api/relations",
+  {
+    query: {
+      createdByUser: user.value?.userInfo?.sub
+    }
+  }
 )
 const { data: observationsData, refresh: refreshObservations } = await useFetch(
-  "/api/observations"
+  "/api/observations",
+  {
+    query: {
+      createdByUser: user.value?.userInfo?.sub
+    }
+  }
 )
 
 // Compute counts
@@ -89,4 +104,26 @@ const relations = computed(() => relationsData.value?.relations?.length || 0)
 const observations = computed(
   () => observationsData.value?.observations?.length || 0
 )
+
+// Handle entity creation - refresh entity lists in other components
+const onEntityCreated = () => {
+  // Refresh entities count
+  refreshEntities()
+  
+  // Refresh entity lists in relations and observations components
+  if (relationsCreateRef.value?.refreshEntities) {
+    relationsCreateRef.value.refreshEntities()
+  }
+  if (observationsCreateRef.value?.refreshEntities) {
+    observationsCreateRef.value.refreshEntities()
+  }
+}
+
+// Handle memories erased event
+const onMemoriesErased = () => {
+  // Refresh all counts after successful erase
+  refreshEntities()
+  refreshRelations()
+  refreshObservations()
+}
 </script>

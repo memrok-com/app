@@ -60,14 +60,14 @@ const isDark = computed({
 const items = computed<NavigationMenuItem[][]>(() => [
   [
     {
-      icon: "i-ph-memory-fill",
-      label: t("navigation.memories"),
-      to: `/${locale.value}/my/memories/`,
-    },
-    {
       icon: "i-ph-head-circuit-fill",
       label: t("navigation.assistants"),
       to: `/${locale.value}/my/assistants/`,
+    },
+    {
+      icon: "i-ph-memory-fill",
+      label: t("navigation.memories"),
+      to: `/${locale.value}/my/memories/`,
     },
     {
       icon: "i-ph-gear-fill",

@@ -165,7 +165,11 @@ const entityOptions = computed(() => {
 const refreshEntities = async () => {
   entitiesPending.value = true
   try {
-    entitiesData.value = await $fetch("/api/entities")
+    entitiesData.value = await $fetch("/api/entities", {
+      query: {
+        createdByUser: user.value?.userInfo?.sub
+      }
+    })
   } catch (error) {
     console.error("Failed to fetch entities:", error)
   } finally {
@@ -176,6 +180,11 @@ const refreshEntities = async () => {
 // Load data on component mount
 onMounted(() => {
   refreshEntities()
+})
+
+// Expose methods for parent component
+defineExpose({
+  refreshEntities
 })
 
 // Handle modal closing

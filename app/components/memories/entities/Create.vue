@@ -195,8 +195,10 @@ onMounted(() => {
 
 // Handle creation of new type
 const onCreateType = (newType: string) => {
-  // The new type will be automatically added to the form.type
-  // We could add it to our local data, but it will be refreshed after form submission
+  // Set the form type to the new type
+  form.type = newType
+  // Close the menu
+  typeMenuOpen.value = false
 }
 
 // Handle modal closing

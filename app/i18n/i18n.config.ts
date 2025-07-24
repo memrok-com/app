@@ -1,3 +1,4 @@
+import { warn } from "vue"
 import { observations } from "~~/server/database/schema"
 
 export default defineI18nConfig(() => ({
@@ -29,6 +30,7 @@ export default defineI18nConfig(() => ({
         save: "Save",
         delete: "Delete",
         edit: "Edit",
+        warning: "Warning",
       },
       memories: {
         description: "What assistants know about you and your life.",
@@ -111,6 +113,16 @@ export default defineI18nConfig(() => ({
             success: "Observation created successfully",
             error: "Failed to create observation",
           },
+        },
+        erase: {
+          title: "Erase All Memories",
+          description: "Permanently delete all your stored memories",
+          warning:
+            "All entities, relations, and observations will be permanently deleted. This action cannot be undone.",
+          confirm: "Type 'ERASE' to confirm:",
+          confirmPlaceholder: "ERASE",
+          success: "All memories have been successfully erased",
+          error: "Failed to erase memories",
         },
       },
     },

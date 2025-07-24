@@ -1,8 +1,13 @@
 export default defineAppConfig({
   ui: {
     colors: {
-      primary: "indigo",
+      error: "rose",
+      info: "cyan",
       neutral: "stone",
+      primary: "indigo",
+      secondary: "purple",
+      success: "green",
+      warning: "amber",
     },
     icons: {
       close: "i-ph-x",
