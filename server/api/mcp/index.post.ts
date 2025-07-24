@@ -1,4 +1,4 @@
-import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/http.js'
+import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js'
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { MemrokMCPServer } from './server'
 import type { User } from '#auth-utils'
