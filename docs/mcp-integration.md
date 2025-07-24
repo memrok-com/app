@@ -187,3 +187,13 @@ All MCP connections require authentication:
 - Ensure your token has not expired
 - Verify you have the correct permissions in Zitadel
 - Check that the assistant ID (if provided) is valid
+
+## Testing
+
+To test the MCP server functionality:
+
+```bash
+bun run test:mcp
+```
+
+This runs a comprehensive test suite that validates all MCP tools and operations.
