@@ -58,6 +58,10 @@ bun run db:migrate             # Apply migrations to database
 bun run db:push                # Push schema directly (dev only)
 bun run db:studio              # Open Drizzle Studio GUI
 
+# MCP server (for AI assistant integration)
+bun run mcp:server             # Start MCP server via stdio (for Claude Desktop, etc.)
+bun run test:mcp               # Run comprehensive MCP server test suite
+
 # Production builds
 bun run build                  # Build for production
 bun run preview                # Preview production build
@@ -70,6 +74,7 @@ bun run preview                # Preview production build
 - **Framework**: Nitro (universal server framework)
 - **Database**: PostgreSQL with Drizzle ORM + Qdrant (vector, planned)
 - **Authentication**: Zitadel (OIDC)
+- **MCP Server**: Complete implementation with 5 memory tools (@modelcontextprotocol/sdk)
 
 **Frontend**
 - **Framework**: Nuxt

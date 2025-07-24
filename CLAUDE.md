@@ -91,10 +91,12 @@ Currently implemented:
 - Multi-user and assistant support in schema
 - PostgreSQL container configuration with automated setup
 - Database migration system with Drizzle Kit
+- **Complete MCP server implementation** with 5 memory tools
+- **Memory storage and retrieval APIs** (entities, relations, observations, assistants)
+- **MCP connectivity** via stdio (Claude Desktop) and HTTP endpoints
 
 Not yet implemented:
-- MCP server functionality
-- Memory storage and retrieval APIs
+- Web UI for memory management
 - Vector embeddings and Qdrant integration
 - Full Docker deployment for app container
 
@@ -107,6 +109,10 @@ Not yet implemented:
 - `drizzle.config.ts`: Database ORM configuration
 - `server/utils/db.ts`: Database connection utility
 - `server/database/schema/`: Database schema definitions
+- **`server/api/mcp/server.ts`**: Core MCP server with 5 memory tools
+- **`server/api/mcp/stdio-server.ts`**: Standalone MCP server executable
+- **`docs/mcp-integration.md`**: Complete MCP setup and usage guide
+- **`test/mcp-server.test.ts`**: MCP server test suite
 
 ## UI Conventions
 
@@ -140,11 +146,35 @@ Not yet implemented:
   1. First commit changes in the deployment submodule
   2. Then commit in the parent repository to include the reference to the current submodule state
 
+## MCP Server Implementation
+
+**Status:** ✅ Complete and production-ready
+
+**Architecture:**
+- **Core Server** (`server/api/mcp/server.ts`): Uses `@modelcontextprotocol/sdk` with 5 memory tools
+- **Stdio Endpoint** (`server/api/mcp/stdio-server.ts`): For Claude Desktop and direct AI assistant connections
+- **HTTP Endpoint** (`server/api/mcp/index.post.ts`): For web-based integrations with session management
+- **Configuration** (`server/api/mcp/config.get.ts`): Auto-generates client configurations
+
+**Available Tools:**
+1. `create_entity` - Create knowledge graph entities (person, place, concept, etc.)
+2. `create_relation` - Link entities with typed relationships  
+3. `create_observation` - Record facts/observations about entities with metadata
+4. `search_memories` - Search through stored memories by query
+5. `get_entity_relations` - Retrieve entity relationships
+
+**Usage:**
+- Run MCP server: `bun run mcp:server`
+- Test functionality: `bun run test:mcp`
+- Integration guide: See `docs/mcp-integration.md`
+
+**Important:** The stdio server uses `import.meta.main` guard to prevent auto-execution during dev server startup.
+
 ## Future Implementation Notes
 
-When implementing core features:
-1. MCP server should be in `/server/api/mcp/`
-2. Memory storage logic should handle entities, relations, and observations as separate concepts (schema already defined)
+When implementing remaining features:
+1. ✅ ~~MCP server~~ - **Complete**
+2. ✅ ~~Memory storage APIs~~ - **Complete** 
 3. Vector embeddings for semantic search should integrate with Qdrant
 4. Authentication uses Zitadel OIDC with nuxt-oidc-auth module
 5. Docker setup includes PostgreSQL (implemented), needs Qdrant and app container
