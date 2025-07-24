@@ -1,1 +1,1 @@
-ALTER TABLE "observations" DROP COLUMN "observed_at";
+ALTER TABLE "observations" DROP COLUMN "timestamp";
