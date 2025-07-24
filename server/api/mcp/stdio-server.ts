@@ -21,7 +21,9 @@ for (let i = 0; i < args.length; i++) {
   }
 }
 
-// Create and start the server
-const server = new MemrokMCPServer()
-server.setContext(assistantId, userId)
-server.start().catch(console.error)
+// Only start the server if this file is being run directly (not imported)
+if (import.meta.main) {
+  const server = new MemrokMCPServer()
+  server.setContext(assistantId, userId)
+  server.start().catch(console.error)
+}

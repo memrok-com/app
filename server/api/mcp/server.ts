@@ -291,9 +291,9 @@ export class MemrokMCPServer {
   async start() {
     const transport = new StdioServerTransport()
     await this.server.connect(transport)
-    console.error('MCP server started')
+    console.log('MCP stdio server started')
   }
 }
 
-// Export for use in other parts of the application
-export const mcpServer = new MemrokMCPServer()
+// Export class for use in other parts of the application
+// Note: Don't create instances at module level to avoid side effects
