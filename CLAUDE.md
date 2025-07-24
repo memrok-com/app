@@ -133,6 +133,13 @@ Not yet implemented:
 - `deployment/docker-compose.dev.yml`: Development overrides only
 - `deployment/docker-compose.prod.yml`: Small production override (memrok app only)
 
+## GitOps Workflow
+
+- We use GitOps with feature branches and pull requests
+- When committing changes that involve the deployment submodule:
+  1. First commit changes in the deployment submodule
+  2. Then commit in the parent repository to include the reference to the current submodule state
+
 ## Future Implementation Notes
 
 When implementing core features:
