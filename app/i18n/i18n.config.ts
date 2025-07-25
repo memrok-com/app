@@ -119,7 +119,7 @@ export default defineI18nConfig(() => ({
           description: "Permanently delete all your stored memories",
           warning:
             "All entities, relations, and observations will be permanently deleted. This action cannot be undone.",
-          confirm: "Type 'ERASE' to confirm:",
+          confirm: "Type 'ERASE' to confirm",
           confirmPlaceholder: "ERASE",
           success: "All memories have been successfully erased",
           error: "Failed to erase memories",
