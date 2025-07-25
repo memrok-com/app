@@ -7,6 +7,7 @@
 
 import type { EventHandlerRequest, H3Event } from 'h3'
 import { getHeader, getQuery, createError, defineEventHandler, readBody, getRequestURL, getMethod, setHeader } from 'h3'
+import { getUserSession } from 'nuxt-oidc-auth/runtime/server/utils/session.js'
 import { createUserDb, type UserScopedDatabase } from './db'
 import { RLSContextError } from '../database/rls-context'
 
@@ -21,89 +22,72 @@ export interface AuthenticatedUser {
 }
 
 /**
- * Extract user ID from various possible authentication sources
- * This is a placeholder - implement based on your actual auth system (Zitadel)
+ * Extract user information from authentication
  */
-export function extractUserId(event: H3Event<EventHandlerRequest>): string | null {
-  // Try to get user ID from different sources
+export async function extractUser(event: H3Event<EventHandlerRequest>): Promise<AuthenticatedUser | null> {
+  try {
+    // Use the proper getUserSession function from nuxt-oidc-auth
+    const session = await getUserSession(event)
+    
+    if (session && session.userInfo) {
+      return {
+        id: session.userInfo.sub as string,
+        email: session.userInfo.email as string,
+        name: session.userInfo.name as string,
+        ...session.userInfo
+      }
+    }
+  } catch (error) {
+    // Session doesn't exist or is invalid, try fallback methods
+    console.log('No OIDC session found, trying fallback methods')
+  }
   
-  // 1. From headers (e.g., JWT token)
-  const authHeader = getHeader(event, 'authorization')
-  if (authHeader) {
-    // TODO: Implement JWT token parsing for Zitadel
-    // This is a placeholder - implement actual JWT verification
-    // const token = authHeader.replace('Bearer ', '')
-    // const decoded = verifyJWT(token)
-    // return decoded.sub
+  // Fallback methods for MCP protocol and testing
+  
+  // 1. From custom header (for MCP protocol)
+  const mcpUserId = getHeader(event, 'x-memrok-user-id')
+  if (mcpUserId) {
+    return { id: mcpUserId }
   }
   
   // 2. From query parameters (for development/testing)
   const query = getQuery(event)
   if (query.userId && typeof query.userId === 'string') {
-    return query.userId
-  }
-  
-  // 3. From session (if using session-based auth)
-  // const session = await getSession(event)
-  // if (session?.userId) {
-  //   return session.userId
-  // }
-  
-  // 4. From custom header (for MCP protocol)
-  const mcpUserId = getHeader(event, 'x-memrok-user-id')
-  if (mcpUserId) {
-    return mcpUserId
+    return { id: query.userId }
   }
   
   return null
 }
 
 /**
- * Extract full user information from authentication
- * This extends extractUserId to get additional user details
- */
-export async function extractUser(event: H3Event<EventHandlerRequest>): Promise<AuthenticatedUser | null> {
-  const userId = extractUserId(event)
-  if (!userId) {
-    return null
-  }
-  
-  // TODO: Implement user details fetching from Zitadel
-  // For now, return minimal user info
-  return {
-    id: userId
-  }
-}
-
-/**
  * Require authentication and return user-scoped database
- * Throws RLSContextError if user is not authenticated
+ * Throws error if user is not authenticated
  */
-export function requireAuth(event: H3Event<EventHandlerRequest>): UserScopedDatabase {
-  const userId = extractUserId(event)
+export async function requireAuth(event: H3Event<EventHandlerRequest>): Promise<UserScopedDatabase> {
+  const user = await extractUser(event)
   
-  if (!userId) {
-    throw new RLSContextError(
-      'Authentication required. Please provide valid authentication credentials.',
-      undefined
-    )
+  if (!user) {
+    throw createError({
+      statusCode: 401,
+      statusMessage: 'Authentication required'
+    })
   }
   
-  return createUserDb(userId)
+  return createUserDb(user.id)
 }
 
 /**
  * Optionally get user-scoped database if authenticated
  * Returns null if not authenticated (no error thrown)
  */
-export function optionalAuth(event: H3Event<EventHandlerRequest>): UserScopedDatabase | null {
-  const userId = extractUserId(event)
+export async function optionalAuth(event: H3Event<EventHandlerRequest>): Promise<UserScopedDatabase | null> {
+  const user = await extractUser(event)
   
-  if (!userId) {
+  if (!user) {
     return null
   }
   
-  return createUserDb(userId)
+  return createUserDb(user.id)
 }
 
 /**
@@ -128,7 +112,7 @@ export function withAuth<T>(
     try {
       return await handler(event, userDb, user)
     } catch (error) {
-      // Add context to RLS errors
+      // Handle RLS errors
       if (error instanceof RLSContextError) {
         throw createError({
           statusCode: 403,
@@ -161,7 +145,7 @@ export function withOptionalAuth<T>(
     try {
       return await handler(event, userDb, user)
     } catch (error) {
-      // Add context to RLS errors
+      // Handle RLS errors
       if (error instanceof RLSContextError) {
         throw createError({
           statusCode: 403,

@@ -11,7 +11,6 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
     search,
     minStrength,
     maxStrength,
-    createdByUser,
     createdByAssistant 
   } = query
 
@@ -31,10 +30,6 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
   
   if (predicate) {
     filters.predicate = predicate as string
-  }
-  
-  if (createdByUser) {
-    filters.createdByUser = createdByUser as string
   }
   
   if (createdByAssistant) {

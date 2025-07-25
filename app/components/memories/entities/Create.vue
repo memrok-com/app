@@ -237,7 +237,6 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
         name: event.data.name,
         type: event.data.type,
         metadata: form.metadata,
-        createdByUser: user.value?.userInfo?.sub,
       },
     })
 

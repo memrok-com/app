@@ -7,7 +7,6 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
     offset = 0, 
     type, 
     search,
-    createdByUser,
     createdByAssistant 
   } = query
 
@@ -19,10 +18,6 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
   
   if (type) {
     filters.type = type as string
-  }
-  
-  if (createdByUser) {
-    filters.createdByUser = createdByUser as string
   }
   
   if (createdByAssistant) {

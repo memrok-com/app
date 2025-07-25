@@ -165,11 +165,7 @@ const entityOptions = computed(() => {
 const refreshEntities = async () => {
   entitiesPending.value = true
   try {
-    entitiesData.value = await $fetch("/api/entities", {
-      query: {
-        createdByUser: user.value?.userInfo?.sub
-      }
-    })
+    entitiesData.value = await $fetch("/api/entities")
   } catch (error) {
     console.error("Failed to fetch entities:", error)
   } finally {
@@ -224,7 +220,6 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
         content: event.data.content,
         source: "User",
         metadata: form.metadata,
-        createdByUser: user.value?.userInfo?.sub,
       },
     })
 

@@ -24,7 +24,15 @@ export async function setUserContext(db: DatabaseWithSchema, userId: string): Pr
     throw new Error('User ID is required and must be a non-empty string')
   }
 
-  await db.execute(sql`SET LOCAL app.current_user_id = ${userId}`)
+  try {
+    // Try with a simple string literal instead of parameter binding
+    await db.execute(sql.raw(`SET LOCAL app.current_user_id = '${userId.replace("'", "''")}'`))
+  } catch (error) {
+    console.error('Failed to set user context:', error)
+    console.error('User ID:', userId)
+    console.error('User ID type:', typeof userId)
+    throw new Error(`Failed to set user context for user ${userId}: ${error instanceof Error ? error.message : 'Unknown error'}`)
+  }
 }
 
 /**
@@ -75,19 +83,16 @@ export async function withUserContext<T>(
     throw new Error('User ID is required and must be a non-empty string')
   }
 
-  // Set user context
-  await setUserContext(db, userId)
-
-  try {
-    // Execute the operation
-    return await operation(db)
-  } finally {
-    // Always clear context in finally block to ensure cleanup
-    // Note: In PostgreSQL, SET LOCAL settings are automatically cleared
-    // at the end of the current transaction, but we clear explicitly
-    // for better control and testing
-    await clearUserContext(db)
-  }
+  // Use a transaction to ensure SET LOCAL works properly
+  return await db.transaction(async (tx) => {
+    // Set user context within the transaction
+    await tx.execute(sql.raw(`SET LOCAL app.current_user_id = '${userId.replace("'", "''")}'`))
+    
+    // Execute the operation with the transaction
+    return await operation(tx)
+    
+    // SET LOCAL is automatically cleared when transaction ends
+  })
 }
 
 /**

@@ -38,6 +38,8 @@ export default defineNuxtConfig({
         logoutRedirectUri: process.env.NUXT_OIDC_POST_LOGOUT_REDIRECT_URI,
         authenticationScheme: "none", // PKCE flow
         scope: ["openid", "profile", "email"],
+        // Enable access to tokens on server-side
+        exposeAccessToken: true,
       },
     },
     session: {

@@ -9,7 +9,6 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
     search,
     fromDate,
     toDate,
-    createdByUser,
     createdByAssistant 
   } = query
 
@@ -21,10 +20,6 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
   
   if (entityId) {
     filters.entityId = entityId as string
-  }
-  
-  if (createdByUser) {
-    filters.createdByUser = createdByUser as string
   }
   
   if (createdByAssistant) {

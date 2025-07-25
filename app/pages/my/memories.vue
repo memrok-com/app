@@ -72,31 +72,10 @@ const { user } = useOidcAuth()
 const relationsCreateRef = ref()
 const observationsCreateRef = ref()
 
-// Fetch counts from API, filtered by current user
-const { data: entitiesData, refresh: refreshEntities } = await useFetch(
-  "/api/entities",
-  {
-    query: {
-      createdByUser: user.value?.userInfo?.sub
-    }
-  }
-)
-const { data: relationsData, refresh: refreshRelations } = await useFetch(
-  "/api/relations",
-  {
-    query: {
-      createdByUser: user.value?.userInfo?.sub
-    }
-  }
-)
-const { data: observationsData, refresh: refreshObservations } = await useFetch(
-  "/api/observations",
-  {
-    query: {
-      createdByUser: user.value?.userInfo?.sub
-    }
-  }
-)
+// Fetch counts from API - RLS automatically filters by current user
+const { data: entitiesData, refresh: refreshEntities } = await useFetch("/api/entities")
+const { data: relationsData, refresh: refreshRelations } = await useFetch("/api/relations")
+const { data: observationsData, refresh: refreshObservations } = await useFetch("/api/observations")
 
 // Compute counts
 const entities = computed(() => entitiesData.value?.entities?.length || 0)
