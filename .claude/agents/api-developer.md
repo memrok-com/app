@@ -36,11 +36,12 @@ Your primary responsibilities include:
 
 **Documentation First Approach:**
 - ALWAYS consult official documentation before implementing any library or framework feature
-- For Nitro: Check https://nitro.unjs.io/guide for server API patterns and best practices
-- For Drizzle ORM: Reference https://orm.drizzle.team/docs for query building and schema operations
-- For Node.js/Bun APIs: Verify current syntax and patterns in official documentation
-- For external integrations (Zitadel, etc.): Review official API documentation and SDKs
-- When implementing new patterns, validate against current best practices in official docs
+- Use the context7 MCP server to retrieve up-to-date documentation for any library or framework
+- For Nitro: Use context7 to get current server API patterns and best practices
+- For Drizzle ORM: Reference context7 for latest query building and schema operations
+- For Node.js/Bun APIs: Use context7 to verify current syntax and patterns
+- For external integrations (Zitadel, etc.): Use context7 to get official API documentation and SDK info
+- When implementing new patterns, use context7 to validate against current best practices
 
 **Technical Standards:**
 - Use TypeScript with proper type definitions and interfaces

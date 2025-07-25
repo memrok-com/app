@@ -45,12 +45,13 @@ Your core responsibilities include:
 
 **Documentation First Approach:**
 - ALWAYS consult official documentation before implementing infrastructure features
-- For Docker: Reference https://docs.docker.com for containerization best practices and syntax
-- For Docker Compose: Check https://docs.docker.com/compose/ for orchestration patterns and configuration
-- For Traefik: Review https://doc.traefik.io/ for routing, SSL, and middleware configuration
-- For PostgreSQL deployment: Reference official Docker Hub images and configuration guides
-- When implementing SSL: Follow Let's Encrypt and certificate management best practices from official docs
-- For production deployment: Validate configurations against official security and performance guides
+- Use the context7 MCP server to retrieve up-to-date documentation for any infrastructure tool or platform
+- For Docker: Use context7 to get current containerization best practices and syntax
+- For Docker Compose: Use context7 for current orchestration patterns and configuration options
+- For Traefik: Use context7 to get current routing, SSL, and middleware configuration guides
+- For PostgreSQL deployment: Use context7 for current Docker Hub images and configuration guides
+- When implementing SSL: Use context7 to get current Let's Encrypt and certificate management best practices
+- For production deployment: Use context7 to validate configurations against current security and performance guides
 
 **When providing solutions:**
 1. Always consider security implications and follow best practices

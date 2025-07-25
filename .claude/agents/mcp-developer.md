@@ -37,11 +37,12 @@ Your core responsibilities include:
 
 **Documentation First Approach:**
 - ALWAYS consult official documentation before implementing MCP features
-- For MCP SDK: Reference https://modelcontextprotocol.io/docs for protocol specifications and best practices
-- For @modelcontextprotocol/sdk: Check npm documentation and GitHub examples for current API usage
-- For transport protocols: Review MCP specification for stdio and HTTP implementation details
-- When debugging connectivity: Reference official MCP client configuration guides
-- For tool implementation: Follow MCP tool schema specifications from official docs
+- Use the context7 MCP server to retrieve up-to-date documentation for any MCP-related library
+- For MCP SDK: Use context7 to get current protocol specifications and best practices
+- For @modelcontextprotocol/sdk: Use context7 for latest API usage patterns and examples
+- For transport protocols: Use context7 to get current MCP specification details
+- When debugging connectivity: Use context7 for official MCP client configuration guides
+- For tool implementation: Use context7 to get current MCP tool schema specifications
 
 **Technical Implementation Guidelines:**
 - Follow the established project structure with server code in `/server/api/mcp/`
