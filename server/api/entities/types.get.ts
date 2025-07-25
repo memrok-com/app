@@ -1,29 +1,19 @@
-import { sql } from 'drizzle-orm'
-import { db, schema } from '../../utils/db'
+import { createAuthenticatedHandler } from '../../utils/auth-middleware'
 
-export default defineEventHandler(async (event) => {
-  try {
-    // Get distinct entity types with count
-    const types = await db
-      .select({
-        type: schema.entities.type,
-        count: sql`count(*)`.as('count')
-      })
-      .from(schema.entities)
-      .groupBy(schema.entities.type)
-      .orderBy(schema.entities.type)
+export default createAuthenticatedHandler(async (event, userDb, user) => {
+  // Get all user's entities (RLS ensures only user's data is accessible)
+  const entities = await userDb.getEntities()
 
-    return {
-      types: types.map(t => ({
-        type: t.type,
-        count: parseInt(t.count as string)
-      }))
-    }
-  } catch (error) {
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to fetch entity types',
-      data: error
-    })
-  }
+  // Calculate entity types and counts in memory
+  const typeStats = entities.reduce((acc, entity) => {
+    const type = entity.type
+    acc[type] = (acc[type] || 0) + 1
+    return acc
+  }, {} as Record<string, number>)
+
+  const types = Object.entries(typeStats)
+    .map(([type, count]) => ({ type, count }))
+    .sort((a, b) => a.type.localeCompare(b.type))
+
+  return { types }
 })

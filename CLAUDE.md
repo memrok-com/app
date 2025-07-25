@@ -138,3 +138,40 @@ When coordinating implementation of remaining features, use appropriate domain r
 8. **UI features**: Frontend → Backend (if API changes needed)
 
 **Note**: Always consider security specialist involvement for any feature touching authentication, data access, or external integrations.
+
+## Agent Supervision and Constraints
+
+### Over-Engineering Prevention
+
+**Critical Issue**: Agents tend to over-engineer solutions by creating extensive frameworks, documentation, examples, and test scaffolding when simple implementations are requested.
+
+**Orchestrator Constraints:**
+- Give agents **specific, limited scope** instructions
+- Explicitly state "Do NOT create documentation files, examples, or extensive test frameworks"  
+- Request only the **minimal implementation** needed to solve the problem
+- Review untracked files immediately after agent completion
+- Remove unnecessary generated files (documentation, examples, test scaffolding)
+
+**Example**: For "implement RLS user context", agents should create only the core utilities needed, not documentation, examples, validation scripts, or test frameworks.
+
+### Testing Agent Issues
+
+**Critical Issue**: The qa-engineer agent consistently goes off-track, attempting database/infrastructure work instead of pure testing.
+
+**Current Problems:**
+- Tries to set up database connections and infrastructure
+- Attempts to do application development instead of testing
+- Creates extensive test frameworks when not requested
+
+**Temporary Solution**: 
+- Avoid using qa-engineer for complex database testing
+- Use qa-engineer only for simple, self-contained test file analysis
+- Handle testing coordination through domain specialists when possible
+
+### Agent Output Validation
+
+**Process for orchestrator:**
+1. After agent completion, immediately check `git status --porcelain | grep "^??"`
+2. Review any untracked files for unnecessary documentation, examples, or scaffolding
+3. Remove files that weren't explicitly requested
+4. Validate that agents stayed within their assigned scope

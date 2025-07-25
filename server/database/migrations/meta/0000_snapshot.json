@@ -1,5 +1,5 @@
 {
-  "id": "5c90e786-7d81-4854-827c-69c063065df4",
+  "id": "d4c0ca19-fbf1-4219-a6e4-388ab60b26d5",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -14,6 +14,12 @@
           "primaryKey": true,
           "notNull": true,
           "default": "gen_random_uuid()"
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
         },
         "name": {
           "name": "name",
@@ -58,9 +64,20 @@
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
-      "policies": {},
+      "policies": {
+        "assistants_user_isolation_policy": {
+          "name": "assistants_user_isolation_policy",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "public"
+          ],
+          "using": "\"assistants\".\"user_id\" = current_setting('app.current_user_id')",
+          "withCheck": "\"assistants\".\"user_id\" = current_setting('app.current_user_id')"
+        }
+      },
       "checkConstraints": {},
-      "isRLSEnabled": false
+      "isRLSEnabled": true
     },
     "public.entities": {
       "name": "entities",
@@ -72,6 +89,12 @@
           "primaryKey": true,
           "notNull": true,
           "default": "gen_random_uuid()"
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
         },
         "type": {
           "name": "type",
@@ -161,9 +184,20 @@
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
-      "policies": {},
+      "policies": {
+        "entities_user_isolation_policy": {
+          "name": "entities_user_isolation_policy",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "public"
+          ],
+          "using": "\"entities\".\"user_id\" = current_setting('app.current_user_id')",
+          "withCheck": "\"entities\".\"user_id\" = current_setting('app.current_user_id')"
+        }
+      },
       "checkConstraints": {},
-      "isRLSEnabled": false
+      "isRLSEnabled": true
     },
     "public.relations": {
       "name": "relations",
@@ -175,6 +209,12 @@
           "primaryKey": true,
           "notNull": true,
           "default": "gen_random_uuid()"
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
         },
         "subject_id": {
           "name": "subject_id",
@@ -271,9 +311,20 @@
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
-      "policies": {},
+      "policies": {
+        "relations_user_isolation_policy": {
+          "name": "relations_user_isolation_policy",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "public"
+          ],
+          "using": "\"relations\".\"user_id\" = current_setting('app.current_user_id')",
+          "withCheck": "\"relations\".\"user_id\" = current_setting('app.current_user_id')"
+        }
+      },
       "checkConstraints": {},
-      "isRLSEnabled": false
+      "isRLSEnabled": true
     },
     "public.observations": {
       "name": "observations",
@@ -286,6 +337,12 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
         "entity_id": {
           "name": "entity_id",
           "type": "uuid",
@@ -295,12 +352,6 @@
         "content": {
           "name": "content",
           "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "timestamp": {
-          "name": "timestamp",
-          "type": "timestamp",
           "primaryKey": false,
           "notNull": true
         },
@@ -367,9 +418,20 @@
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
-      "policies": {},
+      "policies": {
+        "observations_user_isolation_policy": {
+          "name": "observations_user_isolation_policy",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "public"
+          ],
+          "using": "\"observations\".\"user_id\" = current_setting('app.current_user_id')",
+          "withCheck": "\"observations\".\"user_id\" = current_setting('app.current_user_id')"
+        }
+      },
       "checkConstraints": {},
-      "isRLSEnabled": false
+      "isRLSEnabled": true
     }
   },
   "enums": {},

@@ -1,19 +1,16 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod'
-import { db } from '../../utils/db'
+import { createUserDb } from '../../utils/db'
 import { entities, relations, observations, assistants } from '../../database/schema'
 import { eq, and, or, like, sql, isNotNull } from 'drizzle-orm'
 
-// Helper to get current user/assistant context
-async function getCreatorContext(assistantId?: string, userId?: string) {
+// Helper to get current user/assistant context for RLS-aware operations
+function getCreatorContext(assistantId?: string, userId?: string) {
   if (assistantId) {
-    const assistant = await db.query.assistants.findFirst({
-      where: eq(assistants.id, assistantId)
-    })
-    return { createdByAssistant: assistantId, createdByUser: assistant?.userId }
+    return { createdByAssistant: assistantId, createdByUser: undefined }
   }
-  return { createdByUser: userId || null, createdByAssistant: null }
+  return { createdByUser: userId || undefined, createdByAssistant: undefined }
 }
 
 export class MemrokMCPServer {
@@ -42,6 +39,13 @@ export class MemrokMCPServer {
     this.userId = userId
   }
 
+  private getUserDb() {
+    if (!this.userId) {
+      throw new Error('User context is required for MCP operations')
+    }
+    return createUserDb(this.userId)
+  }
+
   private setupTools() {
     // Create entity tool
     this.server.tool(
@@ -53,14 +57,15 @@ export class MemrokMCPServer {
         description: z.string().optional().describe('Description of the entity'),
       },
       async ({ name, type, description }) => {
-        const creator = await getCreatorContext(this.assistantId, this.userId)
+        const userDb = this.getUserDb()
+        const creator = getCreatorContext(this.assistantId, this.userId)
         
-        const [entity] = await db.insert(entities).values({
+        const entity = await userDb.createEntity({
           name,
           type,
-          description,
+          metadata: description ? { description } : undefined,
           ...creator,
-        }).returning()
+        })
         
         return {
           content: [{
@@ -71,7 +76,7 @@ export class MemrokMCPServer {
                 id: entity.id,
                 name: entity.name,
                 type: entity.type,
-                description: entity.description,
+                description: entity.metadata?.description,
               },
             }, null, 2)
           }]
@@ -84,18 +89,20 @@ export class MemrokMCPServer {
       'create_relation',
       'Create a relationship between two entities',
       {
-        fromEntityId: z.string().describe('ID of the source entity'),
-        toEntityId: z.string().describe('ID of the target entity'),
+        subjectId: z.string().describe('ID of the subject entity (source of the relation)'),
+        objectId: z.string().describe('ID of the object entity (target of the relation)'),
         predicate: z.string().describe('The relationship type (e.g., "knows", "located_at", "part_of")'),
       },
-      async ({ fromEntityId, toEntityId, predicate }) => {
-        const creator = await getCreatorContext(this.assistantId, this.userId)
-        const [relation] = await db.insert(relations).values({
-          fromEntityId,
-          toEntityId,
+      async ({ subjectId, objectId, predicate }) => {
+        const userDb = this.getUserDb()
+        const creator = getCreatorContext(this.assistantId, this.userId)
+        
+        const relation = await userDb.createRelation({
+          subjectId,
+          objectId,
           predicate,
           ...creator,
-        }).returning()
+        })
         
         return {
           content: [{
@@ -104,8 +111,8 @@ export class MemrokMCPServer {
               success: true,
               relation: {
                 id: relation.id,
-                fromEntityId: relation.fromEntityId,
-                toEntityId: relation.toEntityId,
+                subjectId: relation.subjectId,
+                objectId: relation.objectId,
                 predicate: relation.predicate,
               },
             }, null, 2)
@@ -124,13 +131,15 @@ export class MemrokMCPServer {
         metadata: z.record(z.any()).optional().describe('Additional metadata as key-value pairs'),
       },
       async ({ entityId, content, metadata }) => {
-        const creator = await getCreatorContext(this.assistantId, this.userId)
-        const [observation] = await db.insert(observations).values({
+        const userDb = this.getUserDb()
+        const creator = getCreatorContext(this.assistantId, this.userId)
+        
+        const observation = await userDb.createObservation({
           entityId,
           content,
           metadata,
           ...creator,
-        }).returning()
+        })
         
         return {
           content: [{
@@ -159,41 +168,47 @@ export class MemrokMCPServer {
         limit: z.number().optional().default(20).describe('Maximum number of results'),
       },
       async ({ query, entityTypes, limit = 20 }) => {
-        const creator = await getCreatorContext(this.assistantId, this.userId)
+        const userDb = this.getUserDb()
         
-        // Search entities
-        const entitiesQuery = db.select().from(entities).where(
-          and(
-            like(entities.name, `%${query}%`),
-            entityTypes?.length 
-              ? sql`${entities.type} = ANY(${entityTypes})`
-              : undefined,
-            creator.createdByUser 
-              ? eq(entities.createdByUser, creator.createdByUser)
-              : undefined
-          )
-        ).limit(limit)
+        // Search entities using RLS-aware database
+        const entityFilters: any = { limit }
+        if (entityTypes?.length) {
+          // For now, we'll filter in memory since UserScopedDatabase doesn't support type filtering
+          entityFilters.limit = limit * 2 // Get more to account for filtering
+        }
         
-        const foundEntities = await entitiesQuery
-
-        // Also search observations
-        const observationsQuery = db.select({
-          observation: observations,
-          entity: entities,
-        })
-        .from(observations)
-        .innerJoin(entities, eq(observations.entityId, entities.id))
-        .where(
-          and(
-            like(observations.content, `%${query}%`),
-            creator.createdByUser 
-              ? eq(observations.createdByUser, creator.createdByUser)
-              : undefined
-          )
+        const allEntities = await userDb.getEntities(entityFilters)
+        
+        // Apply search and type filters
+        let foundEntities = allEntities.filter(entity => 
+          entity.name.toLowerCase().includes(query.toLowerCase())
         )
-        .limit(limit)
         
-        const foundObservations = await observationsQuery
+        if (entityTypes?.length) {
+          foundEntities = foundEntities.filter(entity => 
+            entityTypes.includes(entity.type)
+          )
+        }
+        
+        foundEntities = foundEntities.slice(0, limit)
+
+        // Search observations using RLS-aware database
+        const allObservations = await userDb.getObservations({ limit: limit * 2 })
+        const foundObservations = allObservations
+          .filter(obs => obs.content.toLowerCase().includes(query.toLowerCase()))
+          .slice(0, limit)
+        
+        // Get entity details for observations
+        const observationsWithEntities = []
+        for (const obs of foundObservations) {
+          const entity = await userDb.getEntity(obs.entityId)
+          if (entity) {
+            observationsWithEntities.push({
+              observation: obs,
+              entity
+            })
+          }
+        }
 
         return {
           content: [{
@@ -205,9 +220,9 @@ export class MemrokMCPServer {
                   id: e.id,
                   name: e.name,
                   type: e.type,
-                  description: e.description,
+                  description: e.metadata?.description,
                 })),
-                observations: foundObservations.map(o => ({
+                observations: observationsWithEntities.map(o => ({
                   id: o.observation.id,
                   content: o.observation.content,
                   entity: {
@@ -232,52 +247,73 @@ export class MemrokMCPServer {
         direction: z.enum(['from', 'to', 'both']).optional().default('both').describe('Direction of relations to retrieve'),
       },
       async ({ entityId, direction = 'both' }) => {
-        const creator = await getCreatorContext(this.assistantId, this.userId)
+        const userDb = this.getUserDb()
         
-        const conditions = []
+        // Get relations using RLS-aware database
+        const filters: any = {}
         if (direction === 'from' || direction === 'both') {
-          conditions.push(eq(relations.fromEntityId, entityId))
+          filters.subjectId = entityId
         }
+        if (direction === 'to' || direction === 'both' && !filters.subjectId) {
+          filters.objectId = entityId
+        }
+        
+        // If direction is 'both', we need to get relations in both directions
+        let allRelations = []
+        
+        if (direction === 'from' || direction === 'both') {
+          const subjectRelations = await userDb.getRelations({ subjectId: entityId })
+          allRelations.push(...subjectRelations)
+        }
+        
         if (direction === 'to' || direction === 'both') {
-          conditions.push(eq(relations.toEntityId, entityId))
+          const objectRelations = await userDb.getRelations({ objectId: entityId })
+          allRelations.push(...objectRelations)
         }
-
-        const entityRelations = await db.select({
-          relation: relations,
-          fromEntity: {
-            id: sql`fe.id`,
-            name: sql`fe.name`, 
-            type: sql`fe.type`,
-          },
-          toEntity: {
-            id: sql`te.id`,
-            name: sql`te.name`,
-            type: sql`te.type`,
-          },
-        })
-        .from(relations)
-        .innerJoin(sql`${entities} as fe`, sql`${relations.fromEntityId} = fe.id`)
-        .innerJoin(sql`${entities} as te`, sql`${relations.toEntityId} = te.id`)
-        .where(
-          and(
-            conditions.length > 0 ? or(...conditions) : undefined,
-            creator.createdByUser 
-              ? eq(relations.createdByUser, creator.createdByUser)
-              : undefined
-          )
-        )
+        
+        // Remove duplicates if direction is 'both'
+        if (direction === 'both') {
+          const uniqueRelations = []
+          const seenIds = new Set()
+          for (const relation of allRelations) {
+            if (!seenIds.has(relation.id)) {
+              seenIds.add(relation.id)
+              uniqueRelations.push(relation)
+            }
+          }
+          allRelations = uniqueRelations
+        }
+        
+        // Get entity details for each relation
+        const relationsWithEntities = []
+        for (const relation of allRelations) {
+          const subjectEntity = await userDb.getEntity(relation.subjectId)
+          const objectEntity = await userDb.getEntity(relation.objectId)
+          
+          if (subjectEntity && objectEntity) {
+            relationsWithEntities.push({
+              id: relation.id,
+              predicate: relation.predicate,
+              subjectEntity: {
+                id: subjectEntity.id,
+                name: subjectEntity.name,
+                type: subjectEntity.type,
+              },
+              objectEntity: {
+                id: objectEntity.id,
+                name: objectEntity.name,
+                type: objectEntity.type,
+              },
+            })
+          }
+        }
 
         return {
           content: [{
             type: 'text',
             text: JSON.stringify({
               success: true,
-              relations: entityRelations.map(r => ({
-                id: r.relation.id,
-                predicate: r.relation.predicate,
-                fromEntity: r.fromEntity,
-                toEntity: r.toEntity,
-              })),
+              relations: relationsWithEntities,
             }, null, 2)
           }]
         }

@@ -1,45 +1,34 @@
-import { sql, gte } from 'drizzle-orm'
-import { db, schema } from '../../utils/db'
+import { createAuthenticatedHandler } from '../../utils/auth-middleware'
 
-export default defineEventHandler(async (event) => {
-  try {
-    // Get assistant statistics
-    const [totalCount] = await db
-      .select({ count: sql`count(*)` })
-      .from(schema.assistants)
+export default createAuthenticatedHandler(async (event, userDb, user) => {
+  // Get all user's assistants (RLS ensures only user's data is accessible)
+  const assistants = await userDb.getAssistants()
 
-    // Get assistants by type
-    const typeStats = await db
-      .select({
-        type: schema.assistants.type,
-        count: sql`count(*)`.as('count')
-      })
-      .from(schema.assistants)
-      .groupBy(schema.assistants.type)
-      .orderBy(sql`count(*) DESC`)
+  // Calculate total count
+  const total = assistants.length
 
-    // Get recent assistant activity (last 7 days)
-    const sevenDaysAgo = new Date()
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+  // Calculate assistants by type
+  const typeStats = assistants.reduce((acc, assistant) => {
+    const type = assistant.type
+    acc[type] = (acc[type] || 0) + 1
+    return acc
+  }, {} as Record<string, number>)
 
-    const [recentCount] = await db
-      .select({ count: sql`count(*)` })
-      .from(schema.assistants)
-      .where(gte(schema.assistants.createdAt, sevenDaysAgo))
+  const byType = Object.entries(typeStats)
+    .map(([type, count]) => ({ type, count }))
+    .sort((a, b) => b.count - a.count)
 
-    return {
-      total: parseInt(totalCount.count as string),
-      recentActivity: parseInt(recentCount.count as string),
-      byType: typeStats.map(stat => ({
-        type: stat.type,
-        count: parseInt(stat.count as string)
-      }))
-    }
-  } catch (error) {
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to fetch assistant statistics',
-      data: error
-    })
+  // Get recent assistant activity (last 7 days)
+  const sevenDaysAgo = new Date()
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+
+  const recentActivity = assistants.filter(assistant => 
+    assistant.createdAt >= sevenDaysAgo
+  ).length
+
+  return {
+    total,
+    recentActivity,
+    byType
   }
 })
