@@ -148,6 +148,22 @@ Not yet implemented:
   1. First commit changes in the deployment submodule
   2. Then commit in the parent repository to include the reference to the current submodule state
 
+### Branch Management Guidelines
+
+**CRITICAL:** Always consider what type of change you're making and commit to the appropriate branch:
+
+- **Feature branches** (e.g., `feature/implement-gui`): Only commit changes directly related to that specific feature
+- **Infrastructure/tooling changes** (e.g., agent configurations, CI/CD, build tools, development setup): Should go to `main` branch or dedicated infrastructure branches
+- **Bug fixes**: Can go to feature branches if they're blocking the feature, otherwise to `main`
+- **Documentation updates**: Generally go to `main` unless feature-specific
+
+**Before committing, ask yourself:**
+1. Does this change directly contribute to the current feature branch's goal?
+2. Would other developers working on different features benefit from this change?
+3. Is this a foundational change that affects the entire project?
+
+If the answer to #2 or #3 is "yes", create a new branch from `main` or switch to `main` before committing.
+
 ## MCP Server Implementation
 
 **Status:** ✅ Complete and production-ready
