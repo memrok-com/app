@@ -11,10 +11,8 @@
       >
     </template>
     <UNavigationMenu
-      highlight
-      highlight-color="primary"
-      orientation="horizontal"
       :items="items"
+      highlight
     />
     <template #right>
       <UDropdownMenu
@@ -22,14 +20,31 @@
         :items="userMenuItems"
       >
         <UAvatar
-          :alt="user?.userInfo?.name"
+          :alt="
+            typeof user?.userInfo?.name === 'string'
+              ? user.userInfo.name
+              : undefined
+          "
           class="cursor-pointer"
         />
         <template #loggedInAs>
           <UUser
-            :avatar="{ alt: user?.userInfo?.name }"
-            :name="user?.userInfo?.name"
-            :description="user?.userInfo?.email"
+            :avatar="{
+              alt:
+                typeof user?.userInfo?.name === 'string'
+                  ? user.userInfo.name
+                  : undefined,
+            }"
+            :name="
+              typeof user?.userInfo?.name === 'string'
+                ? user.userInfo.name
+                : undefined
+            "
+            :description="
+              typeof user?.userInfo?.email === 'string'
+                ? user.userInfo.email
+                : undefined
+            "
           />
         </template>
       </UDropdownMenu>
@@ -42,11 +57,12 @@
 import type { NavigationMenuItem } from "#ui/types"
 import type { DropdownMenuItem } from "#ui/types"
 
-const { locale, t } = useI18n()
+const { locale, t } = useI18n({ useScope: "local" })
 const config = useRuntimeConfig()
 const { user, logout } = useOidcAuth()
 const version = config.public.MEMROK_VERSION
 const colorMode = useColorMode()
+const route = useRoute()
 
 const isDark = computed({
   get() {
@@ -61,24 +77,19 @@ const items = computed<NavigationMenuItem[][]>(() => [
   [
     {
       icon: "i-ph-head-circuit-fill",
-      label: t("navigation.assistants"),
+      label: t("assistants"),
       to: `/${locale.value}/my/assistants/`,
+      active: route.path.includes("/my/assistants"),
     },
     {
       icon: "i-ph-memory-fill",
-      label: t("navigation.memories"),
+      label: t("memories"),
       to: `/${locale.value}/my/memories/`,
+      active: route.path.includes("/my/memories"),
     },
-    {
-      icon: "i-ph-gear-fill",
-      label: t("navigation.settings"),
-      to: `/${locale.value}/my/settings/`,
-    },
-  ],
-  [
     {
       icon: "i-ph-github-logo-fill",
-      label: t("navigation.github"),
+      label: t("github"),
       target: "_blank",
       to: "https://github.com/memrok-com/memrok",
     },
@@ -97,9 +108,7 @@ const userMenuItems = computed<DropdownMenuItem[][]>(() => [
     {
       class: "cursor-pointer",
       icon: isDark.value ? "i-ph-sun" : "i-ph-moon",
-      label: isDark.value
-        ? t("navigation.lightMode")
-        : t("navigation.darkMode"),
+      label: isDark.value ? t("lightMode") : t("darkMode"),
       onSelect: () => {
         isDark.value = !isDark.value
       },
@@ -108,13 +117,14 @@ const userMenuItems = computed<DropdownMenuItem[][]>(() => [
   [
     {
       icon: "i-ph-user",
-      label: t("navigation.profile"),
+      label: t("account"),
+      target: "_blank",
       to: `https://${config.public.MEMROK_AUTH_DOMAIN}/ui/console/users/me`,
     },
     {
       class: "cursor-pointer",
       icon: "i-ph-sign-out",
-      label: t("navigation.logout"),
+      label: t("logout"),
       onSelect: () => {
         logout()
       },
@@ -122,3 +132,14 @@ const userMenuItems = computed<DropdownMenuItem[][]>(() => [
   ],
 ])
 </script>
+
+<i18n lang="yaml">
+en:
+  assistants: Assistants
+  memories: Memories
+  github: GitHub
+  lightMode: Light Mode
+  darkMode: Dark Mode
+  account: Account
+  logout: Logout
+</i18n>

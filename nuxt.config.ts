@@ -15,7 +15,6 @@ export default defineNuxtConfig({
       optimizeTranslationDirective: false,
     },
     locales: ["en"],
-    vueI18n: "~/i18n/i18n.config.ts",
   },
   modules: [
     "@formkit/auto-animate/nuxt",

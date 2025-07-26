@@ -1,136 +1,107 @@
 <template>
   <UModal
+    :title="t('title')"
+    :description="t('description')"
     v-model:open="isOpen"
-    :title="t('memories.relations.create.title')"
-    :description="t('memories.relations.create.description')"
   >
-    <!-- The button that opens the modal -->
     <UButton
-      v-bind="buttonProps"
       @click="isOpen = true"
+      v-bind="buttonProps"
     />
-
     <template #body>
-      <!-- Form content -->
       <UForm
         id="relation-form"
         :schema="schema"
         :state="form"
-        @submit="onSubmit"
         :validate-on="['change', 'input']"
+        @submit="onSubmit"
       >
         <UFormField
+          :label="t('form.fields.subject.label')"
           name="subjectId"
-          :label="t('memories.relations.create.fields.subject')"
           required
         >
           <USelectMenu
-            v-model="form.subjectId"
             :items="entityOptions"
-            :placeholder="
-              t('memories.relations.create.fields.subjectPlaceholder')
-            "
-            value-key="value"
             :loading="entitiesPending"
+            :placeholder="t('form.fields.subject.placeholder')"
             :searchable="true"
-            :searchable-placeholder="
-              t('memories.relations.create.fields.searchEntity')
-            "
+            :searchable-placeholder="t('form.fields.subject.search')"
+            value-key="value"
+            v-model="form.subjectId"
           />
         </UFormField>
-
         <UFormField
+          :label="t('form.fields.predicate.label')"
           name="predicate"
-          :label="t('memories.relations.create.fields.predicate')"
-          :help="t('memories.relations.create.fields.predicateHelp')"
-          class="mt-4"
+          :help="t('form.fields.predicate.help')"
           required
         >
           <UInputMenu
-            v-model="form.predicate"
-            v-model:open="predicateMenuOpen"
-            :items="predicateItems"
-            :placeholder="
-              t('memories.relations.create.fields.predicatePlaceholder')
-            "
-            :loading="predicatesPending"
             create-item
+            :items="predicateItems"
+            :loading="predicatesPending"
+            :placeholder="t('form.fields.predicate.placeholder')"
             @create="onCreatePredicate"
             @focus="predicateMenuOpen = true"
-            class="w-full"
+            v-model="form.predicate"
+            v-model:open="predicateMenuOpen"
           />
         </UFormField>
-
         <UFormField
+          :label="t('form.fields.object.label')"
           name="objectId"
-          :label="t('memories.relations.create.fields.object')"
-          class="mt-4"
           required
         >
           <USelectMenu
-            v-model="form.objectId"
             :items="entityOptions"
-            :placeholder="
-              t('memories.relations.create.fields.objectPlaceholder')
-            "
-            value-key="value"
+            :placeholder="t('form.fields.object.placeholder')"
             :loading="entitiesPending"
             :searchable="true"
-            :searchable-placeholder="
-              t('memories.relations.create.fields.searchEntity')
-            "
+            :searchable-placeholder="t('form.fields.object.search')"
+            value-key="value"
+            v-model="form.objectId"
           />
         </UFormField>
-
         <UFormField
+          :help="t('form.fields.strength.help')"
+          :label="t('form.fields.strength.label')"
           name="strength"
-          :label="t('memories.relations.create.fields.strength')"
-          :help="t('memories.relations.create.fields.strengthHelp')"
-          class="mt-4"
         >
-          <div class="flex items-center gap-4">
-            <USlider
-              v-model="form.strength"
-              :min="0"
-              :max="1"
-              :step="0.1"
-              class="flex-1"
-            />
-            <span class="text-sm font-medium w-12 text-right">{{
-              form.strength
-            }}</span>
-          </div>
+          <USlider
+            color="neutral"
+            :min="0"
+            :max="1"
+            :step="0.1"
+            tooltip
+            v-model="form.strength"
+          />
         </UFormField>
-
         <UFormField
+          :label="t('form.fields.metadata.label')"
           name="metadata"
-          :label="t('memories.relations.create.fields.metadata')"
-          class="mt-4"
         >
           <UTextarea
-            v-model="metadataText"
             :rows="4"
-            :placeholder="
-              t('memories.relations.create.fields.metadataPlaceholder')
-            "
+            :placeholder="t('form.fields.metadata.placeholder')"
+            v-model="metadataText"
           />
         </UFormField>
       </UForm>
     </template>
-
     <template #footer="{ close }">
       <div class="flex justify-end gap-3 w-full">
         <UButton
           color="neutral"
+          :label="t('form.buttons.cancel')"
           variant="ghost"
-          :label="t('common.cancel')"
-          @click="handleModalClose"
+          @click="close"
         />
         <UButton
-          type="submit"
           form="relation-form"
+          :label="t('form.buttons.create')"
           :loading="loading"
-          :label="t('common.create')"
+          type="submit"
         />
       </div>
     </template>
@@ -144,21 +115,23 @@ import { z } from "zod"
 
 // Props that match UButton props
 interface Props extends /* @vue-ignore */ Partial<ButtonProps> {
-  icon?: string
-  label?: string
-  block?: boolean
-  variant?: ButtonProps["variant"]
+  block?: ButtonProps["block"]
   color?: ButtonProps["color"]
+  disabled?: ButtonProps["disabled"]
+  icon?: ButtonProps["icon"]
+  label?: ButtonProps["label"]
   size?: ButtonProps["size"]
+  variant?: ButtonProps["variant"]
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  block: true,
+  color: "primary",
+  disabled: false,
   icon: "i-ph-plus",
   label: undefined,
-  block: true,
-  variant: "solid",
-  color: "primary",
   size: "md",
+  variant: "solid",
 })
 
 const emit = defineEmits<{
@@ -166,13 +139,16 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
-const { user } = useOidcAuth()
 
 // Compute button props
 const buttonProps = computed(() => ({
-  ...props,
-  label: props.label || t("memories.navigation.relations.create"),
-  onCreated: undefined,
+  block: props.block,
+  color: props.color,
+  disabled: props.disabled,
+  icon: props.icon,
+  label: props.label || t("title"),
+  size: props.size,
+  variant: props.variant,
 }))
 
 // Form state
@@ -199,9 +175,9 @@ type FormData = {
 
 // Validation schema
 const schema = z.object({
-  subjectId: z.string().min(1, "Subject entity is required"),
-  predicate: z.string().min(1, "Predicate is required"),
-  objectId: z.string().min(1, "Object entity is required"),
+  subjectId: z.string().min(1, t("form.fields.subject.error")),
+  predicate: z.string().min(1, t("form.fields.predicate.error")),
+  objectId: z.string().min(1, t("form.fields.object.error")),
   strength: z.number().min(0).max(1),
 })
 
@@ -260,7 +236,7 @@ onMounted(() => {
 
 // Expose methods for parent component
 defineExpose({
-  refreshEntities
+  refreshEntities,
 })
 
 // Handle creation of new predicate
@@ -334,20 +310,59 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
     // Show success notification
     const toast = useToast()
     toast.add({
-      title: t("common.success"),
-      description: t("memories.relations.create.success"),
       color: "success",
+      icon: "i-ph-check-circle-fill",
+      title: t("success.title"),
+      description: t("success.description"),
     })
   } catch (error: any) {
     const toast = useToast()
     toast.add({
-      title: t("common.error"),
-      description:
-        error.data?.statusMessage || t("memories.relations.create.error"),
       color: "error",
+      icon: "i-ph-warning-fill",
+      title: t("error.title"),
+      description: error.data?.statusMessage || t("error.description"),
     })
   } finally {
     loading.value = false
   }
 }
 </script>
+
+<i18n lang="yaml">
+en:
+  title: Create Relation
+  description: Create a new relation between entities
+  form:
+    fields:
+      subject:
+        label: Subject Entity
+        placeholder: Select or search for subject entity
+        search: Search subject entities…
+        error: Subject entity is required
+      predicate:
+        label: Predicate
+        placeholder: Select or create predicate
+        help: The type of relation between the subject and object
+        error: Predicate is required
+      object:
+        label: Object Entity
+        placeholder: Select or search for object entity
+        search: Search object entities…
+        error: Object entity is required
+      strength:
+        label: Strength
+        help: Strength of the relation (0-1)
+      metadata:
+        label: Metadata (JSON)
+        placeholder: Optional metadata in JSON format
+    buttons:
+      cancel: Cancel
+      create: Create Relation
+  success:
+    title: Relation Created Successfully
+    description: Your relation has been successfully added.
+  error:
+    title: Error Creating Relation
+    description: An error occurred while creating the relation.
+</i18n>

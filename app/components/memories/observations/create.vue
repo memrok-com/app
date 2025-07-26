@@ -1,48 +1,39 @@
 <template>
   <UModal
     v-model:open="isOpen"
-    :title="t('memories.observations.create.title')"
-    :description="t('memories.observations.create.description')"
+    :title="t('title')"
+    :description="t('description')"
   >
-    <!-- The button that opens the modal -->
     <UButton
       v-bind="buttonProps"
       @click="isOpen = true"
     />
-
     <template #body>
-      <!-- Form content -->
       <UForm
         id="observation-form"
         :schema="schema"
         :state="form"
-        @submit="onSubmit"
         :validate-on="['change', 'input']"
+        @submit="onSubmit"
       >
         <UFormField
+          :label="t('form.fields.entity.label')"
           name="entityId"
-          :label="t('memories.observations.create.fields.entity')"
           required
         >
           <USelectMenu
-            v-model="form.entityId"
             :items="entityOptions"
-            :placeholder="
-              t('memories.observations.create.fields.entityPlaceholder')
-            "
-            value-key="value"
             :loading="entitiesPending"
+            :placeholder="t('form.fields.entity.placeholder')"
             :searchable="true"
-            :searchable-placeholder="
-              t('memories.observations.create.fields.searchEntity')
-            "
+            :searchable-placeholder="t('form.fields.entity.search')"
+            value-key="value"
+            v-model="form.entityId"
           />
         </UFormField>
-
         <UFormField
+          :label="t('form.fields.content.label')"
           name="content"
-          :label="t('memories.observations.create.fields.content')"
-          class="mt-4"
           required
         >
           <UTextarea
@@ -50,36 +41,31 @@
             :rows="4"
           />
         </UFormField>
-
         <UFormField
           name="metadata"
-          :label="t('memories.observations.create.fields.metadata')"
-          class="mt-4"
+          :label="t('form.fields.metadata.label')"
         >
           <UTextarea
             v-model="metadataText"
             :rows="4"
-            :placeholder="
-              t('memories.observations.create.fields.metadataPlaceholder')
-            "
+            :placeholder="t('form.fields.metadata.placeholder')"
           />
         </UFormField>
       </UForm>
     </template>
-
     <template #footer="{ close }">
       <div class="flex justify-end gap-3 w-full">
         <UButton
           color="neutral"
           variant="ghost"
-          :label="t('common.cancel')"
+          :label="t('form.buttons.cancel')"
           @click="handleModalClose"
         />
         <UButton
           type="submit"
           form="observation-form"
           :loading="loading"
-          :label="t('common.create')"
+          :label="t('form.buttons.create')"
         />
       </div>
     </template>
@@ -93,20 +79,22 @@ import { z } from "zod"
 
 // Props that match UButton props
 interface Props extends /* @vue-ignore */ Partial<ButtonProps> {
-  icon?: string
-  label?: string
-  block?: boolean
-  variant?: ButtonProps["variant"]
+  block?: ButtonProps["block"]
   color?: ButtonProps["color"]
+  disabled?: ButtonProps["disabled"]
+  icon?: ButtonProps["icon"]
+  label?: ButtonProps["label"]
+  variant?: ButtonProps["variant"]
   size?: ButtonProps["size"]
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  block: true,
+  color: "primary",
+  disabled: false,
   icon: "i-ph-plus",
   label: undefined,
-  block: true,
   variant: "solid",
-  color: "primary",
   size: "md",
 })
 
@@ -119,9 +107,13 @@ const { user } = useOidcAuth()
 
 // Compute button props
 const buttonProps = computed(() => ({
-  ...props,
-  label: props.label || t("memories.navigation.observations.create"),
-  onCreated: undefined,
+  block: props.block,
+  color: props.color,
+  disabled: props.disabled,
+  icon: props.icon,
+  label: props.label || t("form.buttons.create"),
+  variant: props.variant,
+  size: props.size,
 }))
 
 // Form state
@@ -142,8 +134,8 @@ type FormData = {
 
 // Validation schema
 const schema = z.object({
-  entityId: z.string().min(1, "Entity is required"),
-  content: z.string().min(1, "Content is required"),
+  entityId: z.string().min(1, t("form.fields.entity.error")),
+  content: z.string().min(1, t("form.fields.content.error")),
 })
 
 // Data refs for entities
@@ -180,7 +172,7 @@ onMounted(() => {
 
 // Expose methods for parent component
 defineExpose({
-  refreshEntities
+  refreshEntities,
 })
 
 // Handle modal closing
@@ -241,20 +233,49 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
     // Show success notification
     const toast = useToast()
     toast.add({
-      title: t("common.success"),
-      description: t("memories.observations.create.success"),
       color: "success",
+      icon: "i-ph-check-circle-fill",
+      title: t("common.success"),
+      description: t("success"),
     })
   } catch (error: any) {
     const toast = useToast()
     toast.add({
-      title: t("common.error"),
-      description:
-        error.data?.statusMessage || t("memories.observations.create.error"),
       color: "error",
+      icon: "i-ph-warning-fill",
+      title: t("common.error"),
+      description: error.data?.statusMessage || t("error"),
     })
   } finally {
     loading.value = false
   }
 }
 </script>
+
+<i18n lang="yaml">
+en:
+  title: Create Observation
+  description: Add a new observation to your memory.
+  form:
+    fields:
+      entity:
+        label: Entity
+        placeholder: Select an entity
+        search: Search entities…
+        error: Entity is required.
+      content:
+        label: Content
+        error: Content is required.
+      metadata:
+        label: Metadata
+        placeholder: Optional metadata in JSON format
+    buttons:
+      cancel: Cancel
+      create: Create Observation
+    success:
+      title: Observation Created
+      description: Your observation has been successfully added.
+    error:
+      title: Error Creating Observation
+      description: An error occurred while creating the observation.
+</i18n>

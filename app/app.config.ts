@@ -1,5 +1,10 @@
 export default defineAppConfig({
   ui: {
+    button: {
+      slots: {
+        base: "cursor-pointer",
+      },
+    },
     colors: {
       error: "rose",
       info: "cyan",
@@ -9,10 +14,13 @@ export default defineAppConfig({
       success: "green",
       warning: "amber",
     },
+    form: {
+      base: "space-y-4",
+    },
     icons: {
       close: "i-ph-x",
       dark: "i-ph-moon-fill",
-      external: "i-ph-arrow-square-out-light",
+      external: "i-ph-arrow-line-up-right-bold",
       light: "i-ph-sun-fill",
     },
     input: {
@@ -22,7 +30,7 @@ export default defineAppConfig({
     },
     inputMenu: {
       slots: {
-        base: "w-full",
+        root: "w-full",
       },
     },
     selectMenu: {
@@ -33,6 +41,13 @@ export default defineAppConfig({
     textarea: {
       slots: {
         root: "w-full",
+      },
+    },
+  },
+  uiPro: {
+    pageAccordion: {
+      slots: {
+        trigger: "cursor-pointer",
       },
     },
   },

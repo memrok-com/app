@@ -1,83 +1,72 @@
 <template>
   <UModal
+    :title="t('title')"
+    :description="t('description')"
     v-model:open="isOpen"
-    :title="t('memories.entities.create.title')"
-    :description="t('memories.entities.create.description')"
   >
-    <!-- The button that opens the modal -->
     <UButton
-      v-bind="buttonProps"
       @click="isOpen = true"
+      v-bind="buttonProps"
     />
-
     <template #body>
-      <!-- Form content -->
       <UForm
         id="entity-form"
         :schema="schema"
         :state="form"
-        @submit="onSubmit"
         :validate-on="['change', 'input']"
+        @submit="onSubmit"
       >
         <UFormField
+          :label="t('form.fields.name.label')"
           name="name"
-          :label="t('memories.entities.create.fields.name')"
           required
         >
           <UInput
-            v-model="form.name"
             autofocus
+            v-model="form.name"
           />
         </UFormField>
-
         <UFormField
+          :label="t('form.fields.type.label')"
+          :help="t('form.fields.type.help')"
           name="type"
-          :label="t('memories.entities.create.fields.type')"
-          :help="t('memories.entities.create.fields.typeHelp')"
-          class="mt-4"
           required
         >
           <UInputMenu
-            v-model="form.type"
-            v-model:open="typeMenuOpen"
-            :items="typeItems"
-            :placeholder="t('memories.entities.create.fields.typePlaceholder')"
             create-item
+            :items="typeItems"
+            :placeholder="t('form.fields.type.placeholder')"
             @create="onCreateType"
             @focus="typeMenuOpen = true"
-            class="w-full"
+            v-model="form.type"
+            v-model:open="typeMenuOpen"
           />
         </UFormField>
-
         <UFormField
+          :label="t('form.fields.metadata.label')"
           name="metadata"
-          :label="t('memories.entities.create.fields.metadata')"
-          class="mt-4"
         >
           <UTextarea
-            v-model="metadataText"
+            :placeholder="t('form.fields.metadata.placeholder')"
             :rows="4"
-            :placeholder="
-              t('memories.entities.create.fields.metadataPlaceholder')
-            "
+            v-model="metadataText"
           />
         </UFormField>
       </UForm>
     </template>
-
     <template #footer="{ close }">
       <div class="flex justify-end gap-3 w-full">
         <UButton
           color="neutral"
+          :label="t('form.buttons.cancel')"
           variant="ghost"
-          :label="t('common.cancel')"
-          @click="handleModalClose"
+          @click="close"
         />
         <UButton
-          type="submit"
           form="entity-form"
+          :label="t('form.buttons.create')"
           :loading="loading"
-          :label="t('common.create')"
+          type="submit"
         />
       </div>
     </template>
@@ -91,22 +80,21 @@ import { z } from "zod"
 
 // Props that match UButton props
 interface Props extends /* @vue-ignore */ Partial<ButtonProps> {
-  // Default button props if not provided
-  icon?: string
-  label?: string
-  block?: boolean
-  variant?: ButtonProps["variant"]
+  block?: ButtonProps["block"]
   color?: ButtonProps["color"]
+  icon?: ButtonProps["icon"]
+  label?: ButtonProps["label"]
   size?: ButtonProps["size"]
+  variant?: ButtonProps["variant"]
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  block: true,
+  color: "primary",
   icon: "i-ph-plus",
   label: undefined, // Will use translation if not provided
-  block: true,
-  variant: "solid",
-  color: "primary",
   size: "md",
+  variant: "solid",
 })
 
 const emit = defineEmits<{
@@ -114,14 +102,15 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
-const { user } = useOidcAuth()
 
 // Compute button props, using defaults from props and allowing overrides
 const buttonProps = computed(() => ({
-  ...props,
-  label: props.label || t("memories.navigation.entities.create"),
-  // Remove non-button props
-  onCreated: undefined,
+  block: props.block,
+  color: props.color,
+  icon: props.icon,
+  label: props.label || t("title"),
+  size: props.size,
+  variant: props.variant,
 }))
 
 // Form state
@@ -132,7 +121,9 @@ const form = reactive({
   type: "",
   metadata: null as any,
 })
+
 const metadataText = ref("")
+
 // Type menu open state
 const typeMenuOpen = ref(false)
 
@@ -144,8 +135,8 @@ type FormData = {
 
 // Validation schema
 const schema = z.object({
-  name: z.string().min(1, "Name is required"),
-  type: z.string().min(1, "Type is required"),
+  name: z.string().min(1, t("form.fields.name.error")),
+  type: z.string().min(1, t("form.fields.type.error")),
 })
 
 // Data ref for types
@@ -155,14 +146,10 @@ const typesData = ref<{ types: any[] } | null>(null)
 const typeItems = computed(() => {
   // Default types
   const defaultTypes = [
-    "person",
-    "place",
-    "event",
-    "concept",
-    "project",
-    "organization",
-    "tool",
-    "document",
+    t("form.fields.type.defaults.person"),
+    t("form.fields.type.defaults.group"),
+    t("form.fields.type.defaults.place"),
+    t("form.fields.type.defaults.event"),
   ]
 
   // Get existing types from API
@@ -199,17 +186,6 @@ const onCreateType = (newType: string) => {
   form.type = newType
   // Close the menu
   typeMenuOpen.value = false
-}
-
-// Handle modal closing
-const handleModalClose = () => {
-  // Reset form when closing
-  form.name = ""
-  form.type = ""
-  form.metadata = null
-  metadataText.value = ""
-  // Close modal
-  isOpen.value = false
 }
 
 // Watch metadata text and parse JSON
@@ -258,20 +234,54 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
     // Show success notification
     const toast = useToast()
     toast.add({
-      title: t("common.success"),
-      description: t("memories.entities.create.success"),
       color: "success",
+      icon: "i-ph-check-circle-fill",
+      title: t("form.success.title"),
+      description: t("form.success.description"),
     })
   } catch (error: any) {
     const toast = useToast()
     toast.add({
-      title: t("common.error"),
-      description:
-        error.data?.statusMessage || t("memories.entities.create.error"),
       color: "error",
+      icon: "i-ph-warning-fill",
+      title: t("form.error.title"),
+      description: error.data?.statusMessage || t("form.error.description"),
     })
   } finally {
     loading.value = false
   }
 }
 </script>
+
+<i18n lang="yaml">
+en:
+  title: Create Entity
+  description: Create a new memory entity.
+  form:
+    fields:
+      name:
+        label: Name
+        error: Name is required
+      type:
+        label: Type
+        help: Select an existing type or enter a new one.
+        placeholder: Select or create a type
+        defaults:
+          person: person
+          group: group
+          place: place
+          event: event
+        error: Type is required
+      metadata:
+        label: Metadata
+        placeholder: Optional metadata in JSON format
+    buttons:
+      cancel: Cancel
+      create: Create
+    success:
+      title: Entity Created
+      description: Your entity has been successfully added.
+    error:
+      title: Error Creating Entity
+      description: An error occurred while creating the entity.
+</i18n>
