@@ -56,15 +56,7 @@
             </template>
           </UPageCard>
         </UPageGrid>
-        <UTable>
-          <template #empty>
-            <UPageFeature
-              icon="i-ph-empty"
-              :description="t('table.empty')"
-              orientation="vertical"
-            />
-          </template>
-        </UTable>
+        <Memories :entities="entitiesData?.entities || []" :key="entities" />
         <UPageCard :ui="{ container: 'p-0 sm:p-0' }">
           <UPageAccordion
             :items="[
@@ -107,8 +99,6 @@ useHead({
   title: t("title"),
 })
 
-const { user } = useOidcAuth()
-
 // Template refs
 const relationsCreateRef = ref()
 const observationsCreateRef = ref()
@@ -117,9 +107,11 @@ const observationsCreateRef = ref()
 const { data: entitiesData, refresh: refreshEntities } = await useFetch(
   "/api/entities"
 )
+
 const { data: relationsData, refresh: refreshRelations } = await useFetch(
   "/api/relations"
 )
+
 const { data: observationsData, refresh: refreshObservations } = await useFetch(
   "/api/observations"
 )

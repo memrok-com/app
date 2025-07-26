@@ -95,7 +95,7 @@ const props = withDefaults(defineProps<Props>(), {
   icon: "i-ph-plus",
   label: undefined,
   variant: "solid",
-  size: "md",
+  size: "xl",
 })
 
 const emit = defineEmits<{
@@ -103,7 +103,6 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
-const { user } = useOidcAuth()
 
 // Compute button props
 const buttonProps = computed(() => ({

@@ -7,13 +7,17 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
     offset = 0, 
     type, 
     search,
-    createdByAssistant 
+    createdByAssistant,
+    sortBy = 'createdAt',
+    sortOrder = 'desc'
   } = query
 
   // Build filters for the user-scoped database
   const filters: any = {
     limit: parseInt(limit as string),
-    offset: parseInt(offset as string)
+    offset: parseInt(offset as string),
+    sortBy: sortBy as string,
+    sortOrder: sortOrder as string
   }
   
   if (type) {
@@ -24,8 +28,8 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
     filters.createdByAssistant = createdByAssistant as string
   }
 
-  // Get entities using user-scoped database - RLS ensures only user's entities are accessible
-  const entities = await userDb.getEntities(filters)
+  // Get entities with counts using user-scoped database - RLS ensures only user's entities are accessible
+  const entities = await userDb.getEntitiesWithCounts(filters)
 
   // Apply search filter in memory if needed (this could be optimized later by adding to UserScopedDatabase)
   let filteredEntities = entities

@@ -130,7 +130,7 @@ const props = withDefaults(defineProps<Props>(), {
   disabled: false,
   icon: "i-ph-plus",
   label: undefined,
-  size: "md",
+  size: "xl",
   variant: "solid",
 })
 

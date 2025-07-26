@@ -1,17 +1,15 @@
-import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js'
-import type { SQL } from 'drizzle-orm'
-import { eq, and } from 'drizzle-orm'
-import * as schema from './schema'
-import { 
-  withUserContext, 
-  withUserContextTransaction, 
+import { eq, and, count, or, desc, asc } from "drizzle-orm"
+import * as schema from "./schema"
+import {
+  withUserContext,
+  withUserContextTransaction,
   setUserContext,
-  type DatabaseWithSchema 
-} from './rls-context'
+  type DatabaseWithSchema,
+} from "./rls-context"
 
 /**
  * User-scoped database operations that automatically handle RLS context
- * 
+ *
  * This class provides a high-level interface for database operations that
  * automatically sets the appropriate user context for RLS policies.
  * All operations are scoped to a specific user.
@@ -21,22 +19,26 @@ export class UserScopedDatabase {
     private readonly db: DatabaseWithSchema,
     private readonly userId: string
   ) {
-    if (!userId || typeof userId !== 'string') {
-      throw new Error('User ID is required and must be a non-empty string')
+    if (!userId || typeof userId !== "string") {
+      throw new Error("User ID is required and must be a non-empty string")
     }
   }
 
   /**
    * Execute a custom operation with user context
    */
-  async execute<T>(operation: (db: DatabaseWithSchema) => Promise<T>): Promise<T> {
+  async execute<T>(
+    operation: (db: DatabaseWithSchema) => Promise<T>
+  ): Promise<T> {
     return await withUserContext(this.db, this.userId, operation)
   }
 
   /**
    * Execute a transaction with user context
    */
-  async transaction<T>(operation: (tx: DatabaseWithSchema) => Promise<T>): Promise<T> {
+  async transaction<T>(
+    operation: (tx: DatabaseWithSchema) => Promise<T>
+  ): Promise<T> {
     return await withUserContextTransaction(this.db, this.userId, operation)
   }
 
@@ -52,13 +54,16 @@ export class UserScopedDatabase {
     config?: any
   }) {
     return await this.execute(async (db) => {
-      const [assistant] = await db.insert(schema.assistants).values({
-        userId: this.userId,
-        name: data.name,
-        type: data.type,
-        externalId: data.externalId,
-        config: data.config
-      }).returning()
+      const [assistant] = await db
+        .insert(schema.assistants)
+        .values({
+          userId: this.userId,
+          name: data.name,
+          type: data.type,
+          externalId: data.externalId,
+          config: data.config,
+        })
+        .returning()
       return assistant
     })
   }
@@ -88,12 +93,15 @@ export class UserScopedDatabase {
   /**
    * Update an assistant
    */
-  async updateAssistant(assistantId: string, data: {
-    name?: string
-    type?: string
-    externalId?: string
-    config?: any
-  }) {
+  async updateAssistant(
+    assistantId: string,
+    data: {
+      name?: string
+      type?: string
+      externalId?: string
+      config?: any
+    }
+  ) {
     return await this.execute(async (db) => {
       const [assistant] = await db
         .update(schema.assistants)
@@ -130,14 +138,17 @@ export class UserScopedDatabase {
     createdByAssistant?: string
   }) {
     return await this.execute(async (db) => {
-      const [entity] = await db.insert(schema.entities).values({
-        userId: this.userId,
-        type: data.type,
-        name: data.name,
-        metadata: data.metadata,
-        createdByUser: data.createdByUser,
-        createdByAssistant: data.createdByAssistant
-      }).returning()
+      const [entity] = await db
+        .insert(schema.entities)
+        .values({
+          userId: this.userId,
+          type: data.type,
+          name: data.name,
+          metadata: data.metadata,
+          createdByUser: data.createdByUser,
+          createdByAssistant: data.createdByAssistant,
+        })
+        .returning()
       return entity
     })
   }
@@ -154,7 +165,77 @@ export class UserScopedDatabase {
     offset?: number
   }) {
     return await this.execute(async (db) => {
-      let query = db.select().from(schema.entities)
+      // Build query with method chaining to maintain type inference
+      const baseQuery = db.select().from(schema.entities)
+      
+      // Apply filters
+      const conditions = []
+      if (filters?.type) {
+        conditions.push(eq(schema.entities.type, filters.type))
+      }
+      if (filters?.createdByUser) {
+        conditions.push(
+          eq(schema.entities.createdByUser, filters.createdByUser)
+        )
+      }
+      if (filters?.createdByAssistant) {
+        conditions.push(
+          eq(schema.entities.createdByAssistant, filters.createdByAssistant)
+        )
+      }
+
+      // Build final query with chaining
+      const query = conditions.length > 0 
+        ? baseQuery.where(and(...conditions))
+        : baseQuery
+
+      // Apply pagination with chaining
+      const finalQuery = filters?.offset
+        ? query.offset(filters.offset).limit(filters?.limit || 100)
+        : filters?.limit
+        ? query.limit(filters.limit)
+        : query
+
+      return await finalQuery
+    })
+  }
+
+  /**
+   * Get entities with relation and observation counts
+   */
+  async getEntitiesWithCounts(filters?: {
+    type?: string
+    search?: string
+    createdByUser?: string
+    createdByAssistant?: string
+    limit?: number
+    offset?: number
+    sortBy?: string
+    sortOrder?: string
+  }) {
+    return await this.execute(async (db) => {
+      // First get the entities with assistant data if available
+      let query = db
+        .select({
+          id: schema.entities.id,
+          userId: schema.entities.userId,
+          type: schema.entities.type,
+          name: schema.entities.name,
+          metadata: schema.entities.metadata,
+          createdByUser: schema.entities.createdByUser,
+          createdByAssistant: schema.entities.createdByAssistant,
+          createdAt: schema.entities.createdAt,
+          updatedByUser: schema.entities.updatedByUser,
+          updatedByAssistant: schema.entities.updatedByAssistant,
+          updatedAt: schema.entities.updatedAt,
+          createdByAssistantName: schema.assistants.name,
+          createdByAssistantType: schema.assistants.type,
+        })
+        .from(schema.entities)
+        .leftJoin(
+          schema.assistants,
+          eq(schema.entities.createdByAssistant, schema.assistants.id)
+        )
 
       // Apply filters
       const conditions = []
@@ -162,25 +243,88 @@ export class UserScopedDatabase {
         conditions.push(eq(schema.entities.type, filters.type))
       }
       if (filters?.createdByUser) {
-        conditions.push(eq(schema.entities.createdByUser, filters.createdByUser))
+        conditions.push(
+          eq(schema.entities.createdByUser, filters.createdByUser)
+        )
       }
       if (filters?.createdByAssistant) {
-        conditions.push(eq(schema.entities.createdByAssistant, filters.createdByAssistant))
+        conditions.push(
+          eq(schema.entities.createdByAssistant, filters.createdByAssistant)
+        )
       }
 
-      if (conditions.length > 0) {
-        query = query.where(and(...conditions))
-      }
+      // Build query with proper chaining
+      const filteredQuery = conditions.length > 0
+        ? query.where(and(...conditions))
+        : query
 
-      // Apply pagination
-      if (filters?.limit) {
-        query = query.limit(filters.limit)
-      }
-      if (filters?.offset) {
-        query = query.offset(filters.offset)
-      }
+      // Apply sorting
+      const sortBy = filters?.sortBy || "createdAt"
+      const sortOrder = filters?.sortOrder || "desc"
 
-      return await query
+      const sortedQuery = sortBy === "name"
+        ? filteredQuery.orderBy(
+            sortOrder === "desc"
+              ? desc(schema.entities.name)
+              : asc(schema.entities.name)
+          )
+        : sortBy === "type"
+        ? filteredQuery.orderBy(
+            sortOrder === "desc"
+              ? desc(schema.entities.type)
+              : asc(schema.entities.type)
+          )
+        : filteredQuery.orderBy(
+            sortOrder === "desc"
+              ? desc(schema.entities.createdAt)
+              : asc(schema.entities.createdAt)
+          )
+
+      // Apply pagination with chaining
+      const paginatedQuery = filters?.offset
+        ? sortedQuery.offset(filters.offset).limit(filters?.limit || 100)
+        : filters?.limit
+        ? sortedQuery.limit(filters.limit)
+        : sortedQuery
+
+      const entities = await paginatedQuery
+
+      // Then get counts for each entity
+      const entitiesWithCounts = await Promise.all(
+        entities.map(async (entity) => {
+          // Count relations where entity is subject or object
+          const relationsCount = await db
+            .select({ count: count() })
+            .from(schema.relations)
+            .where(
+              or(
+                eq(schema.relations.subjectId, entity.id),
+                eq(schema.relations.objectId, entity.id)
+              )
+            )
+
+          // Count observations for this entity
+          const observationsCount = await db
+            .select({ count: count() })
+            .from(schema.observations)
+            .where(eq(schema.observations.entityId, entity.id))
+
+          return {
+            ...entity,
+            relationsCount: relationsCount[0]?.count || 0,
+            observationsCount: observationsCount[0]?.count || 0,
+            // Add assistant info for display
+            createdByAssistantInfo: entity.createdByAssistantName
+              ? {
+                  name: entity.createdByAssistantName,
+                  type: entity.createdByAssistantType,
+                }
+              : null,
+          }
+        })
+      )
+
+      return entitiesWithCounts
     })
   }
 
@@ -200,13 +344,16 @@ export class UserScopedDatabase {
   /**
    * Update an entity
    */
-  async updateEntity(entityId: string, data: {
-    type?: string
-    name?: string
-    metadata?: any
-    updatedByUser?: string
-    updatedByAssistant?: string
-  }) {
+  async updateEntity(
+    entityId: string,
+    data: {
+      type?: string
+      name?: string
+      metadata?: any
+      updatedByUser?: string
+      updatedByAssistant?: string
+    }
+  ) {
     return await this.execute(async (db) => {
       const [entity] = await db
         .update(schema.entities)
@@ -245,16 +392,19 @@ export class UserScopedDatabase {
     createdByAssistant?: string
   }) {
     return await this.execute(async (db) => {
-      const [relation] = await db.insert(schema.relations).values({
-        userId: this.userId,
-        subjectId: data.subjectId,
-        predicate: data.predicate,
-        objectId: data.objectId,
-        strength: data.strength,
-        metadata: data.metadata,
-        createdByUser: data.createdByUser,
-        createdByAssistant: data.createdByAssistant
-      }).returning()
+      const [relation] = await db
+        .insert(schema.relations)
+        .values({
+          userId: this.userId,
+          subjectId: data.subjectId,
+          predicate: data.predicate,
+          objectId: data.objectId,
+          strength: data.strength,
+          metadata: data.metadata,
+          createdByUser: data.createdByUser,
+          createdByAssistant: data.createdByAssistant,
+        })
+        .returning()
       return relation
     })
   }
@@ -272,7 +422,7 @@ export class UserScopedDatabase {
     offset?: number
   }) {
     return await this.execute(async (db) => {
-      let query = db.select().from(schema.relations)
+      const baseQuery = db.select().from(schema.relations)
 
       // Apply filters
       const conditions = []
@@ -286,25 +436,29 @@ export class UserScopedDatabase {
         conditions.push(eq(schema.relations.predicate, filters.predicate))
       }
       if (filters?.createdByUser) {
-        conditions.push(eq(schema.relations.createdByUser, filters.createdByUser))
+        conditions.push(
+          eq(schema.relations.createdByUser, filters.createdByUser)
+        )
       }
       if (filters?.createdByAssistant) {
-        conditions.push(eq(schema.relations.createdByAssistant, filters.createdByAssistant))
+        conditions.push(
+          eq(schema.relations.createdByAssistant, filters.createdByAssistant)
+        )
       }
 
-      if (conditions.length > 0) {
-        query = query.where(and(...conditions))
-      }
+      // Build query with chaining
+      const filteredQuery = conditions.length > 0
+        ? baseQuery.where(and(...conditions))
+        : baseQuery
 
-      // Apply pagination
-      if (filters?.limit) {
-        query = query.limit(filters.limit)
-      }
-      if (filters?.offset) {
-        query = query.offset(filters.offset)
-      }
+      // Apply pagination with chaining
+      const finalQuery = filters?.offset
+        ? filteredQuery.offset(filters.offset).limit(filters?.limit || 100)
+        : filters?.limit
+        ? filteredQuery.limit(filters.limit)
+        : filteredQuery
 
-      return await query
+      return await finalQuery
     })
   }
 
@@ -324,11 +478,14 @@ export class UserScopedDatabase {
   /**
    * Update a relation
    */
-  async updateRelation(relationId: string, data: {
-    predicate?: string
-    strength?: number
-    metadata?: any
-  }) {
+  async updateRelation(
+    relationId: string,
+    data: {
+      predicate?: string
+      strength?: number
+      metadata?: any
+    }
+  ) {
     return await this.execute(async (db) => {
       const [relation] = await db
         .update(schema.relations)
@@ -366,15 +523,18 @@ export class UserScopedDatabase {
     createdByAssistant?: string
   }) {
     return await this.execute(async (db) => {
-      const [observation] = await db.insert(schema.observations).values({
-        userId: this.userId,
-        entityId: data.entityId,
-        content: data.content,
-        source: data.source,
-        metadata: data.metadata,
-        createdByUser: data.createdByUser,
-        createdByAssistant: data.createdByAssistant
-      }).returning()
+      const [observation] = await db
+        .insert(schema.observations)
+        .values({
+          userId: this.userId,
+          entityId: data.entityId,
+          content: data.content,
+          source: data.source,
+          metadata: data.metadata,
+          createdByUser: data.createdByUser,
+          createdByAssistant: data.createdByAssistant,
+        })
+        .returning()
       return observation
     })
   }
@@ -391,7 +551,7 @@ export class UserScopedDatabase {
     offset?: number
   }) {
     return await this.execute(async (db) => {
-      let query = db.select().from(schema.observations)
+      const baseQuery = db.select().from(schema.observations)
 
       // Apply filters
       const conditions = []
@@ -402,25 +562,29 @@ export class UserScopedDatabase {
         conditions.push(eq(schema.observations.source, filters.source))
       }
       if (filters?.createdByUser) {
-        conditions.push(eq(schema.observations.createdByUser, filters.createdByUser))
+        conditions.push(
+          eq(schema.observations.createdByUser, filters.createdByUser)
+        )
       }
       if (filters?.createdByAssistant) {
-        conditions.push(eq(schema.observations.createdByAssistant, filters.createdByAssistant))
+        conditions.push(
+          eq(schema.observations.createdByAssistant, filters.createdByAssistant)
+        )
       }
 
-      if (conditions.length > 0) {
-        query = query.where(and(...conditions))
-      }
+      // Build query with chaining
+      const filteredQuery = conditions.length > 0
+        ? baseQuery.where(and(...conditions))
+        : baseQuery
 
-      // Apply pagination
-      if (filters?.limit) {
-        query = query.limit(filters.limit)
-      }
-      if (filters?.offset) {
-        query = query.offset(filters.offset)
-      }
+      // Apply pagination with chaining
+      const finalQuery = filters?.offset
+        ? filteredQuery.offset(filters.offset).limit(filters?.limit || 100)
+        : filters?.limit
+        ? filteredQuery.limit(filters.limit)
+        : filteredQuery
 
-      return await query
+      return await finalQuery
     })
   }
 
@@ -440,11 +604,14 @@ export class UserScopedDatabase {
   /**
    * Update an observation
    */
-  async updateObservation(observationId: string, data: {
-    content?: string
-    source?: string
-    metadata?: any
-  }) {
+  async updateObservation(
+    observationId: string,
+    data: {
+      content?: string
+      source?: string
+      metadata?: any
+    }
+  ) {
     return await this.execute(async (db) => {
       const [observation] = await db
         .update(schema.observations)
@@ -476,7 +643,9 @@ export class UserScopedDatabase {
   async eraseAllUserData() {
     return await this.transaction(async (tx) => {
       // Order matters due to foreign key constraints
-      const deletedObservations = await tx.delete(schema.observations).returning()
+      const deletedObservations = await tx
+        .delete(schema.observations)
+        .returning()
       const deletedRelations = await tx.delete(schema.relations).returning()
       const deletedEntities = await tx.delete(schema.entities).returning()
       const deletedAssistants = await tx.delete(schema.assistants).returning()
@@ -485,7 +654,7 @@ export class UserScopedDatabase {
         deletedObservations: deletedObservations.length,
         deletedRelations: deletedRelations.length,
         deletedEntities: deletedEntities.length,
-        deletedAssistants: deletedAssistants.length
+        deletedAssistants: deletedAssistants.length,
       }
     })
   }
@@ -503,7 +672,10 @@ export class UserScopedDatabase {
    * Create a user-scoped database instance with immediate context setup
    * Use this when you need the database context set immediately
    */
-  static async createWithContext(db: DatabaseWithSchema, userId: string): Promise<UserScopedDatabase> {
+  static async createWithContext(
+    db: DatabaseWithSchema,
+    userId: string
+  ): Promise<UserScopedDatabase> {
     const userDb = new UserScopedDatabase(db, userId)
     // Pre-set the context for immediate use
     await setUserContext(db, userId)

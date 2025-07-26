@@ -93,7 +93,7 @@ const props = withDefaults(defineProps<Props>(), {
   color: "primary",
   icon: "i-ph-plus",
   label: undefined, // Will use translation if not provided
-  size: "md",
+  size: "xl",
   variant: "solid",
 })
 

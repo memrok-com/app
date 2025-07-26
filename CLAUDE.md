@@ -9,6 +9,7 @@ memrok is a self-hosted, privacy-first memory service for AI assistants. It impl
 ## Architecture
 
 ### Core Concepts
+
 - **Knowledge Graph Structure**: Memories are stored as entities, relations, and observations
 - **Privacy-First**: All data stored locally, no external dependencies
 - **MCP Protocol**: Standardized interface for AI assistant integration
@@ -16,6 +17,7 @@ memrok is a self-hosted, privacy-first memory service for AI assistants. It impl
 - **Row Level Security**: PostgreSQL RLS policies ensure user data isolation
 
 ### Tech Stack
+
 - **Frontend**: Nuxt 4, Vue 3, Nuxt UI Pro 3 (incl. Tailwind CSS 4)
 - **Backend**: Nitro server, Bun runtime
 - **Database**: PostgreSQL with Drizzle ORM, Row Level Security (RLS)
@@ -25,10 +27,12 @@ memrok is a self-hosted, privacy-first memory service for AI assistants. It impl
 ### Deployment Architecture
 
 **Repository Structure:**
+
 - `memrok-com/app` - Full development environment (this repo)
 - `memrok-com/memrok` - Production deployment repo (submodule at `./deployment`)
 
 **Development Setup:**
+
 - Dev configs in app root (CONTRIBUTING.md, package.json scripts)
 - Deployment configs in `./deployment` submodule
 - Infrastructure: Traefik + Zitadel + PostgreSQL containers + local Nuxt dev server
@@ -37,12 +41,14 @@ memrok is a self-hosted, privacy-first memory service for AI assistants. It impl
 - Database: PostgreSQL on port 5432 (configurable via POSTGRES_HOST_PORT)
 
 **Production Setup:**
+
 - All configs in deployment submodule
-- Infrastructure: Traefik + Zitadel + PostgreSQL + memrok app containers  
+- Infrastructure: Traefik + Zitadel + PostgreSQL + memrok app containers
 - SSL: Let's Encrypt via Traefik
 - Production-ready base configuration with development overrides
 
 ## Development Commands
+
 See [CONTRIBUTING.md](/CONTRIBUTING.md)
 
 ## Project Structure
@@ -50,6 +56,7 @@ See [CONTRIBUTING.md](/CONTRIBUTING.md)
 Nuxt 4 uses an organized directory structure with application code in the `/app/` directory:
 
 **Application Code (in `/app/` directory):**
+
 - `/app/pages/`: File-based routing - memories.vue, assistants.vue, settings.vue
 - `/app/components/`: Reusable Vue components
 - `/app/layouts/`: Page layouts with navigation
@@ -62,6 +69,7 @@ Nuxt 4 uses an organized directory structure with application code in the `/app/
 - `/app/app.config.ts`: Application configuration
 
 **Project Root:**
+
 - `/server/`: Nitro server code (API endpoints, MCP implementation)
 - `/server/database/`: Database schema and utilities
 - `/public/`: Static files
@@ -72,6 +80,7 @@ Nuxt 4 uses an organized directory structure with application code in the `/app/
 ## Implementation Status
 
 Currently implemented:
+
 - ✅ Basic UI structure with navigation
 - ✅ Page routing setup
 - ✅ Branding and visual design
@@ -88,6 +97,7 @@ Currently implemented:
 - ✅ **RLS-aware API endpoints** - all endpoints use user context, no manual filtering
 
 Not yet implemented:
+
 - Web UI for memory management
 - Vector embeddings and Qdrant integration
 - Full Docker deployment for app container
@@ -95,12 +105,14 @@ Not yet implemented:
 ## Key Files to Know
 
 **Core Configuration:**
+
 - `nuxt.config.ts`: Framework configuration
 - `app/app.config.ts`: UI theme and runtime config
 - `server/tsconfig.json`: Server-specific TypeScript config
 - `drizzle.config.ts`: Database ORM configuration
 
 **Database & RLS:**
+
 - `server/utils/db.ts`: Database connection utility
 - `server/database/schema/`: Database schema definitions with RLS policies
 - `server/database/rls-context.ts`: RLS user context management
@@ -108,12 +120,14 @@ Not yet implemented:
 - `server/utils/auth-middleware.ts`: Authentication middleware for API routes
 
 **MCP Implementation:**
+
 - `server/api/mcp/server.ts`: Core MCP server with 5 memory tools
 - `server/api/mcp/stdio-server.ts`: Standalone MCP server executable
 - `server/api/mcp/config.get.ts`: Auto-generates MCP client configurations
 - `test/mcp-server.test.ts`: MCP server test suite
 
 **API Endpoints:**
+
 - `server/api/entities/`: Entity management endpoints (RLS-aware)
 - `server/api/relations/`: Relation management endpoints (RLS-aware)
 - `server/api/observations/`: Observation management endpoints (RLS-aware)
@@ -126,18 +140,22 @@ Not yet implemented:
 - Font families: DM Serif Display (headings), DM Sans (body), DM Mono (code)
 - Icons: Phosphor Icons via @iconify-json/ph
 - UI components: Nuxt UI Pro library
+- Component naming: Use lowercase only (e.g., `table.vue`, not `Table.vue`)
+- Internationalization: Keep translation messages with `const { t } = useI18n({ useScope: "local" })` in the component that uses them (SFC, Single File Component)
 
 ## Row Level Security (RLS) Implementation
 
 **Status:** ✅ Complete and production-ready
 
 **Architecture:**
+
 - **User Context Management**: `rls-context.ts` handles PostgreSQL `app.current_user_id` setting
 - **Scoped Operations**: `user-scoped-db.ts` provides user-isolated database operations
 - **Authentication**: `auth-middleware.ts` extracts user context and provides RLS-aware database instances
 - **Database Policies**: All tables have RLS policies that check `user_id` against current user context
 
 **Usage Pattern:**
+
 ```typescript
 // API endpoints use authenticated handlers
 export default createAuthenticatedHandler(async (event, userDb, user) => {
@@ -153,19 +171,22 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
 **Status:** ✅ Complete and production-ready
 
 **Architecture:**
+
 - **Core Server** (`server/api/mcp/server.ts`): Uses `@modelcontextprotocol/sdk` with 5 memory tools
 - **Stdio Endpoint** (`server/api/mcp/stdio-server.ts`): For Claude Desktop and direct AI assistant connections
 - **HTTP Endpoint** (`server/api/mcp/index.post.ts`): For web-based integrations with session management
 - **Configuration** (`server/api/mcp/config.get.ts`): Auto-generates client configurations
 
 **Available Tools:**
+
 1. `create_entity` - Create knowledge graph entities (person, place, concept, etc.)
-2. `create_relation` - Link entities with typed relationships  
+2. `create_relation` - Link entities with typed relationships
 3. `create_observation` - Record facts/observations about entities with metadata
 4. `search_memories` - Search through stored memories by query
 5. `get_entity_relations` - Retrieve entity relationships
 
 **Usage:**
+
 - Run MCP server: `bun run mcp:server`
 - Test functionality: `bun run test:mcp`
 - Get client configs: `/api/mcp/config` endpoint (integrated into web UI)
@@ -182,7 +203,7 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
 This project uses specialized advisory agents to provide expert guidance while you (Claude) remain the primary implementer:
 
 - **security-auditor**: Security guidance and vulnerability analysis
-- **database-architect**: Database design and optimization advice  
+- **database-architect**: Database design and optimization advice
 - **api-architect**: REST API design patterns and best practices
 - **frontend-architect**: Vue/Nuxt patterns and component guidance
 - **deployment-architect**: Infrastructure and deployment strategies
@@ -194,6 +215,7 @@ This project uses specialized advisory agents to provide expert guidance while y
 ## Future Implementation Notes
 
 When implementing remaining features:
+
 1. ✅ ~~MCP server~~ - **Complete**
 2. ✅ ~~Memory storage APIs~~ - **Complete**
 3. ✅ ~~Row Level Security~~ - **Complete**
@@ -205,7 +227,8 @@ When implementing remaining features:
 9. Database schema tracks creator (user or assistant) for all records
 
 # important-instruction-reminders
+
 Do what has been asked; nothing more, nothing less.
 NEVER create files unless they're absolutely necessary for achieving your goal.
 ALWAYS prefer editing an existing file to creating a new one.
-NEVER proactively create documentation files (*.md) or README files. Only create documentation files if explicitly requested by the User.
+NEVER proactively create documentation files (\*.md) or README files. Only create documentation files if explicitly requested by the User.
