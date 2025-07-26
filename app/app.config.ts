@@ -18,6 +18,7 @@ export default defineAppConfig({
       base: "space-y-4",
     },
     icons: {
+      chevronDown: "i-ph-caret-down",
       close: "i-ph-x",
       dark: "i-ph-moon-fill",
       external: "i-ph-arrow-line-up-right-bold",

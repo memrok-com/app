@@ -1,4 +1,5 @@
 import { createAuthenticatedHandler } from '../../utils/auth-middleware'
+import type { EntitiesApiResponse } from '../../../types/entities'
 
 export default createAuthenticatedHandler(async (event, userDb, user) => {
   const query = getQuery(event)
@@ -54,7 +55,7 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
     total = entities.length // This is not accurate for pagination, but UserScopedDatabase doesn't return total count
   }
 
-  return {
+  const response: EntitiesApiResponse = {
     entities: finalEntities,
     pagination: {
       limit: filters.limit,
@@ -62,4 +63,6 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
       total // Note: This won't be accurate when using pagination without search - would need to enhance UserScopedDatabase
     }
   }
+  
+  return response
 })

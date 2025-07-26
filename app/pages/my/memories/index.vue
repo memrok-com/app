@@ -56,7 +56,10 @@
             </template>
           </UPageCard>
         </UPageGrid>
-        <Memories :entities="entitiesData?.entities || []" :key="entities" />
+        <Memories
+          :entities="entitiesData?.entities || []"
+          :key="entities"
+        />
         <UPageCard :ui="{ container: 'p-0 sm:p-0' }">
           <UPageAccordion
             :items="[
@@ -93,6 +96,8 @@
 </template>
 
 <script setup lang="ts">
+import type { EntitiesApiResponse } from "~/types/entities"
+
 const { t } = useI18n({ useScope: "local" })
 
 useHead({
@@ -104,9 +109,8 @@ const relationsCreateRef = ref()
 const observationsCreateRef = ref()
 
 // Fetch counts from API - RLS automatically filters by current user
-const { data: entitiesData, refresh: refreshEntities } = await useFetch(
-  "/api/entities"
-)
+const { data: entitiesData, refresh: refreshEntities } =
+  await useFetch<EntitiesApiResponse>("/api/entities")
 
 const { data: relationsData, refresh: refreshRelations } = await useFetch(
   "/api/relations"
@@ -152,13 +156,13 @@ en:
   description: What assistants know about you and your life.
   entities:
     title: Entities
-    description: Things that matter to you.
-  relations:
-    title: Relations
-    description: Connections between entities.
+    description: What things have meaning for you.
   observations:
     title: Observations
-    description: Descriptions of entities.
+    description: What is noteworthy about those things.
+  relations:
+    title: Relations
+    description: What interconnects those things.
   table:
     empty: No memories recorded yet.
   danger:

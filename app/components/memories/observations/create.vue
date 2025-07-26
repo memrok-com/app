@@ -234,16 +234,16 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
     toast.add({
       color: "success",
       icon: "i-ph-check-circle-fill",
-      title: t("common.success"),
-      description: t("success"),
+      title: t("success.title"),
+      description: t("success.description"),
     })
   } catch (error: any) {
     const toast = useToast()
     toast.add({
       color: "error",
       icon: "i-ph-warning-fill",
-      title: t("common.error"),
-      description: error.data?.statusMessage || t("error"),
+      title: t("error.title"),
+      description: error.data?.statusMessage || t("error.description"),
     })
   } finally {
     loading.value = false
@@ -271,10 +271,10 @@ en:
     buttons:
       cancel: Cancel
       create: Create Observation
-    success:
-      title: Observation Created
-      description: Your observation has been successfully added.
-    error:
-      title: Error Creating Observation
-      description: An error occurred while creating the observation.
+  success:
+    title: Observation Created
+    description: Your observation has been successfully added.
+  error:
+    title: Error Creating Observation
+    description: An error occurred while creating the observation.
 </i18n>

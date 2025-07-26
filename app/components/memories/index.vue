@@ -1,8 +1,12 @@
 <template>
   <UTable
-    :data="props.entities"
     :columns="columns"
-    :ui="{ separator: 'bg-(--ui-border-muted)' }"
+    :data="entities"
+    sticky
+    :ui="{
+      separator: 'bg-(--ui-border-muted) dark:bg-(--ui-bg-muted)',
+      tr: 'data-[expanded=true]:bg-accented',
+    }"
   >
     <template #empty>
       <UPageFeature
@@ -11,27 +15,25 @@
         orientation="vertical"
       />
     </template>
+    <template #creator-cell="{ row }">
+      <UUser
+        :avatar="{
+          icon: row.original.createdByAssistantName
+            ? 'i-ph-robot'
+            : 'i-ph-user',
+        }"
+        :name="row.original.createdByAssistantName || t('columns.you')"
+        :ui="{
+          name: 'font-normal text-inherit',
+        }"
+      />
+    </template>
   </UTable>
 </template>
 
 <script setup lang="ts">
-import type { InferSelectModel } from 'drizzle-orm'
-import type { entities } from '~/server/database/schema'
-
-// Use Drizzle's type inference for the base entity type
-type Entity = InferSelectModel<typeof entities>
-
-// Extend with the additional fields returned by getEntitiesWithCounts
-type EntityWithCounts = Entity & {
-  createdByAssistantName: string | null
-  createdByAssistantType: string | null
-  relationsCount: number
-  observationsCount: number
-  createdByAssistantInfo: {
-    name: string
-    type: string
-  } | null
-}
+import { format } from "@formkit/tempo"
+import type { EntityWithCounts } from "~/types/entities"
 
 const { t } = useI18n({ useScope: "local" })
 
@@ -52,35 +54,49 @@ const columns = [
   {
     accessorKey: "type",
     header: t("columns.type"),
+  },
+  {
+    accessorKey: "observationsCount",
+    header: t("columns.observations"),
+    meta: {
+      class: {
+        td: "font-mono text-end",
+        th: "text-end",
+      },
+    },
     cell: ({ row }: { row: any }) => {
-      const type = row.original.type
-      return type.charAt(0).toUpperCase() + type.slice(1)
+      return row.original.observationsCount.toLocaleString()
     },
   },
   {
-    accessorKey: "createdAt",
-    header: t("columns.created"),
+    accessorKey: "relationsCount",
+    header: t("columns.relations"),
+    meta: {
+      class: {
+        td: "font-mono text-end",
+        th: "text-end",
+      },
+    },
     cell: ({ row }: { row: any }) => {
-      const date = new Date(row.original.createdAt)
-      return new Intl.DateTimeFormat("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      }).format(date)
+      return row.original.relationsCount.toLocaleString()
     },
   },
   {
     accessorKey: "creator",
     header: t("columns.creator"),
+  },
+  {
+    accessorKey: "createdAt",
+    header: t("columns.created"),
     cell: ({ row }: { row: any }) => {
-      const entity = row.original
-      if (entity.createdByAssistantName) {
-        return `${entity.createdByAssistantName} (AI)`
-      }
-      return t("columns.you")
+      return format(new Date(row.original.createdAt), {
+        date: "medium",
+        time: "short",
+      })
     },
+  },
+  {
+    id: "expand",
   },
 ]
 </script>
@@ -91,6 +107,8 @@ en:
   columns:
     name: Name
     type: Type
+    observations: Observations
+    relations: Relations
     created: Created
     creator: Creator
     you: You
