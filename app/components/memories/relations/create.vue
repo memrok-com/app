@@ -190,7 +190,7 @@ const schema = z.object({
 
 // Fetch entities for selection from store
 const entityOptions = computed(() => {
-  return entitiesStore.entities.map((entity) => ({
+  return entitiesStore.entities.map((entity: any) => ({
     value: entity.id,
     label: `${entity.name} (${entity.type})`,
     name: entity.name,

@@ -1,7 +1,6 @@
 import { pgTable, uuid, text, timestamp, jsonb, real, pgPolicy } from 'drizzle-orm/pg-core'
 import { sql } from 'drizzle-orm'
 import { entities } from './entities'
-import { assistants } from './assistants'
 
 export const relations = pgTable('relations', {
   id: uuid('id').defaultRandom().primaryKey(),
@@ -14,7 +13,8 @@ export const relations = pgTable('relations', {
   
   // Track who created - either user or assistant
   createdByUser: text('created_by_user'), // Zitadel user ID
-  createdByAssistant: uuid('created_by_assistant').references(() => assistants.id),
+  createdByAssistantName: text('created_by_assistant_name'), // Assistant display name
+  createdByAssistantType: text('created_by_assistant_type'), // Assistant type (claude, cursor, etc)
   createdAt: timestamp('created_at').defaultNow().notNull(),
 }, (table) => [
   // Enable RLS

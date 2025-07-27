@@ -9,7 +9,7 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
     search,
     fromDate,
     toDate,
-    createdByAssistant,
+    createdByAssistantName,
   } = query
 
   // Build filters object for user-scoped database
@@ -22,8 +22,8 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
     filters.entityId = entityId as string
   }
 
-  if (createdByAssistant) {
-    filters.createdByAssistant = createdByAssistant as string
+  if (createdByAssistantName) {
+    filters.createdByAssistantName = createdByAssistantName as string
   }
 
   // Get observations using RLS-aware database

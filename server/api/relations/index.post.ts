@@ -44,7 +44,8 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
     strength: body.strength || 1.0,
     metadata: body.metadata || undefined,
     createdByUser: body.createdByUser || user.id,
-    createdByAssistant: body.createdByAssistant || undefined,
+    createdByAssistantName: body.createdByAssistantName || undefined,
+    createdByAssistantType: body.createdByAssistantType || undefined,
   })
 
   return {

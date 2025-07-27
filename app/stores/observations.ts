@@ -16,7 +16,7 @@ export const useObservationsStore = defineStore("observations", () => {
     entityId: "",
     fromDate: "",
     toDate: "",
-    createdByAssistant: "",
+    createdByAssistantName: "",
     limit: 50,
     offset: 0,
   })
@@ -62,7 +62,7 @@ export const useObservationsStore = defineStore("observations", () => {
           search: filters.search || undefined,
           fromDate: filters.fromDate || undefined,
           toDate: filters.toDate || undefined,
-          createdByAssistant: filters.createdByAssistant || undefined,
+          createdByAssistantName: filters.createdByAssistantName || undefined,
         },
       })
 
@@ -155,7 +155,7 @@ export const useObservationsStore = defineStore("observations", () => {
     filters.entityId = ""
     filters.fromDate = ""
     filters.toDate = ""
-    filters.createdByAssistant = ""
+    filters.createdByAssistantName = ""
     filters.limit = 50
     filters.offset = 0
   }

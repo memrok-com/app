@@ -11,7 +11,7 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
     search,
     minStrength,
     maxStrength,
-    createdByAssistant,
+    createdByAssistantName,
   } = query
 
   // Build filters for the user-scoped database
@@ -32,8 +32,8 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
     filters.predicate = predicate as string
   }
 
-  if (createdByAssistant) {
-    filters.createdByAssistant = createdByAssistant as string
+  if (createdByAssistantName) {
+    filters.createdByAssistantName = createdByAssistantName as string
   }
 
   // Get relations using user-scoped database - RLS ensures only user's relations are accessible

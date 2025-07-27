@@ -19,7 +19,7 @@ export const useRelationsStore = defineStore("relations", () => {
     predicate: "",
     minStrength: undefined as number | undefined,
     maxStrength: undefined as number | undefined,
-    createdByAssistant: "",
+    createdByAssistantName: "",
     limit: 50,
     offset: 0,
   })
@@ -82,7 +82,7 @@ export const useRelationsStore = defineStore("relations", () => {
           search: filters.search || undefined,
           minStrength: filters.minStrength,
           maxStrength: filters.maxStrength,
-          createdByAssistant: filters.createdByAssistant || undefined,
+          createdByAssistantName: filters.createdByAssistantName || undefined,
         },
       })
 
@@ -223,7 +223,7 @@ export const useRelationsStore = defineStore("relations", () => {
     filters.predicate = ""
     filters.minStrength = undefined
     filters.maxStrength = undefined
-    filters.createdByAssistant = ""
+    filters.createdByAssistantName = ""
     filters.limit = 50
     filters.offset = 0
   }

@@ -10,7 +10,7 @@ export const useEntitiesStore = defineStore("entities", () => {
   const filters = reactive({
     search: "",
     type: "",
-    createdByAssistant: "",
+    createdByAssistantName: "",
     sortBy: "createdAt",
     sortOrder: "desc" as "asc" | "desc",
     limit: 50,
@@ -52,7 +52,7 @@ export const useEntitiesStore = defineStore("entities", () => {
           offset: filters.offset,
           type: filters.type || undefined,
           search: filters.search || undefined,
-          createdByAssistant: filters.createdByAssistant || undefined,
+          createdByAssistantName: filters.createdByAssistantName || undefined,
           sortBy: filters.sortBy,
           sortOrder: filters.sortOrder,
         },
@@ -154,7 +154,7 @@ export const useEntitiesStore = defineStore("entities", () => {
   function resetFilters() {
     filters.search = ""
     filters.type = ""
-    filters.createdByAssistant = ""
+    filters.createdByAssistantName = ""
     filters.sortBy = "createdAt"
     filters.sortOrder = "desc"
     filters.limit = 50

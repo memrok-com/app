@@ -42,88 +42,6 @@ export class UserScopedDatabase {
     return await withUserContextTransaction(this.db, this.userId, operation)
   }
 
-  // ==================== ASSISTANT OPERATIONS ====================
-
-  /**
-   * Create a new assistant
-   */
-  async createAssistant(data: {
-    name: string
-    type: string
-    externalId?: string
-    config?: any
-  }) {
-    return await this.execute(async (db) => {
-      const [assistant] = await db
-        .insert(schema.assistants)
-        .values({
-          userId: this.userId,
-          name: data.name,
-          type: data.type,
-          externalId: data.externalId,
-          config: data.config,
-        })
-        .returning()
-      return assistant
-    })
-  }
-
-  /**
-   * Get all assistants for the user
-   */
-  async getAssistants() {
-    return await this.execute(async (db) => {
-      return await db.select().from(schema.assistants)
-    })
-  }
-
-  /**
-   * Get assistant by ID
-   */
-  async getAssistant(assistantId: string) {
-    return await this.execute(async (db) => {
-      const [assistant] = await db
-        .select()
-        .from(schema.assistants)
-        .where(eq(schema.assistants.id, assistantId))
-      return assistant || null
-    })
-  }
-
-  /**
-   * Update an assistant
-   */
-  async updateAssistant(
-    assistantId: string,
-    data: {
-      name?: string
-      type?: string
-      externalId?: string
-      config?: any
-    }
-  ) {
-    return await this.execute(async (db) => {
-      const [assistant] = await db
-        .update(schema.assistants)
-        .set({ ...data, updatedAt: new Date() })
-        .where(eq(schema.assistants.id, assistantId))
-        .returning()
-      return assistant || null
-    })
-  }
-
-  /**
-   * Delete an assistant
-   */
-  async deleteAssistant(assistantId: string) {
-    return await this.execute(async (db) => {
-      const [deleted] = await db
-        .delete(schema.assistants)
-        .where(eq(schema.assistants.id, assistantId))
-        .returning()
-      return deleted || null
-    })
-  }
 
   // ==================== ENTITY OPERATIONS ====================
 
@@ -135,7 +53,8 @@ export class UserScopedDatabase {
     name: string
     metadata?: any
     createdByUser?: string
-    createdByAssistant?: string
+    createdByAssistantName?: string
+    createdByAssistantType?: string
   }) {
     return await this.execute(async (db) => {
       const [entity] = await db
@@ -146,7 +65,8 @@ export class UserScopedDatabase {
           name: data.name,
           metadata: data.metadata,
           createdByUser: data.createdByUser,
-          createdByAssistant: data.createdByAssistant,
+          createdByAssistantName: data.createdByAssistantName,
+          createdByAssistantType: data.createdByAssistantType,
         })
         .returning()
       return entity
@@ -160,7 +80,7 @@ export class UserScopedDatabase {
     type?: string
     search?: string
     createdByUser?: string
-    createdByAssistant?: string
+    createdByAssistantName?: string
     limit?: number
     offset?: number
   }) {
@@ -178,9 +98,9 @@ export class UserScopedDatabase {
           eq(schema.entities.createdByUser, filters.createdByUser)
         )
       }
-      if (filters?.createdByAssistant) {
+      if (filters?.createdByAssistantName) {
         conditions.push(
-          eq(schema.entities.createdByAssistant, filters.createdByAssistant)
+          eq(schema.entities.createdByAssistantName, filters.createdByAssistantName)
         )
       }
 
@@ -206,14 +126,14 @@ export class UserScopedDatabase {
     type?: string
     search?: string
     createdByUser?: string
-    createdByAssistant?: string
+    createdByAssistantName?: string
     limit?: number
     offset?: number
     sortBy?: string
     sortOrder?: string
   }) {
     return await this.execute(async (db) => {
-      // First get the entities with assistant data if available
+      // Get entities with all fields (no joins needed)
       let query = db
         .select({
           id: schema.entities.id,
@@ -222,19 +142,15 @@ export class UserScopedDatabase {
           name: schema.entities.name,
           metadata: schema.entities.metadata,
           createdByUser: schema.entities.createdByUser,
-          createdByAssistant: schema.entities.createdByAssistant,
+          createdByAssistantName: schema.entities.createdByAssistantName,
+          createdByAssistantType: schema.entities.createdByAssistantType,
           createdAt: schema.entities.createdAt,
           updatedByUser: schema.entities.updatedByUser,
-          updatedByAssistant: schema.entities.updatedByAssistant,
+          updatedByAssistantName: schema.entities.updatedByAssistantName,
+          updatedByAssistantType: schema.entities.updatedByAssistantType,
           updatedAt: schema.entities.updatedAt,
-          createdByAssistantName: schema.assistants.name,
-          createdByAssistantType: schema.assistants.type,
         })
         .from(schema.entities)
-        .leftJoin(
-          schema.assistants,
-          eq(schema.entities.createdByAssistant, schema.assistants.id)
-        )
 
       // Apply filters
       const conditions = []
@@ -246,9 +162,9 @@ export class UserScopedDatabase {
           eq(schema.entities.createdByUser, filters.createdByUser)
         )
       }
-      if (filters?.createdByAssistant) {
+      if (filters?.createdByAssistantName) {
         conditions.push(
-          eq(schema.entities.createdByAssistant, filters.createdByAssistant)
+          eq(schema.entities.createdByAssistantName, filters.createdByAssistantName)
         )
       }
 
@@ -350,7 +266,8 @@ export class UserScopedDatabase {
       name?: string
       metadata?: any
       updatedByUser?: string
-      updatedByAssistant?: string
+      updatedByAssistantName?: string
+      updatedByAssistantType?: string
     }
   ) {
     return await this.execute(async (db) => {
@@ -388,7 +305,8 @@ export class UserScopedDatabase {
     strength?: number
     metadata?: any
     createdByUser?: string
-    createdByAssistant?: string
+    createdByAssistantName?: string
+    createdByAssistantType?: string
   }) {
     return await this.execute(async (db) => {
       const [relation] = await db
@@ -401,7 +319,8 @@ export class UserScopedDatabase {
           strength: data.strength,
           metadata: data.metadata,
           createdByUser: data.createdByUser,
-          createdByAssistant: data.createdByAssistant,
+          createdByAssistantName: data.createdByAssistantName,
+          createdByAssistantType: data.createdByAssistantType,
         })
         .returning()
       return relation
@@ -416,7 +335,7 @@ export class UserScopedDatabase {
     objectId?: string
     predicate?: string
     createdByUser?: string
-    createdByAssistant?: string
+    createdByAssistantName?: string
     limit?: number
     offset?: number
   }) {
@@ -439,9 +358,9 @@ export class UserScopedDatabase {
           eq(schema.relations.createdByUser, filters.createdByUser)
         )
       }
-      if (filters?.createdByAssistant) {
+      if (filters?.createdByAssistantName) {
         conditions.push(
-          eq(schema.relations.createdByAssistant, filters.createdByAssistant)
+          eq(schema.relations.createdByAssistantName, filters.createdByAssistantName)
         )
       }
 
@@ -518,7 +437,8 @@ export class UserScopedDatabase {
     source?: string
     metadata?: any
     createdByUser?: string
-    createdByAssistant?: string
+    createdByAssistantName?: string
+    createdByAssistantType?: string
   }) {
     return await this.execute(async (db) => {
       const [observation] = await db
@@ -530,7 +450,8 @@ export class UserScopedDatabase {
           source: data.source,
           metadata: data.metadata,
           createdByUser: data.createdByUser,
-          createdByAssistant: data.createdByAssistant,
+          createdByAssistantName: data.createdByAssistantName,
+          createdByAssistantType: data.createdByAssistantType,
         })
         .returning()
       return observation
@@ -544,7 +465,7 @@ export class UserScopedDatabase {
     entityId?: string
     source?: string
     createdByUser?: string
-    createdByAssistant?: string
+    createdByAssistantName?: string
     limit?: number
     offset?: number
   }) {
@@ -564,9 +485,9 @@ export class UserScopedDatabase {
           eq(schema.observations.createdByUser, filters.createdByUser)
         )
       }
-      if (filters?.createdByAssistant) {
+      if (filters?.createdByAssistantName) {
         conditions.push(
-          eq(schema.observations.createdByAssistant, filters.createdByAssistant)
+          eq(schema.observations.createdByAssistantName, filters.createdByAssistantName)
         )
       }
 

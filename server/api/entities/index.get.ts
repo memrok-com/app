@@ -8,7 +8,7 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
     offset = 0,
     type,
     search,
-    createdByAssistant,
+    createdByAssistantName,
     sortBy = "createdAt",
     sortOrder = "desc",
   } = query
@@ -25,8 +25,8 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
     filters.type = type as string
   }
 
-  if (createdByAssistant) {
-    filters.createdByAssistant = createdByAssistant as string
+  if (createdByAssistantName) {
+    filters.createdByAssistantName = createdByAssistantName as string
   }
 
   // Get entities with counts using user-scoped database - RLS ensures only user's entities are accessible

@@ -13,7 +13,8 @@ export interface RelationData {
   strength?: number | null
   metadata?: any
   createdByUser?: string | null
-  createdByAssistant?: string | null
+  createdByAssistantName?: string | null
+  createdByAssistantType?: string | null
   createdAt: string
   subjectEntity?: EntityReference | null
   objectEntity?: EntityReference | null

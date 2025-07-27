@@ -153,7 +153,7 @@ const typeItems = computed(() => {
   }
   
   // Map store types, translating defaults if available
-  return entitiesStore.types.map(type => 
+  return entitiesStore.types.map((type: string) => 
     translatedDefaults[type as keyof typeof translatedDefaults] || type
   )
 })

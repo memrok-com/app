@@ -11,16 +11,25 @@ import {
 import { eq, and, or, like, sql, isNotNull } from "drizzle-orm"
 
 // Helper to get current user/assistant context for RLS-aware operations
-function getCreatorContext(assistantId?: string, userId?: string) {
-  if (assistantId) {
-    return { createdByAssistant: assistantId, createdByUser: undefined }
+function getCreatorContext(assistantName?: string, assistantType?: string, userId?: string) {
+  if (assistantName) {
+    return { 
+      createdByAssistantName: assistantName, 
+      createdByAssistantType: assistantType,
+      createdByUser: undefined 
+    }
   }
-  return { createdByUser: userId || undefined, createdByAssistant: undefined }
+  return { 
+    createdByUser: userId || undefined, 
+    createdByAssistantName: undefined,
+    createdByAssistantType: undefined
+  }
 }
 
 export class MemrokMCPServer {
   public server: McpServer
-  private assistantId?: string
+  private assistantName?: string
+  private assistantType?: string
   private userId?: string
 
   constructor() {
@@ -39,8 +48,9 @@ export class MemrokMCPServer {
     this.setupTools()
   }
 
-  setContext(assistantId?: string, userId?: string) {
-    this.assistantId = assistantId
+  setContext(assistantName?: string, assistantType?: string, userId?: string) {
+    this.assistantName = assistantName
+    this.assistantType = assistantType
     this.userId = userId
   }
 
@@ -68,7 +78,7 @@ export class MemrokMCPServer {
       },
       async ({ name, type, description }) => {
         const userDb = this.getUserDb()
-        const creator = getCreatorContext(this.assistantId, this.userId)
+        const creator = getCreatorContext(this.assistantName, this.assistantType, this.userId)
 
         const entity = await userDb.createEntity({
           name,
@@ -119,7 +129,7 @@ export class MemrokMCPServer {
       },
       async ({ subjectId, objectId, predicate }) => {
         const userDb = this.getUserDb()
-        const creator = getCreatorContext(this.assistantId, this.userId)
+        const creator = getCreatorContext(this.assistantName, this.assistantType, this.userId)
 
         const relation = await userDb.createRelation({
           subjectId,
@@ -167,7 +177,7 @@ export class MemrokMCPServer {
       },
       async ({ entityId, content, metadata }) => {
         const userDb = this.getUserDb()
-        const creator = getCreatorContext(this.assistantId, this.userId)
+        const creator = getCreatorContext(this.assistantName, this.assistantType, this.userId)
 
         const observation = await userDb.createObservation({
           entityId,

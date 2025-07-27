@@ -18,15 +18,15 @@ export type EntityWithCounts = {
   name: string
   metadata: unknown
   createdByUser: string | null
-  createdByAssistant: string | null
-  createdAt: string // Serialized date from API
-  updatedByUser: string | null
-  updatedByAssistant: string | null
-  updatedAt: string // Serialized date from API
-
-  // Additional fields from joins and counts
   createdByAssistantName: string | null
   createdByAssistantType: string | null
+  createdAt: string // Serialized date from API
+  updatedByUser: string | null
+  updatedByAssistantName: string | null
+  updatedByAssistantType: string | null
+  updatedAt: string // Serialized date from API
+
+  // Additional fields and counts
   relationsCount: number
   observationsCount: number
   createdByAssistantInfo: {

@@ -12,7 +12,8 @@ export interface ObservationData {
   source?: string | null
   metadata?: any
   createdByUser?: string | null
-  createdByAssistant?: string | null
+  createdByAssistantName?: string | null
+  createdByAssistantType?: string | null
   createdAt: string
   entity?: EntityReference | null
 }

@@ -94,7 +94,6 @@ useHead({
   title: t("title"),
 })
 
-
 // Initialize stores
 const entitiesStore = useEntitiesStore()
 const relationsStore = useRelationsStore()
@@ -111,10 +110,10 @@ onMounted(async () => {
     await Promise.all([
       entitiesStore.initialize(),
       relationsStore.fetchRelations(),
-      observationsStore.fetchObservations()
+      observationsStore.fetchObservations(),
     ])
   } catch (error) {
-    console.error('Failed to initialize stores:', error)
+    console.error("Failed to initialize stores:", error)
   }
 })
 
