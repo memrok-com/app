@@ -104,11 +104,18 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
+// Use stores
+const entitiesStore = useEntitiesStore()
+const observationsStore = useObservationsStore()
+
+// Check if creation is allowed via store business rules
+const isDisabled = computed(() => !observationsStore.canCreateObservations)
+
 // Compute button props
 const buttonProps = computed(() => ({
   block: props.block,
   color: props.color,
-  disabled: props.disabled,
+  disabled: props.disabled || isDisabled.value, // Combine external and internal disabled state
   icon: props.icon,
   label: props.label || t("form.buttons.create"),
   variant: props.variant,
@@ -137,36 +144,29 @@ const schema = z.object({
   content: z.string().min(1, t("form.fields.content.error")),
 })
 
-// Data refs for entities
-const entitiesData = ref<{ entities: any[] } | null>(null)
-const entitiesPending = ref(false)
-
-// Fetch entities for selection
+// Fetch entities for selection from store
 const entityOptions = computed(() => {
-  if (!entitiesData.value?.entities) return []
-  return entitiesData.value.entities.map((entity: any) => ({
+  return entitiesStore.entities.map((entity) => ({
     value: entity.id,
     label: `${entity.name} (${entity.type})`,
     name: entity.name,
-    type: entity.type,
+    entityType: entity.type, // Renamed to avoid conflict with UI component
   }))
 })
 
+// Use store loading state
+const entitiesPending = computed(() => entitiesStore.loading)
+
 // Refresh function
 const refreshEntities = async () => {
-  entitiesPending.value = true
-  try {
-    entitiesData.value = await $fetch("/api/entities")
-  } catch (error) {
-    console.error("Failed to fetch entities:", error)
-  } finally {
-    entitiesPending.value = false
-  }
+  await entitiesStore.fetchEntities()
 }
 
 // Load data on component mount
 onMounted(() => {
-  refreshEntities()
+  if (entitiesStore.entities.length === 0) {
+    refreshEntities()
+  }
 })
 
 // Expose methods for parent component
@@ -204,14 +204,11 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
   loading.value = true
 
   try {
-    const response = await $fetch("/api/observations", {
-      method: "POST",
-      body: {
-        entityId: event.data.entityId,
-        content: event.data.content,
-        source: "User",
-        metadata: form.metadata,
-      },
+    const response = await observationsStore.createObservation({
+      entityId: event.data.entityId,
+      content: event.data.content,
+      source: "User",
+      metadata: form.metadata,
     })
 
     // Reset form
@@ -222,9 +219,6 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
 
     // Close modal normally (allow validation)
     isOpen.value = false
-
-    // Refresh entities data
-    await refreshEntities()
 
     // Emit created event
     emit("created", response.observation)

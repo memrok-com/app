@@ -1,7 +1,7 @@
 /**
  * Shared entity types for use in both server and client code
  * These match the structure returned by the API endpoints
- * 
+ *
  * Type Strategy:
  * - Server-side: Use Drizzle schema types directly (InferSelectModel, InferInsertModel)
  * - Client-side: Use these shared types that represent API responses
@@ -19,11 +19,11 @@ export type EntityWithCounts = {
   metadata: unknown
   createdByUser: string | null
   createdByAssistant: string | null
-  createdAt: string  // Serialized date from API
+  createdAt: string // Serialized date from API
   updatedByUser: string | null
   updatedByAssistant: string | null
-  updatedAt: string  // Serialized date from API
-  
+  updatedAt: string // Serialized date from API
+
   // Additional fields from joins and counts
   createdByAssistantName: string | null
   createdByAssistantType: string | null

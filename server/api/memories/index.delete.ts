@@ -1,4 +1,4 @@
-import { createAuthenticatedHandler } from '../../utils/auth-middleware'
+import { createAuthenticatedHandler } from "../../utils/auth-middleware"
 
 export default createAuthenticatedHandler(async (event, userDb, user) => {
   // Erase all user data using the bulk operation in UserScopedDatabase
@@ -11,8 +11,8 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
       entities: result.deletedEntities,
       relations: result.deletedRelations,
       observations: result.deletedObservations,
-      assistants: result.deletedAssistants
+      assistants: result.deletedAssistants,
     },
-    message: "All memories have been successfully erased"
+    message: "All memories have been successfully erased",
   }
 })

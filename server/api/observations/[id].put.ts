@@ -1,13 +1,13 @@
-import { createAuthenticatedHandler } from '../../utils/auth-middleware'
+import { createAuthenticatedHandler } from "../../utils/auth-middleware"
 
 export default createAuthenticatedHandler(async (event, userDb, user) => {
-  const id = getRouterParam(event, 'id')
+  const id = getRouterParam(event, "id")
   const body = await readBody(event)
-  
+
   if (!id) {
     throw createError({
       statusCode: 400,
-      statusMessage: 'Observation ID is required'
+      statusMessage: "Observation ID is required",
     })
   }
 
@@ -17,7 +17,7 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
   if (!existingObservation) {
     throw createError({
       statusCode: 404,
-      statusMessage: 'Observation not found'
+      statusMessage: "Observation not found",
     })
   }
 
@@ -28,7 +28,7 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
     if (!entity) {
       throw createError({
         statusCode: 404,
-        statusMessage: 'Entity not found'
+        statusMessage: "Entity not found",
       })
     }
   }
@@ -46,7 +46,7 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
   if (!updatedObservation) {
     throw createError({
       statusCode: 404,
-      statusMessage: 'Observation not found after update'
+      statusMessage: "Observation not found after update",
     })
   }
 
@@ -56,12 +56,14 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
   return {
     observation: {
       ...updatedObservation,
-      entity: entity ? {
-        id: entity.id,
-        name: entity.name,
-        type: entity.type
-      } : null
+      entity: entity
+        ? {
+            id: entity.id,
+            name: entity.name,
+            type: entity.type,
+          }
+        : null,
     },
-    message: 'Observation updated successfully'
+    message: "Observation updated successfully",
   }
 })

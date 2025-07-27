@@ -18,7 +18,7 @@ memrok is a self-hosted, privacy-first memory service for AI assistants. It impl
 
 ### Tech Stack
 
-- **Frontend**: Nuxt 4, Vue 3, Nuxt UI Pro 3 (incl. Tailwind CSS 4)
+- **Frontend**: Nuxt 4, Vue 3, Nuxt UI Pro 3 (incl. Tailwind CSS 4), Pinia (state management)
 - **Backend**: Nitro server, Bun runtime
 - **Database**: PostgreSQL with Drizzle ORM, Row Level Security (RLS)
 - **Authentication**: Zitadel (OIDC)
@@ -59,6 +59,8 @@ Nuxt 4 uses an organized directory structure with application code in the `/app/
 
 - `/app/pages/`: File-based routing - memories.vue, assistants.vue, settings.vue
 - `/app/components/`: Reusable Vue components
+- `/app/stores/`: Pinia state management stores
+- `/app/types/`: TypeScript type definitions for API responses
 - `/app/layouts/`: Page layouts with navigation
 - `/app/assets/`: CSS and static assets
 - `/app/plugins/`: Client-side plugins
@@ -95,10 +97,12 @@ Currently implemented:
 - ✅ **MCP connectivity** via stdio (Claude Desktop) and HTTP endpoints
 - ✅ **Row Level Security (RLS)** implementation with user data isolation
 - ✅ **RLS-aware API endpoints** - all endpoints use user context, no manual filtering
+- ✅ **Complete Web UI** for memory management with reactive state management
+- ✅ **Pinia State Management** - All data operations flow through type-safe stores
+- ✅ **Business Rule Validation** - Components self-govern creation permissions via stores
 
 Not yet implemented:
 
-- Web UI for memory management
 - Vector embeddings and Qdrant integration
 - Full Docker deployment for app container
 
@@ -132,6 +136,14 @@ Not yet implemented:
 - `server/api/relations/`: Relation management endpoints (RLS-aware)
 - `server/api/observations/`: Observation management endpoints (RLS-aware)
 - `server/api/assistants/`: Assistant management endpoints (RLS-aware)
+
+**State Management (Pinia):**
+
+- `app/stores/entities.ts`: Entity CRUD operations and business rules
+- `app/stores/observations.ts`: Observation CRUD operations and validation
+- `app/stores/relations.ts`: Relation CRUD operations and predicate management
+- `app/stores/memory.ts`: Cross-store coordination and bulk operations
+- `app/types/`: TypeScript interfaces for API responses and store data
 
 ## UI Conventions
 
@@ -190,6 +202,48 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
 - Run MCP server: `bun run mcp:server`
 - Test functionality: `bun run test:mcp`
 - Get client configs: `/api/mcp/config` endpoint (integrated into web UI)
+
+## Pinia State Management Implementation
+
+**Status:** ✅ Complete and production-ready
+
+**Architecture:**
+
+- **Setup Store Pattern**: All stores use Vue 3 Composition API with `defineStore(() => { ... })`
+- **TypeScript Integration**: Fully typed with dedicated API response interfaces
+- **Cross-Store Communication**: Stores coordinate automatically for data consistency
+- **Business Rule Validation**: Components self-govern using store-based validation
+
+**Store Structure:**
+
+- **Entities Store**: CRUD operations, type management, `canCreateEntities` validation
+- **Observations Store**: CRUD operations, entity relationships, `canCreateObservations` validation (≥1 entity)
+- **Relations Store**: CRUD operations, predicate management, `canCreateRelations` validation (≥2 entities)
+- **Memory Store**: Bulk operations coordinator, cross-store state management
+
+**Usage Pattern:**
+
+```typescript
+// In components - stores are self-sufficient
+const entitiesStore = useEntitiesStore()
+await entitiesStore.initialize() // Fetches data and types
+
+// Business rules built-in
+const canCreate = computed(() => observationsStore.canCreateObservations)
+
+// Type-safe API calls
+const data = await $fetch<EntitiesApiResponse>('/api/entities')
+```
+
+**Key Features:**
+
+- **Single Source of Truth**: All memory data flows through stores
+- **Reactive Updates**: UI automatically updates when data changes
+- **Type Safety**: Full TypeScript support with proper API response types
+- **Cross-Store Sync**: Creating entities refreshes dependent dropdowns automatically
+- **Business Rules**: Components check their own stores for creation permissions
+- **Error Handling**: Centralized error management with user feedback
+- **Performance**: Intelligent caching reduces redundant API calls
 
 ## GitOps Workflow
 

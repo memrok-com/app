@@ -85,6 +85,7 @@ bun run preview                # Preview production build
 **Frontend**
 
 - **Framework**: Nuxt
+- **State Management**: Pinia (Setup Store pattern)
 - **UI**: Nuxt UI Pro
 - **Testing**: Vitest
 

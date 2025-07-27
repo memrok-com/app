@@ -1,4 +1,4 @@
-import { createAuthenticatedHandler } from '../../utils/auth-middleware'
+import { createAuthenticatedHandler } from "../../utils/auth-middleware"
 
 export default createAuthenticatedHandler(async (event, userDb, user) => {
   // Get all user's assistants (RLS ensures only user's data is accessible)
@@ -22,13 +22,13 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
   const sevenDaysAgo = new Date()
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
 
-  const recentActivity = assistants.filter(assistant => 
-    assistant.createdAt >= sevenDaysAgo
+  const recentActivity = assistants.filter(
+    (assistant) => assistant.createdAt >= sevenDaysAgo
   ).length
 
   return {
     total,
     recentActivity,
-    byType
+    byType,
   }
 })

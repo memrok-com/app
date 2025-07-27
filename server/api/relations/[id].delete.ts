@@ -1,12 +1,12 @@
-import { createAuthenticatedHandler } from '../../utils/auth-middleware'
+import { createAuthenticatedHandler } from "../../utils/auth-middleware"
 
 export default createAuthenticatedHandler(async (event, userDb, user) => {
-  const id = getRouterParam(event, 'id')
-  
+  const id = getRouterParam(event, "id")
+
   if (!id) {
     throw createError({
       statusCode: 400,
-      statusMessage: 'Relation ID is required'
+      statusMessage: "Relation ID is required",
     })
   }
 
@@ -16,7 +16,7 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
   if (!existingRelation) {
     throw createError({
       statusCode: 404,
-      statusMessage: 'Relation not found'
+      statusMessage: "Relation not found",
     })
   }
 
@@ -30,24 +30,28 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
   if (!deletedRelation) {
     throw createError({
       statusCode: 404,
-      statusMessage: 'Relation not found during deletion'
+      statusMessage: "Relation not found during deletion",
     })
   }
 
   return {
-    message: 'Relation deleted successfully',
+    message: "Relation deleted successfully",
     deletedRelation: {
       ...deletedRelation,
-      subjectEntity: subjectEntity ? {
-        id: subjectEntity.id,
-        name: subjectEntity.name,
-        type: subjectEntity.type
-      } : null,
-      objectEntity: objectEntity ? {
-        id: objectEntity.id,
-        name: objectEntity.name,
-        type: objectEntity.type
-      } : null
-    }
+      subjectEntity: subjectEntity
+        ? {
+            id: subjectEntity.id,
+            name: subjectEntity.name,
+            type: subjectEntity.type,
+          }
+        : null,
+      objectEntity: objectEntity
+        ? {
+            id: objectEntity.id,
+            name: objectEntity.name,
+            type: objectEntity.type,
+          }
+        : null,
+    },
   }
 })

@@ -103,6 +103,9 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
+// Use entities store
+const entitiesStore = useEntitiesStore()
+
 // Compute button props, using defaults from props and allowing overrides
 const buttonProps = computed(() => ({
   block: props.block,
@@ -139,45 +142,27 @@ const schema = z.object({
   type: z.string().min(1, t("form.fields.type.error")),
 })
 
-// Data ref for types
-const typesData = ref<{ types: any[] } | null>(null)
-
-// Entity type items for UInputMenu
+// Entity type items for UInputMenu - use store types
 const typeItems = computed(() => {
-  // Default types
-  const defaultTypes = [
-    t("form.fields.type.defaults.person"),
-    t("form.fields.type.defaults.group"),
-    t("form.fields.type.defaults.place"),
-    t("form.fields.type.defaults.event"),
-  ]
-
-  // Get existing types from API
-  const existing = typesData.value?.types || []
-
-  // Merge existing and default types
-  const typeSet = new Set(defaultTypes)
-
-  // Add existing types
-  existing.forEach((t: any) => {
-    typeSet.add(t.type)
-  })
-
-  return Array.from(typeSet).sort()
-})
-
-// Refresh function for types
-const refreshTypes = async () => {
-  try {
-    typesData.value = await $fetch("/api/entities/types")
-  } catch (error) {
-    console.error("Failed to fetch entity types:", error)
+  // Translate default types
+  const translatedDefaults = {
+    'person': t("form.fields.type.defaults.person"),
+    'group': t("form.fields.type.defaults.group"),
+    'place': t("form.fields.type.defaults.place"),
+    'event': t("form.fields.type.defaults.event"),
   }
-}
+  
+  // Map store types, translating defaults if available
+  return entitiesStore.types.map(type => 
+    translatedDefaults[type as keyof typeof translatedDefaults] || type
+  )
+})
 
 // Load types on component mount
 onMounted(() => {
-  refreshTypes()
+  if (entitiesStore.types.length === 0) {
+    entitiesStore.fetchEntityTypes()
+  }
 })
 
 // Handle creation of new type
@@ -207,13 +192,10 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
   loading.value = true
 
   try {
-    const response = await $fetch("/api/entities", {
-      method: "POST",
-      body: {
-        name: event.data.name,
-        type: event.data.type,
-        metadata: form.metadata,
-      },
+    const response = await entitiesStore.createEntity({
+      name: event.data.name,
+      type: event.data.type,
+      metadata: form.metadata,
     })
 
     // Reset form
@@ -224,9 +206,6 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
 
     // Close modal normally (allow validation)
     isOpen.value = false
-
-    // Refresh types
-    await refreshTypes()
 
     // Emit created event
     emit("created", response.entity)

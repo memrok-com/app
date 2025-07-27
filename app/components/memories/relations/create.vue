@@ -140,11 +140,18 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
+// Use stores
+const entitiesStore = useEntitiesStore()
+const relationsStore = useRelationsStore()
+
+// Check if creation is allowed via store business rules
+const isDisabled = computed(() => !relationsStore.canCreateRelations)
+
 // Compute button props
 const buttonProps = computed(() => ({
   block: props.block,
   color: props.color,
-  disabled: props.disabled,
+  disabled: props.disabled || isDisabled.value, // Combine external and internal disabled state
   icon: props.icon,
   label: props.label || t("title"),
   size: props.size,
@@ -181,57 +188,36 @@ const schema = z.object({
   strength: z.number().min(0).max(1),
 })
 
-// Data refs for entities and predicates
-const entitiesData = ref<{ entities: any[] } | null>(null)
-const predicatesData = ref<{ predicates: any[] } | null>(null)
-const entitiesPending = ref(false)
-const predicatesPending = ref(false)
-
-// Fetch entities for selection
+// Fetch entities for selection from store
 const entityOptions = computed(() => {
-  if (!entitiesData.value?.entities) return []
-  return entitiesData.value.entities.map((entity: any) => ({
+  return entitiesStore.entities.map((entity) => ({
     value: entity.id,
     label: `${entity.name} (${entity.type})`,
     name: entity.name,
-    type: entity.type,
+    entityType: entity.type, // Renamed to avoid conflict with UI component
   }))
 })
 
-// Predicate items for UInputMenu
-const predicateItems = computed(() => {
-  if (!predicatesData.value?.predicates) return []
-  // Return just the predicate names as items
-  return predicatesData.value.predicates.map((p: any) => p.predicate).sort()
-})
+// Use store loading state
+const entitiesPending = computed(() => entitiesStore.loading)
+const predicatesPending = computed(() => relationsStore.predicatesLoading)
+
+// Predicate items for UInputMenu from store
+const predicateItems = computed(() => [...relationsStore.predicates])
 
 // Refresh functions
 const refreshEntities = async () => {
-  entitiesPending.value = true
-  try {
-    entitiesData.value = await $fetch("/api/entities")
-  } catch (error) {
-    console.error("Failed to fetch entities:", error)
-  } finally {
-    entitiesPending.value = false
-  }
-}
-
-const refreshPredicates = async () => {
-  predicatesPending.value = true
-  try {
-    predicatesData.value = await $fetch("/api/relations/predicates")
-  } catch (error) {
-    console.error("Failed to fetch predicates:", error)
-  } finally {
-    predicatesPending.value = false
-  }
+  await entitiesStore.fetchEntities()
 }
 
 // Load data on component mount
 onMounted(() => {
-  refreshEntities()
-  refreshPredicates()
+  if (entitiesStore.entities.length === 0) {
+    refreshEntities()
+  }
+  if (relationsStore.predicates.length === 0) {
+    relationsStore.fetchPredicates()
+  }
 })
 
 // Expose methods for parent component
@@ -279,15 +265,12 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
   loading.value = true
 
   try {
-    const response = await $fetch("/api/relations", {
-      method: "POST",
-      body: {
-        subjectId: event.data.subjectId,
-        objectId: event.data.objectId,
-        predicate: event.data.predicate,
-        strength: event.data.strength,
-        metadata: form.metadata,
-      },
+    const response = await relationsStore.createRelation({
+      subjectId: event.data.subjectId,
+      objectId: event.data.objectId,
+      predicate: event.data.predicate,
+      strength: event.data.strength,
+      metadata: form.metadata,
     })
 
     // Reset form
@@ -300,9 +283,6 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
 
     // Close modal normally (allow validation)
     isOpen.value = false
-
-    // Refresh data to include new predicate
-    await refreshPredicates()
 
     // Emit created event
     emit("created", response.relation)

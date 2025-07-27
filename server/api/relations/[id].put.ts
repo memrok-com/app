@@ -1,13 +1,13 @@
-import { createAuthenticatedHandler } from '../../utils/auth-middleware'
+import { createAuthenticatedHandler } from "../../utils/auth-middleware"
 
 export default createAuthenticatedHandler(async (event, userDb, user) => {
-  const id = getRouterParam(event, 'id')
+  const id = getRouterParam(event, "id")
   const body = await readBody(event)
-  
+
   if (!id) {
     throw createError({
       statusCode: 400,
-      statusMessage: 'Relation ID is required'
+      statusMessage: "Relation ID is required",
     })
   }
 
@@ -15,7 +15,7 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
   if (body.strength !== undefined && (body.strength < 0 || body.strength > 1)) {
     throw createError({
       statusCode: 400,
-      statusMessage: 'Strength must be between 0 and 1'
+      statusMessage: "Strength must be between 0 and 1",
     })
   }
 
@@ -25,7 +25,7 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
   if (!existingRelation) {
     throw createError({
       statusCode: 404,
-      statusMessage: 'Relation not found'
+      statusMessage: "Relation not found",
     })
   }
 
@@ -36,7 +36,7 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
     if (!subjectEntity) {
       throw createError({
         statusCode: 404,
-        statusMessage: 'Subject entity not found'
+        statusMessage: "Subject entity not found",
       })
     }
   }
@@ -47,7 +47,7 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
     if (!objectEntity) {
       throw createError({
         statusCode: 404,
-        statusMessage: 'Object entity not found'
+        statusMessage: "Object entity not found",
       })
     }
   }
@@ -67,7 +67,7 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
   if (!updatedRelation) {
     throw createError({
       statusCode: 404,
-      statusMessage: 'Relation not found after update'
+      statusMessage: "Relation not found after update",
     })
   }
 
@@ -78,17 +78,21 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
   return {
     relation: {
       ...updatedRelation,
-      subjectEntity: subjectEntity ? {
-        id: subjectEntity.id,
-        name: subjectEntity.name,
-        type: subjectEntity.type
-      } : null,
-      objectEntity: objectEntity ? {
-        id: objectEntity.id,
-        name: objectEntity.name,
-        type: objectEntity.type
-      } : null
+      subjectEntity: subjectEntity
+        ? {
+            id: subjectEntity.id,
+            name: subjectEntity.name,
+            type: subjectEntity.type,
+          }
+        : null,
+      objectEntity: objectEntity
+        ? {
+            id: objectEntity.id,
+            name: objectEntity.name,
+            type: objectEntity.type,
+          }
+        : null,
     },
-    message: 'Relation updated successfully'
+    message: "Relation updated successfully",
   }
 })

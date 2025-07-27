@@ -167,7 +167,7 @@ export class UserScopedDatabase {
     return await this.execute(async (db) => {
       // Build query with method chaining to maintain type inference
       const baseQuery = db.select().from(schema.entities)
-      
+
       // Apply filters
       const conditions = []
       if (filters?.type) {
@@ -185,9 +185,8 @@ export class UserScopedDatabase {
       }
 
       // Build final query with chaining
-      const query = conditions.length > 0 
-        ? baseQuery.where(and(...conditions))
-        : baseQuery
+      const query =
+        conditions.length > 0 ? baseQuery.where(and(...conditions)) : baseQuery
 
       // Apply pagination with chaining
       const finalQuery = filters?.offset
@@ -254,31 +253,31 @@ export class UserScopedDatabase {
       }
 
       // Build query with proper chaining
-      const filteredQuery = conditions.length > 0
-        ? query.where(and(...conditions))
-        : query
+      const filteredQuery =
+        conditions.length > 0 ? query.where(and(...conditions)) : query
 
       // Apply sorting
       const sortBy = filters?.sortBy || "createdAt"
       const sortOrder = filters?.sortOrder || "desc"
 
-      const sortedQuery = sortBy === "name"
-        ? filteredQuery.orderBy(
-            sortOrder === "desc"
-              ? desc(schema.entities.name)
-              : asc(schema.entities.name)
-          )
-        : sortBy === "type"
-        ? filteredQuery.orderBy(
-            sortOrder === "desc"
-              ? desc(schema.entities.type)
-              : asc(schema.entities.type)
-          )
-        : filteredQuery.orderBy(
-            sortOrder === "desc"
-              ? desc(schema.entities.createdAt)
-              : asc(schema.entities.createdAt)
-          )
+      const sortedQuery =
+        sortBy === "name"
+          ? filteredQuery.orderBy(
+              sortOrder === "desc"
+                ? desc(schema.entities.name)
+                : asc(schema.entities.name)
+            )
+          : sortBy === "type"
+          ? filteredQuery.orderBy(
+              sortOrder === "desc"
+                ? desc(schema.entities.type)
+                : asc(schema.entities.type)
+            )
+          : filteredQuery.orderBy(
+              sortOrder === "desc"
+                ? desc(schema.entities.createdAt)
+                : asc(schema.entities.createdAt)
+            )
 
       // Apply pagination with chaining
       const paginatedQuery = filters?.offset
@@ -447,9 +446,8 @@ export class UserScopedDatabase {
       }
 
       // Build query with chaining
-      const filteredQuery = conditions.length > 0
-        ? baseQuery.where(and(...conditions))
-        : baseQuery
+      const filteredQuery =
+        conditions.length > 0 ? baseQuery.where(and(...conditions)) : baseQuery
 
       // Apply pagination with chaining
       const finalQuery = filters?.offset
@@ -573,9 +571,8 @@ export class UserScopedDatabase {
       }
 
       // Build query with chaining
-      const filteredQuery = conditions.length > 0
-        ? baseQuery.where(and(...conditions))
-        : baseQuery
+      const filteredQuery =
+        conditions.length > 0 ? baseQuery.where(and(...conditions)) : baseQuery
 
       // Apply pagination with chaining
       const finalQuery = filters?.offset

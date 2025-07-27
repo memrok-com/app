@@ -1,12 +1,12 @@
-import { createAuthenticatedHandler } from '../../utils/auth-middleware'
+import { createAuthenticatedHandler } from "../../utils/auth-middleware"
 
 export default createAuthenticatedHandler(async (event, userDb, user) => {
-  const id = getRouterParam(event, 'id')
-  
+  const id = getRouterParam(event, "id")
+
   if (!id) {
     throw createError({
       statusCode: 400,
-      statusMessage: 'Assistant ID is required'
+      statusMessage: "Assistant ID is required",
     })
   }
 
@@ -17,11 +17,11 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
   if (!deletedAssistant) {
     throw createError({
       statusCode: 404,
-      statusMessage: 'Assistant not found'
+      statusMessage: "Assistant not found",
     })
   }
 
   return {
-    message: 'Assistant deleted successfully'
+    message: "Assistant deleted successfully",
   }
 })

@@ -1,13 +1,13 @@
-import { createAuthenticatedHandler } from '../../utils/auth-middleware'
+import { createAuthenticatedHandler } from "../../utils/auth-middleware"
 
 export default createAuthenticatedHandler(async (event, userDb, user) => {
   const body = await readBody(event)
-  
+
   // Validate required fields
   if (!body.name || !body.type) {
     throw createError({
       statusCode: 400,
-      statusMessage: 'Name and type are required'
+      statusMessage: "Name and type are required",
     })
   }
 
@@ -18,11 +18,11 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
     type: body.type,
     metadata: body.metadata || undefined,
     createdByUser: body.createdByUser || user.id,
-    createdByAssistant: body.createdByAssistant || undefined
+    createdByAssistant: body.createdByAssistant || undefined,
   })
 
   return {
     entity,
-    message: 'Entity created successfully'
+    message: "Entity created successfully",
   }
 })

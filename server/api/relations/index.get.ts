@@ -1,37 +1,37 @@
-import { createAuthenticatedHandler } from '../../utils/auth-middleware'
+import { createAuthenticatedHandler } from "../../utils/auth-middleware"
 
 export default createAuthenticatedHandler(async (event, userDb, user) => {
   const query = getQuery(event)
-  const { 
-    limit = 50, 
-    offset = 0, 
+  const {
+    limit = 50,
+    offset = 0,
     subjectId,
     objectId,
     predicate,
     search,
     minStrength,
     maxStrength,
-    createdByAssistant 
+    createdByAssistant,
   } = query
 
   // Build filters for the user-scoped database
   const filters: any = {
     limit: parseInt(limit as string),
-    offset: parseInt(offset as string)
+    offset: parseInt(offset as string),
   }
-  
+
   if (subjectId) {
     filters.subjectId = subjectId as string
   }
-  
+
   if (objectId) {
     filters.objectId = objectId as string
   }
-  
+
   if (predicate) {
     filters.predicate = predicate as string
   }
-  
+
   if (createdByAssistant) {
     filters.createdByAssistant = createdByAssistant as string
   }
@@ -42,24 +42,31 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
   // Apply additional filters in memory that aren't supported by UserScopedDatabase yet
   if (search) {
     const searchLower = (search as string).toLowerCase()
-    relations = relations.filter(relation => 
-      relation.predicate.toLowerCase().includes(searchLower) ||
-      (relation.metadata && JSON.stringify(relation.metadata).toLowerCase().includes(searchLower))
+    relations = relations.filter(
+      (relation) =>
+        relation.predicate.toLowerCase().includes(searchLower) ||
+        (relation.metadata &&
+          JSON.stringify(relation.metadata).toLowerCase().includes(searchLower))
     )
   }
 
   if (minStrength !== undefined) {
     const min = parseFloat(minStrength as string)
-    relations = relations.filter(relation => (relation.strength || 0) >= min)
+    relations = relations.filter((relation) => (relation.strength || 0) >= min)
   }
 
   if (maxStrength !== undefined) {
     const max = parseFloat(maxStrength as string)
-    relations = relations.filter(relation => (relation.strength || 0) <= max)
+    relations = relations.filter((relation) => (relation.strength || 0) <= max)
   }
 
   // Get entity details for each relation (only user's entities will be accessible due to RLS)
-  const entityIds = [...new Set([...relations.map(r => r.subjectId), ...relations.map(r => r.objectId)])]
+  const entityIds = [
+    ...new Set([
+      ...relations.map((r) => r.subjectId),
+      ...relations.map((r) => r.objectId),
+    ]),
+  ]
   const entityDetails: Record<string, any> = {}
 
   // Fetch entities in batches
@@ -69,16 +76,16 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
       entityDetails[entityId] = {
         id: entity.id,
         name: entity.name,
-        type: entity.type
+        type: entity.type,
       }
     }
   }
 
   // Combine results
-  const enrichedRelations = relations.map(relation => ({
+  const enrichedRelations = relations.map((relation) => ({
     ...relation,
     subjectEntity: entityDetails[relation.subjectId] || null,
-    objectEntity: entityDetails[relation.objectId] || null
+    objectEntity: entityDetails[relation.objectId] || null,
   }))
 
   // Apply pagination if search/strength filters were applied
@@ -88,7 +95,10 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
   if (search || minStrength !== undefined || maxStrength !== undefined) {
     // If additional filters were applied, handle pagination manually
     total = enrichedRelations.length
-    finalRelations = enrichedRelations.slice(filters.offset, filters.offset + filters.limit)
+    finalRelations = enrichedRelations.slice(
+      filters.offset,
+      filters.offset + filters.limit
+    )
   }
 
   return {
@@ -96,7 +106,7 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
     pagination: {
       limit: filters.limit,
       offset: filters.offset,
-      total
-    }
+      total,
+    },
   }
 })

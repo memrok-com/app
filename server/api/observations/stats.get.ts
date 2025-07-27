@@ -1,6 +1,6 @@
-import { sql, gte } from 'drizzle-orm'
-import { createAuthenticatedHandler } from '../../utils/auth-middleware'
-import { schema } from '../../utils/db'
+import { sql, gte } from "drizzle-orm"
+import { createAuthenticatedHandler } from "../../utils/auth-middleware"
+import { schema } from "../../utils/db"
 
 export default createAuthenticatedHandler(async (event, userDb, user) => {
   // Get observation statistics using RLS-aware database
@@ -14,10 +14,13 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
     const entityTypeStats = await db
       .select({
         entityType: schema.entities.type,
-        count: sql`count(*)`.as('count')
+        count: sql`count(*)`.as("count"),
       })
       .from(schema.observations)
-      .leftJoin(schema.entities, sql`${schema.observations.entityId} = ${schema.entities.id}`)
+      .leftJoin(
+        schema.entities,
+        sql`${schema.observations.entityId} = ${schema.entities.id}`
+      )
       .groupBy(schema.entities.type)
       .orderBy(sql`count(*) DESC`)
 
@@ -33,16 +36,16 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
     return {
       totalCount,
       entityTypeStats,
-      recentCount
+      recentCount,
     }
   })
 
   return {
     total: parseInt(stats.totalCount.count as string),
     recentActivity: parseInt(stats.recentCount.count as string),
-    byEntityType: stats.entityTypeStats.map(stat => ({
-      entityType: stat.entityType || 'unknown',
-      count: parseInt(stat.count as string)
-    }))
+    byEntityType: stats.entityTypeStats.map((stat) => ({
+      entityType: stat.entityType || "unknown",
+      count: parseInt(stat.count as string),
+    })),
   }
 })

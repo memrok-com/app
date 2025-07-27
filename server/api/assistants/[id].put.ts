@@ -1,13 +1,13 @@
-import { createAuthenticatedHandler } from '../../utils/auth-middleware'
+import { createAuthenticatedHandler } from "../../utils/auth-middleware"
 
 export default createAuthenticatedHandler(async (event, userDb, user) => {
-  const id = getRouterParam(event, 'id')
+  const id = getRouterParam(event, "id")
   const body = await readBody(event)
-  
+
   if (!id) {
     throw createError({
       statusCode: 400,
-      statusMessage: 'Assistant ID is required'
+      statusMessage: "Assistant ID is required",
     })
   }
 
@@ -17,19 +17,21 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
   if (!existingAssistant) {
     throw createError({
       statusCode: 404,
-      statusMessage: 'Assistant not found'
+      statusMessage: "Assistant not found",
     })
   }
 
   // Check if external ID is being updated and would create a conflict
   if (body.externalId && body.externalId !== existingAssistant.externalId) {
     const allAssistants = await userDb.getAssistants()
-    const conflictingAssistant = allAssistants.find(a => a.externalId === body.externalId)
+    const conflictingAssistant = allAssistants.find(
+      (a) => a.externalId === body.externalId
+    )
 
     if (conflictingAssistant) {
       throw createError({
         statusCode: 409,
-        statusMessage: 'Assistant with this external ID already exists'
+        statusMessage: "Assistant with this external ID already exists",
       })
     }
   }
@@ -48,12 +50,12 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
   if (!updatedAssistant) {
     throw createError({
       statusCode: 404,
-      statusMessage: 'Assistant not found or update failed'
+      statusMessage: "Assistant not found or update failed",
     })
   }
 
   return {
     assistant: updatedAssistant,
-    message: 'Assistant updated successfully'
+    message: "Assistant updated successfully",
   }
 })

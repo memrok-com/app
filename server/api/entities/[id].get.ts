@@ -1,12 +1,12 @@
-import { createAuthenticatedHandler } from '../../utils/auth-middleware'
+import { createAuthenticatedHandler } from "../../utils/auth-middleware"
 
 export default createAuthenticatedHandler(async (event, userDb, user) => {
-  const id = getRouterParam(event, 'id')
-  
+  const id = getRouterParam(event, "id")
+
   if (!id) {
     throw createError({
       statusCode: 400,
-      statusMessage: 'Entity ID is required'
+      statusMessage: "Entity ID is required",
     })
   }
 
@@ -16,7 +16,7 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
   if (!entity) {
     throw createError({
       statusCode: 404,
-      statusMessage: 'Entity not found'
+      statusMessage: "Entity not found",
     })
   }
 

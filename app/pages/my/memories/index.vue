@@ -29,7 +29,6 @@
           >
             <MemoriesObservationsCreate
               ref="observationsCreateRef"
-              :disabled="entities < 1"
               @created="refreshObservations"
             />
             <template #footer>
@@ -46,7 +45,6 @@
           >
             <MemoriesRelationsCreate
               ref="relationsCreateRef"
-              :disabled="entities < 2"
               @created="refreshRelations"
             />
             <template #footer>
@@ -57,7 +55,7 @@
           </UPageCard>
         </UPageGrid>
         <Memories
-          :entities="entitiesData?.entities || []"
+          :entities="entitiesStore.entities"
           :key="entities"
         />
         <UPageCard :ui="{ container: 'p-0 sm:p-0' }">
@@ -96,8 +94,6 @@
 </template>
 
 <script setup lang="ts">
-import type { EntitiesApiResponse } from "~/types/entities"
-
 const { t } = useI18n({ useScope: "local" })
 
 useHead({
@@ -108,30 +104,32 @@ useHead({
 const relationsCreateRef = ref()
 const observationsCreateRef = ref()
 
-// Fetch counts from API - RLS automatically filters by current user
-const { data: entitiesData, refresh: refreshEntities } =
-  await useFetch<EntitiesApiResponse>("/api/entities")
+// Initialize stores
+const entitiesStore = useEntitiesStore()
+const relationsStore = useRelationsStore()
+const observationsStore = useObservationsStore()
 
-const { data: relationsData, refresh: refreshRelations } = await useFetch(
-  "/api/relations"
-)
+// Compute counts from stores
+const entities = computed(() => entitiesStore.entityCount)
+const relations = computed(() => relationsStore.relationCount)
+const observations = computed(() => observationsStore.observationCount)
 
-const { data: observationsData, refresh: refreshObservations } = await useFetch(
-  "/api/observations"
-)
-
-// Compute counts
-const entities = computed(() => entitiesData.value?.entities?.length || 0)
-const relations = computed(() => relationsData.value?.relations?.length || 0)
-const observations = computed(
-  () => observationsData.value?.observations?.length || 0
-)
+// Load initial data on client side after authentication is available
+onMounted(async () => {
+  try {
+    await Promise.all([
+      entitiesStore.initialize(),
+      relationsStore.fetchRelations(),
+      observationsStore.fetchObservations()
+    ])
+  } catch (error) {
+    console.error('Failed to initialize stores:', error)
+  }
+})
 
 // Handle entity creation - refresh entity lists in other components
 const onEntityCreated = () => {
-  // Refresh entities count
-  refreshEntities()
-
+  // Store will automatically refresh after creation
   // Refresh entity lists in relations and observations components
   if (relationsCreateRef.value?.refreshEntities) {
     relationsCreateRef.value.refreshEntities()
@@ -143,10 +141,8 @@ const onEntityCreated = () => {
 
 // Handle memories erased event
 const onMemoriesErased = () => {
-  // Refresh all counts after successful erase
-  refreshEntities()
-  refreshRelations()
-  refreshObservations()
+  // No need to manually refresh - the memory store already cleared all state
+  // The reactive counts will automatically update to show 0
 }
 </script>
 

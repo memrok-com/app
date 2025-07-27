@@ -1,13 +1,13 @@
-import { createAuthenticatedHandler } from '../../utils/auth-middleware'
+import { createAuthenticatedHandler } from "../../utils/auth-middleware"
 
 export default createAuthenticatedHandler(async (event, userDb, user) => {
   const body = await readBody(event)
-  
+
   // Validate required fields
   if (!body.entityId || !body.content) {
     throw createError({
       statusCode: 400,
-      statusMessage: 'entityId and content are required'
+      statusMessage: "entityId and content are required",
     })
   }
 
@@ -17,7 +17,7 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
   if (!entity) {
     throw createError({
       statusCode: 404,
-      statusMessage: 'Entity not found'
+      statusMessage: "Entity not found",
     })
   }
 
@@ -37,9 +37,9 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
       entity: {
         id: entity.id,
         name: entity.name,
-        type: entity.type
-      }
+        type: entity.type,
+      },
     },
-    message: 'Observation created successfully'
+    message: "Observation created successfully",
   }
 })

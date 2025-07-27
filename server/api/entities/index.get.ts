@@ -1,16 +1,16 @@
-import { createAuthenticatedHandler } from '../../utils/auth-middleware'
-import type { EntitiesApiResponse } from '../../../types/entities'
+import { createAuthenticatedHandler } from "../../utils/auth-middleware"
+import type { EntitiesApiResponse } from "../../../app/types/entities"
 
 export default createAuthenticatedHandler(async (event, userDb, user) => {
   const query = getQuery(event)
-  const { 
-    limit = 50, 
-    offset = 0, 
-    type, 
+  const {
+    limit = 50,
+    offset = 0,
+    type,
     search,
     createdByAssistant,
-    sortBy = 'createdAt',
-    sortOrder = 'desc'
+    sortBy = "createdAt",
+    sortOrder = "desc",
   } = query
 
   // Build filters for the user-scoped database
@@ -18,13 +18,13 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
     limit: parseInt(limit as string),
     offset: parseInt(offset as string),
     sortBy: sortBy as string,
-    sortOrder: sortOrder as string
+    sortOrder: sortOrder as string,
   }
-  
+
   if (type) {
     filters.type = type as string
   }
-  
+
   if (createdByAssistant) {
     filters.createdByAssistant = createdByAssistant as string
   }
@@ -36,9 +36,10 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
   let filteredEntities = entities
   if (search) {
     const searchLower = (search as string).toLowerCase()
-    filteredEntities = entities.filter(entity => 
-      entity.name.toLowerCase().includes(searchLower) ||
-      entity.type.toLowerCase().includes(searchLower)
+    filteredEntities = entities.filter(
+      (entity) =>
+        entity.name.toLowerCase().includes(searchLower) ||
+        entity.type.toLowerCase().includes(searchLower)
     )
   }
 
@@ -49,7 +50,10 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
   if (search) {
     // If search was applied, we need to handle pagination manually
     total = filteredEntities.length
-    finalEntities = filteredEntities.slice(filters.offset, filters.offset + filters.limit)
+    finalEntities = filteredEntities.slice(
+      filters.offset,
+      filters.offset + filters.limit
+    )
   } else {
     // If no search, UserScopedDatabase already handled pagination
     total = entities.length // This is not accurate for pagination, but UserScopedDatabase doesn't return total count
@@ -60,9 +64,9 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
     pagination: {
       limit: filters.limit,
       offset: filters.offset,
-      total // Note: This won't be accurate when using pagination without search - would need to enhance UserScopedDatabase
-    }
+      total, // Note: This won't be accurate when using pagination without search - would need to enhance UserScopedDatabase
+    },
   }
-  
+
   return response
 })

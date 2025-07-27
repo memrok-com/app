@@ -23,6 +23,7 @@ export default defineNuxtConfig({
     "@nuxt/image",
     "@nuxt/ui-pro",
     "@nuxtjs/i18n",
+    "@pinia/nuxt",
     "nuxt-oidc-auth",
   ],
   oidc: {

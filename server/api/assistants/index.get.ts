@@ -1,20 +1,15 @@
-import { createAuthenticatedHandler } from '../../utils/auth-middleware'
+import { createAuthenticatedHandler } from "../../utils/auth-middleware"
 
 export default createAuthenticatedHandler(async (event, userDb, user) => {
   const query = getQuery(event)
-  const { 
-    limit = 50, 
-    offset = 0, 
-    search,
-    type
-  } = query
+  const { limit = 50, offset = 0, search, type } = query
 
   // Build filters for the user-scoped database
   const filters: any = {
     limit: parseInt(limit as string),
-    offset: parseInt(offset as string)
+    offset: parseInt(offset as string),
   }
-  
+
   if (type) {
     filters.type = type as string
   }
@@ -27,24 +22,28 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
   let filteredAssistants = assistants
   if (search) {
     const searchLower = (search as string).toLowerCase()
-    filteredAssistants = assistants.filter(assistant => 
-      assistant.name.toLowerCase().includes(searchLower) ||
-      assistant.type.toLowerCase().includes(searchLower) ||
-      (assistant.externalId && assistant.externalId.toLowerCase().includes(searchLower))
+    filteredAssistants = assistants.filter(
+      (assistant) =>
+        assistant.name.toLowerCase().includes(searchLower) ||
+        assistant.type.toLowerCase().includes(searchLower) ||
+        (assistant.externalId &&
+          assistant.externalId.toLowerCase().includes(searchLower))
     )
   }
 
   // Apply pagination to filtered results
   const total = filteredAssistants.length
-  const paginatedAssistants = filteredAssistants
-    .slice(filters.offset, filters.offset + filters.limit)
+  const paginatedAssistants = filteredAssistants.slice(
+    filters.offset,
+    filters.offset + filters.limit
+  )
 
   return {
     assistants: paginatedAssistants,
     pagination: {
       limit: filters.limit,
       offset: filters.offset,
-      total
-    }
+      total,
+    },
   }
 })

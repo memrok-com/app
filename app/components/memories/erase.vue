@@ -45,7 +45,7 @@
         />
         <UButton
           color="error"
-          :loading="loading"
+          :loading="memoryStore.isErasing"
           :disabled="
             formState.confirmText !== t('form.fields.confirm.placeholder')
           "
@@ -85,7 +85,7 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n({ useScope: "local" })
-const { user } = useOidcAuth()
+const memoryStore = useMemoryStore()
 
 // Compute button props, using defaults from props and allowing overrides
 const buttonProps = computed(() => ({
@@ -99,7 +99,6 @@ const buttonProps = computed(() => ({
 
 // Modal state
 const isOpen = ref(false)
-const loading = ref(false)
 
 // Form state for UForm
 const formState = reactive({
@@ -112,15 +111,8 @@ async function onErase() {
     return
   }
 
-  loading.value = true
-
   try {
-    await $fetch("/api/memories/erase", {
-      method: "DELETE",
-      body: {
-        userId: user.value?.userInfo?.sub,
-      },
-    })
+    await memoryStore.eraseAllMemories()
 
     // Reset form
     formState.confirmText = ""
@@ -147,8 +139,6 @@ async function onErase() {
       title: t("error.title"),
       description: error.data?.statusMessage || t("error.description"),
     })
-  } finally {
-    loading.value = false
   }
 }
 </script>
