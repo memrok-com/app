@@ -89,21 +89,23 @@ Currently implemented:
 - ✅ Full authentication integration
 - ✅ Database schema with Drizzle ORM
 - ✅ Knowledge graph structure (entities, relations, observations)
-- ✅ Multi-user and assistant support in schema
+- ✅ Multi-user support with string-based assistant attribution
 - ✅ PostgreSQL container configuration with automated setup
 - ✅ Database migration system with Drizzle Kit
 - ✅ **Complete MCP server implementation** with 5 memory tools
-- ✅ **Memory storage and retrieval APIs** (entities, relations, observations, assistants)
+- ✅ **Memory storage and retrieval APIs** (entities, relations, observations)
 - ✅ **MCP connectivity** via stdio (Claude Desktop) and HTTP endpoints
 - ✅ **Row Level Security (RLS)** implementation with user data isolation
 - ✅ **RLS-aware API endpoints** - all endpoints use user context, no manual filtering
 - ✅ **Complete Web UI** for memory management with reactive state management
 - ✅ **Pinia State Management** - All data operations flow through type-safe stores
 - ✅ **Business Rule Validation** - Components self-govern creation permissions via stores
+- ✅ **String-based Assistant Attribution** - Simplified assistant tracking without FK constraints
 
 Not yet implemented:
 
-- Vector embeddings and Qdrant integration
+- **Assistant Auto-Detection** - Automatic client identification in MCP server
+- Vector embeddings and Qdrant integration  
 - Full Docker deployment for app container
 
 ## Key Files to Know
@@ -135,7 +137,6 @@ Not yet implemented:
 - `server/api/entities/`: Entity management endpoints (RLS-aware)
 - `server/api/relations/`: Relation management endpoints (RLS-aware)
 - `server/api/observations/`: Observation management endpoints (RLS-aware)
-- `server/api/assistants/`: Assistant management endpoints (RLS-aware)
 
 **State Management (Pinia):**
 
@@ -177,6 +178,34 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
 ```
 
 **Security:** Users can only access their own data - RLS policies enforce isolation at the database level.
+
+## Assistant Attribution Implementation
+
+**Status:** ✅ Complete and production-ready
+
+**Architecture:**
+
+memrok uses a simplified string-based approach for tracking which AI assistant or client created each memory:
+
+- **No Assistant Registration**: Clients self-identify without requiring database registration
+- **String Fields**: Assistant information stored as simple text fields:
+  - `createdByAssistantName` (e.g., "Claude Desktop", "Cursor", "VS Code")
+  - `createdByAssistantType` (e.g., "claude", "cursor", "vscode")
+- **Flexible Attribution**: Any MCP client can identify itself however it wants
+- **No FK Constraints**: Simplified database operations without foreign key overhead
+
+**Assistant Types Supported:**
+- `claude` - Claude Desktop, Claude via API
+- `cursor` - Cursor editor 
+- `vscode` - VS Code with MCP extensions
+- `continue` - Continue.dev extension
+- `zed` - Zed editor
+- `vim` - Vim/Neovim with MCP plugins
+- `web` - Custom web applications using HTTP MCP
+- `cli` - Command-line tools
+- `api` - Direct API integrations
+
+**Future Enhancement:** Auto-detection logic can be added to automatically identify clients based on process environment, transport method, or client headers.
 
 ## MCP Server Implementation
 
@@ -278,7 +307,7 @@ When implementing remaining features:
 6. Docker setup includes PostgreSQL (implemented), needs Qdrant and app container
 7. Tests should be added using Vitest when implemented
 8. Database migrations use Drizzle Kit (`bun run db:generate` and `bun run db:migrate`)
-9. Database schema tracks creator (user or assistant) for all records
+9. Database schema tracks creator (user or assistant) using string-based attribution
 
 # important-instruction-reminders
 
