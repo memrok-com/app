@@ -27,10 +27,7 @@
             :description="t('observations.description')"
             spotlight
           >
-            <MemoriesObservationsCreate
-              ref="observationsCreateRef"
-              @created="refreshObservations"
-            />
+            <MemoriesObservationsCreate />
             <template #footer>
               <code class="font-light text-7xl">
                 {{ observations.toLocaleString() }}
@@ -43,10 +40,7 @@
             :description="t('relations.description')"
             spotlight
           >
-            <MemoriesRelationsCreate
-              ref="relationsCreateRef"
-              @created="refreshRelations"
-            />
+            <MemoriesRelationsCreate />
             <template #footer>
               <code class="font-light text-7xl">
                 {{ relations.toLocaleString() }}
@@ -100,9 +94,6 @@ useHead({
   title: t("title"),
 })
 
-// Template refs
-const relationsCreateRef = ref()
-const observationsCreateRef = ref()
 
 // Initialize stores
 const entitiesStore = useEntitiesStore()
@@ -127,22 +118,13 @@ onMounted(async () => {
   }
 })
 
-// Handle entity creation - refresh entity lists in other components
+// Event handlers - stores handle all data management automatically
 const onEntityCreated = () => {
-  // Store will automatically refresh after creation
-  // Refresh entity lists in relations and observations components
-  if (relationsCreateRef.value?.refreshEntities) {
-    relationsCreateRef.value.refreshEntities()
-  }
-  if (observationsCreateRef.value?.refreshEntities) {
-    observationsCreateRef.value.refreshEntities()
-  }
+  // Stores automatically refresh after creation
 }
 
-// Handle memories erased event
 const onMemoriesErased = () => {
-  // No need to manually refresh - the memory store already cleared all state
-  // The reactive counts will automatically update to show 0
+  // Memory store already cleared all state
 }
 </script>
 
