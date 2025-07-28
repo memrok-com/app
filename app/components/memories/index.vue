@@ -1,7 +1,7 @@
 <template>
   <UTable
     :columns="columns"
-    :data="memoryStore.entities"
+    :data="entities"
     sticky
     :ui="{
       separator: 'bg-(--ui-border-muted) dark:bg-(--ui-bg-muted)',
@@ -32,8 +32,14 @@
 
 <script setup lang="ts">
 import { format } from "@formkit/tempo"
+import type { CellContext } from '@tanstack/vue-table'
+import type { EntityWithCounts } from '~/types/entities'
+
 const { t, n } = useI18n({ useScope: "local" })
 const memoryStore = useMemoryStore()
+
+// Create reactive reference to entities for proper table reactivity
+const entities = computed(() => memoryStore.entities)
 
 const columns = [
   {
@@ -53,7 +59,7 @@ const columns = [
         th: "text-end",
       },
     },
-    cell: ({ row }: any) => {
+    cell: ({ row }: CellContext<EntityWithCounts, unknown>) => {
       return n(row.original.observationsCount)
     },
   },
@@ -66,7 +72,7 @@ const columns = [
         th: "text-end",
       },
     },
-    cell: ({ row }: any) => {
+    cell: ({ row }: CellContext<EntityWithCounts, unknown>) => {
       return n(row.original.relationsCount)
     },
   },
@@ -77,7 +83,7 @@ const columns = [
   {
     accessorKey: "createdAt",
     header: t("columns.created"),
-    cell: ({ row }: any) => {
+    cell: ({ row }: CellContext<EntityWithCounts, unknown>) => {
       return format(new Date(row.original.createdAt), {
         date: "medium",
         time: "short",
