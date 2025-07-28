@@ -38,8 +38,8 @@ import type { EntityWithCounts } from '~/types/entities'
 const { t, n } = useI18n({ useScope: "local" })
 const memoryStore = useMemoryStore()
 
-// Create reactive reference to entities for proper table reactivity
-const entities = computed(() => memoryStore.entities)
+// Use storeToRefs to ensure proper reactivity with Pinia store
+const { entities } = storeToRefs(memoryStore)
 
 const columns = [
   {
