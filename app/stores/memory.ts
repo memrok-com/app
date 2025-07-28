@@ -386,6 +386,7 @@ export const useMemoryStore = defineStore("memory", () => {
       relations.value = relations.value.filter(
         (r) => r.subjectId !== id && r.objectId !== id
       )
+
     } catch (err) {
       const message = getUserFriendlyErrorMessage("Delete entity", err)
       addError(message)
@@ -453,6 +454,7 @@ export const useMemoryStore = defineStore("memory", () => {
 
       // Add to local store
       observations.value.push(response.observation)
+      
       return response.observation
     } catch (err) {
       const message = getUserFriendlyErrorMessage("Create observation", err)
@@ -534,6 +536,7 @@ export const useMemoryStore = defineStore("memory", () => {
 
       // Remove from local store
       observations.value = observations.value.filter((o) => o.id !== id)
+
     } catch (err) {
       const message = getUserFriendlyErrorMessage("Delete observation", err)
       addError(message)
@@ -599,6 +602,7 @@ export const useMemoryStore = defineStore("memory", () => {
 
       // Add to local store
       relations.value.push(response.relation)
+      
       return response.relation
     } catch (err) {
       const message = getUserFriendlyErrorMessage("Create relation", err)
@@ -680,6 +684,7 @@ export const useMemoryStore = defineStore("memory", () => {
 
       // Remove from local store
       relations.value = relations.value.filter((r) => r.id !== id)
+
     } catch (err) {
       const message = getUserFriendlyErrorMessage("Delete relation", err)
       addError(message)
@@ -708,6 +713,7 @@ export const useMemoryStore = defineStore("memory", () => {
       entities.value = []
       observations.value = []
       relations.value = []
+
     } catch (err) {
       const message = getUserFriendlyErrorMessage("Erase all memories", err)
       addError(message)

@@ -1,6 +1,5 @@
 <template>
   <UForm
-    class="space-y-6"
     :schema="schema"
     :state="state"
     :validate-on="['change', 'input']"
@@ -85,6 +84,14 @@
       />
     </UFormField>
 
+    <UAlert
+      v-if="submitError"
+      color="error"
+      icon="i-ph-warning"
+      :title="submitError"
+      variant="subtle"
+    />
+
     <div class="flex justify-end gap-x-4 gap-y-3 pt-4">
       <UButton
         color="neutral"
@@ -121,7 +128,8 @@ const emit = defineEmits<{
 }>()
 
 const memoryStore = useMemoryStore()
-const { t, n } = useI18n({ useScope: "local" })
+const { t } = useI18n({ useScope: "local" })
+const toast = useToast()
 
 // Form validation schema
 const schema = z
@@ -161,6 +169,9 @@ const state = reactive({
 
 // Loading state
 const isSubmitting = ref(false)
+
+// Error state for inline display
+const submitError = ref<string | null>(null)
 
 // Entity options for UInputMenu
 const entityOptions = computed(() => {
@@ -232,6 +243,7 @@ const submit = async () => {
   if (isSubmitting.value) return
 
   isSubmitting.value = true
+  submitError.value = null // Clear previous errors
 
   try {
     // Parse metadata if provided
@@ -256,11 +268,23 @@ const submit = async () => {
 
     if (props.mode === "insert") {
       result = await memoryStore.createRelation(relationData)
+      toast.add({
+        title: t("forms.success.inserted.title"),
+        description: t("forms.success.inserted.description"),
+        color: "success",
+        icon: "i-ph-check-circle",
+      })
     } else if (props.relation) {
       result = await memoryStore.updateRelation(props.relation.id, {
         predicate: relationData.predicate,
         strength: relationData.strength,
         metadata: relationData.metadata,
+      })
+      toast.add({
+        title: t("forms.success.updated.title"),
+        description: t("forms.success.updated.description"),
+        color: "success",
+        icon: "i-ph-check-circle",
       })
     } else {
       throw new Error("Relation ID required for update mode")
@@ -270,7 +294,7 @@ const submit = async () => {
     emit("close")
   } catch (error) {
     console.error("Relation form submission error:", error)
-    // Error handling is managed by the memory store
+    submitError.value = t(`forms.error.${props.mode}`)
   } finally {
     isSubmitting.value = false
   }
@@ -301,14 +325,20 @@ en:
       label: Subject Entity
       placeholder: Select the subject of this relation
       empty: No entities available. Create entities first.
+      validation:
+        required: Subject entity is required
     predicate:
       label: Relationship Type
       placeholder: Select or create relationship type
       empty: No predicates available. Type to create.
+      validation:
+        required: Relationship type is required
     object:
       label: Object Entity
       placeholder: Select the object of this relation
       empty: No entities available. Create entities first.
+      validation:
+        required: Object entity is required
     strength:
       label: Relationship Strength
       description: How strong is this relationship? (0 = weak, 1 = strong)
@@ -316,6 +346,8 @@ en:
       label: Metadata (JSON)
       description: Optional JSON metadata for this relation
       placeholder: JSON
+      validation:
+        invalidJson: Metadata must be valid JSON format
     entity:
       format: "{name} ({type})"
   buttons:
@@ -324,13 +356,15 @@ en:
       insert: Insert Relation
       update: Update Relation
   validation:
-    subject:
-      required: Subject entity is required
-    predicate:
-      required: Relationship type is required
-    object:
-      required: Object entity is required
     sameEntity: Subject and object must be different entities
-    metadata:
-      invalidJson: Metadata must be valid JSON format
+  success:
+    inserted:
+      title: Relation Inserted
+      description: The relationship has been successfully inserted.
+    updated:
+      title: Relation Updated
+      description: The relationship has been successfully updated.
+  error:
+    insert: Failed to create relation. Please check your input and try again.
+    update: Failed to update relation. Please check your input and try again.
 </i18n>

@@ -1,6 +1,5 @@
 <template>
   <UForm
-    class="space-y-6"
     :state="state"
     :schema="schema"
     :validate-on="['change', 'input']"
@@ -57,6 +56,14 @@
       />
     </UFormField>
 
+    <UAlert
+      v-if="submitError"
+      color="error"
+      icon="i-ph-warning"
+      :title="submitError"
+      variant="subtle"
+    />
+
     <div class="flex justify-end gap-x-4 gap-y-3 pt-4">
       <UButton
         color="neutral"
@@ -94,11 +101,12 @@ const emit = defineEmits<{
 
 const memoryStore = useMemoryStore()
 const { t } = useI18n({ useScope: "local" })
+const toast = useToast()
 
 // Form validation schema
 const schema = z.object({
-  entityId: z.string().min(1, t("validation.entity.required")),
-  content: z.string().min(1, t("validation.content.required")),
+  entityId: z.string().min(1, t("fields.entity.validation.required")),
+  content: z.string().min(1, t("fields.content.validation.required")),
   source: z.string().optional(),
   metadata: z
     .string()
@@ -111,7 +119,7 @@ const schema = z.object({
       } catch {
         return false
       }
-    }, t("validation.metadata.invalidJson")),
+    }, t("fields.metadata.validation.invalidJson")),
 })
 
 // Form state
@@ -146,6 +154,9 @@ const selectedEntity = computed({
 // Loading state
 const isSubmitting = ref(false)
 
+// Error state for inline display
+const submitError = ref<string | null>(null)
+
 // Entity options for UInputMenu
 const entityOptions = computed(() => {
   return memoryStore.entities.map((entity) => ({
@@ -159,6 +170,7 @@ const submit = async () => {
   if (isSubmitting.value) return
 
   isSubmitting.value = true
+  submitError.value = null // Clear previous errors
 
   try {
     // Parse metadata if provided
@@ -167,7 +179,7 @@ const submit = async () => {
       try {
         parsedMetadata = JSON.parse(state.metadata)
       } catch (error) {
-        throw new Error(t("validation.metadata.invalidJson"))
+        throw new Error(t("fields.metadata.validation.invalidJson"))
       }
     }
 
@@ -182,11 +194,23 @@ const submit = async () => {
 
     if (props.mode === "insert") {
       result = await memoryStore.createObservation(observationData)
+      toast.add({
+        title: t("success.inserted.title"),
+        description: t("success.inserted.description"),
+        color: "success",
+        icon: "i-ph-check-circle",
+      })
     } else if (props.observation) {
       result = await memoryStore.updateObservation(props.observation.id, {
         content: observationData.content,
         source: observationData.source,
         metadata: observationData.metadata,
+      })
+      toast.add({
+        title: t("success.updated.title"),
+        description: t("success.updated.description"),
+        color: "success",
+        icon: "i-ph-check-circle",
       })
     } else {
       throw new Error("Observation ID required for update mode")
@@ -196,7 +220,7 @@ const submit = async () => {
     emit("close")
   } catch (error) {
     console.error("Observation form submission error:", error)
-    // Error handling is managed by the memory store
+    submitError.value = t(`error.${props.mode}`)
   } finally {
     isSubmitting.value = false
   }
@@ -227,9 +251,13 @@ en:
       placeholder: Select entity for this observation
       empty: No entities available. Create an entity first.
       format: "{name} ({type})"
+      validation:
+        required: Entity is required
     content:
       label: Content
       placeholder: Describe what you observed about this entity
+      validation:
+        required: Content is required
     source:
       label: Source
       placeholder: Optional source or reference
@@ -237,16 +265,21 @@ en:
       label: Metadata (JSON)
       description: Optional JSON metadata for this observation
       placeholder: JSON
+      validation:
+        invalidJson: Metadata must be valid JSON format
   buttons:
     cancel: Cancel
     submit:
       insert: Insert Observation
       update: Update Observation
-  validation:
-    entity:
-      required: Entity is required
-    content:
-      required: Content is required
-    metadata:
-      invalidJson: Metadata must be valid JSON format
+  success:
+    inserted:
+      title: Observation Inserted
+      description: Your observation has been successfully inserted.
+    updated:
+      title: Observation Updated
+      description: Your observation has been successfully updated.
+  error:
+    insert: Failed to create observation. Please check your input and try again.
+    update: Failed to update observation. Please check your input and try again.
 </i18n>

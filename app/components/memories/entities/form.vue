@@ -1,6 +1,5 @@
 <template>
   <UForm
-    class="space-y-6"
     :schema="schema"
     :state="state"
     :validate-on="['change', 'input']"
@@ -49,6 +48,14 @@
       />
     </UFormField>
 
+    <UAlert
+      v-if="submitError"
+      color="error"
+      icon="i-ph-warning"
+      :title="submitError"
+      variant="subtle"
+    />
+
     <div class="flex justify-end gap-x-4 gap-y-3 pt-4">
       <UButton
         color="neutral"
@@ -86,15 +93,12 @@ const emit = defineEmits<{
 
 const memoryStore = useMemoryStore()
 const { t } = useI18n({ useScope: "local" })
+const toast = useToast()
 
 // Form validation schema
 const schema = z.object({
-  name: z
-    .string()
-    .min(1, t("validation.name.required")),
-  type: z
-    .string()
-    .min(1, t("validation.type.required")),
+  name: z.string().min(1, t("fields.name.validation.required")),
+  type: z.string().min(1, t("fields.type.validation.required")),
   metadata: z
     .string()
     .optional()
@@ -106,7 +110,7 @@ const schema = z.object({
       } catch {
         return false
       }
-    }, t("validation.metadata.invalidJson")),
+    }, t("fields.metadata.validation.invalidJson")),
 })
 
 // Form state
@@ -120,6 +124,9 @@ const state = reactive({
 
 // Loading state
 const isSubmitting = ref(false)
+
+// Error state for inline display
+const submitError = ref<string | null>(null)
 
 // Type items for UInputMenu
 const typeItems = ref<string[]>([])
@@ -146,6 +153,7 @@ const submit = async () => {
   if (isSubmitting.value) return
 
   isSubmitting.value = true
+  submitError.value = null // Clear previous errors
 
   try {
     // Parse metadata if provided
@@ -168,8 +176,26 @@ const submit = async () => {
 
     if (props.mode === "insert") {
       result = await memoryStore.createEntity(entityData)
+      toast.add({
+        title: t("success.inserted.title"),
+        description: t("success.inserted.description", {
+          name: result.name,
+          type: result.type,
+        }),
+        color: "success",
+        icon: "i-ph-check-circle",
+      })
     } else if (props.entity) {
       result = await memoryStore.updateEntity(props.entity.id, entityData)
+      toast.add({
+        title: t("success.updated.title"),
+        description: t("success.updated.description", {
+          name: result.name,
+          type: result.type,
+        }),
+        color: "success",
+        icon: "i-ph-check-circle",
+      })
     } else {
       throw new Error("Entity ID required for update mode")
     }
@@ -178,7 +204,7 @@ const submit = async () => {
     emit("close")
   } catch (error) {
     console.error("Entity form submission error:", error)
-    // Error handling is managed by the memory store
+    submitError.value = t(`error.${props.mode}`)
   } finally {
     isSubmitting.value = false
   }
@@ -206,24 +232,33 @@ en:
     name:
       label: Name
       placeholder: Enter entity name
+      validation:
+        required: Name is required
     type:
       label: Type
       placeholder: Select or create entity type
       empty: No types available for selection
+      validation:
+        required: Type is required
     metadata:
       label: Metadata (JSON)
       description: Optional JSON metadata for this entity
       placeholder: JSON
+      validation:
+        invalidJson: Metadata must be valid JSON format
   buttons:
     cancel: Cancel
     submit:
       insert: Insert Entity
       update: Update Entity
-  validation:
-    name:
-      required: Name is required
-    type:
-      required: Type is required
-    metadata:
-      invalidJson: Metadata must be valid JSON format
+  success:
+    inserted:
+      title: Entity Inserted
+      description: "{name} ({type}) has been successfully inserted."
+    updated:
+      title: Entity Updated
+      description: "{name} ({type}) has been successfully updated."
+  error:
+    insert: Failed to create entity. Please check your input and try again.
+    update: Failed to update entity. Please check your input and try again.
 </i18n>
