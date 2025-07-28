@@ -32,7 +32,6 @@
 
 <script setup lang="ts">
 import { format } from "@formkit/tempo"
-import type { EntityWithCounts } from "~/types/entities"
 const { t, n } = useI18n({ useScope: "local" })
 const memoryStore = useMemoryStore()
 
