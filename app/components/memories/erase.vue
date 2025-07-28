@@ -115,27 +115,13 @@ const submit = async () => {
   isSubmitting.value = true
   submitError.value = null // Clear previous errors
 
-  // Show progress toast
-  const progressToast = toast.add({
-    title: "Erasing Memories...",
-    description: "This may take a few moments.",
-    color: "warning",
-    icon: "i-ph-spinner",
-    progress: true,
-    close: false,
-    duration: 0,
-  })
-
   try {
     await memoryStore.eraseAllMemories()
 
-    // Remove progress toast
-    toast.remove(progressToast.id)
-
     // Show success toast
     toast.add({
-      title: t("forms.success.title"),
-      description: t("forms.success.description"),
+      title: t("form.success.title"),
+      description: t("form.success.description"),
       color: "success",
       icon: "i-ph-check-circle",
     })
@@ -144,11 +130,8 @@ const submit = async () => {
     state.confirmation = ""
     open.value = false
   } catch (error) {
-    // Remove progress toast
-    toast.remove(progressToast.id)
-
     // Set inline error
-    submitError.value = t("forms.error")
+    submitError.value = t("form.error")
 
     console.error("Erase memories error:", error)
   } finally {

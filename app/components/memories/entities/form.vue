@@ -237,7 +237,7 @@ en:
     type:
       label: Type
       placeholder: Select or create entity type
-      empty: No types available for selection
+      empty: No types available yet
       validation:
         required: Type is required
     metadata:

@@ -455,6 +455,12 @@ export const useMemoryStore = defineStore("memory", () => {
       // Add to local store
       observations.value.push(response.observation)
       
+      // Update observation count for the related entity
+      const entity = entities.value.find(e => e.id === response.observation.entityId)
+      if (entity) {
+        entity.observationsCount += 1
+      }
+      
       return response.observation
     } catch (err) {
       const message = getUserFriendlyErrorMessage("Create observation", err)
@@ -525,6 +531,9 @@ export const useMemoryStore = defineStore("memory", () => {
       throw new Error("Observation deletion already in progress")
     }
 
+    // Find the observation before deleting to update counts
+    const observationToDelete = observations.value.find(o => o.id === id)
+
     loading.value.observations.deleting.add(id)
 
     try {
@@ -533,6 +542,14 @@ export const useMemoryStore = defineStore("memory", () => {
           method: "DELETE" as any,
         })
       })
+
+      // Update observation count for the related entity before removing the observation
+      if (observationToDelete) {
+        const entity = entities.value.find(e => e.id === observationToDelete.entityId)
+        if (entity) {
+          entity.observationsCount -= 1
+        }
+      }
 
       // Remove from local store
       observations.value = observations.value.filter((o) => o.id !== id)
@@ -602,6 +619,17 @@ export const useMemoryStore = defineStore("memory", () => {
 
       // Add to local store
       relations.value.push(response.relation)
+      
+      // Update relation counts for affected entities
+      const subjectEntity = entities.value.find(e => e.id === response.relation.subjectId)
+      const objectEntity = entities.value.find(e => e.id === response.relation.objectId)
+      
+      if (subjectEntity) {
+        subjectEntity.relationsCount += 1
+      }
+      if (objectEntity && objectEntity.id !== subjectEntity?.id) {
+        objectEntity.relationsCount += 1
+      }
       
       return response.relation
     } catch (err) {
@@ -673,6 +701,9 @@ export const useMemoryStore = defineStore("memory", () => {
       throw new Error("Relation deletion already in progress")
     }
 
+    // Find the relation before deleting to update counts
+    const relationToDelete = relations.value.find(r => r.id === id)
+    
     loading.value.relations.deleting.add(id)
 
     try {
@@ -681,6 +712,19 @@ export const useMemoryStore = defineStore("memory", () => {
           method: "DELETE" as any,
         })
       })
+
+      // Update relation counts for affected entities before removing the relation
+      if (relationToDelete) {
+        const subjectEntity = entities.value.find(e => e.id === relationToDelete.subjectId)
+        const objectEntity = entities.value.find(e => e.id === relationToDelete.objectId)
+        
+        if (subjectEntity) {
+          subjectEntity.relationsCount -= 1
+        }
+        if (objectEntity && objectEntity.id !== subjectEntity?.id) {
+          objectEntity.relationsCount -= 1
+        }
+      }
 
       // Remove from local store
       relations.value = relations.value.filter((r) => r.id !== id)

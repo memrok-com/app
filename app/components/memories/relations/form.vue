@@ -134,9 +134,9 @@ const toast = useToast()
 // Form validation schema
 const schema = z
   .object({
-    subjectId: z.string().min(1, t("validation.subject.required")),
-    predicate: z.string().min(1, t("validation.predicate.required")),
-    objectId: z.string().min(1, t("validation.object.required")),
+    subjectId: z.string().min(1, t("fields.subject.validation.required")),
+    predicate: z.string().min(1, t("fields.predicate.validation.required")),
+    objectId: z.string().min(1, t("fields.object.validation.required")),
     strength: z.number().min(0).max(1).optional(),
     metadata: z
       .string()
@@ -149,7 +149,7 @@ const schema = z
         } catch {
           return false
         }
-      }, t("validation.metadata.invalidJson")),
+      }, t("fields.metadata.validation.invalidJson")),
   })
   .refine((data) => data.subjectId !== data.objectId, {
     message: t("validation.sameEntity"),
@@ -252,7 +252,7 @@ const submit = async () => {
       try {
         parsedMetadata = JSON.parse(state.metadata)
       } catch (error) {
-        throw new Error(t("validation.metadata.invalidJson"))
+        throw new Error(t("fields.metadata.validation.invalidJson"))
       }
     }
 
@@ -269,8 +269,8 @@ const submit = async () => {
     if (props.mode === "insert") {
       result = await memoryStore.createRelation(relationData)
       toast.add({
-        title: t("forms.success.inserted.title"),
-        description: t("forms.success.inserted.description"),
+        title: t("success.inserted.title"),
+        description: t("success.inserted.description"),
         color: "success",
         icon: "i-ph-check-circle",
       })
@@ -281,8 +281,8 @@ const submit = async () => {
         metadata: relationData.metadata,
       })
       toast.add({
-        title: t("forms.success.updated.title"),
-        description: t("forms.success.updated.description"),
+        title: t("success.updated.title"),
+        description: t("success.updated.description"),
         color: "success",
         icon: "i-ph-check-circle",
       })
@@ -294,7 +294,7 @@ const submit = async () => {
     emit("close")
   } catch (error) {
     console.error("Relation form submission error:", error)
-    submitError.value = t(`forms.error.${props.mode}`)
+    submitError.value = t(`error.${props.mode}`)
   } finally {
     isSubmitting.value = false
   }
