@@ -4,11 +4,10 @@
       <UPageHeader
         :title="t('title')"
         :description="t('description')"
-      >
-      </UPageHeader>
+      />
 
-      <UPageBody>
-        <UPageGrid v-auto-animate>
+      <UPageBody v-auto-animate>
+        <UPageGrid>
           <UPageCard
             icon="i-ph-squares-four-fill"
             :title="t('entities.title')"
@@ -57,7 +56,10 @@
 
         <Memories />
 
-        <UPageCard :ui="{ container: 'p-0 sm:p-0' }">
+        <UPageCard
+          :ui="{ container: 'p-0 sm:p-0' }"
+          v-if="memoryStore.statistics.totalEntities"
+        >
           <UPageAccordion
             :items="[
               {
@@ -78,7 +80,7 @@
                   {{ t("danger.erase") }}
                 </div>
 
-                <MemoriesErase v-if="memoryStore.statistics.totalEntities" />
+                <MemoriesErase />
               </div>
             </template>
           </UPageAccordion>
@@ -114,7 +116,7 @@ en:
   description: What assistants know about you and your life.
   entities:
     title: Entities
-    description: Which things have meaning for you.
+    description: What things have meaning for you.
   observations:
     title: Observations
     description: What is noteworthy about those things.

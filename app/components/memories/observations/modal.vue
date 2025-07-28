@@ -3,15 +3,24 @@
     :title="t(`${mode}.title`)"
     :description="t(`${mode}.description`)"
   >
-    <UButton
-      :block="block"
-      :color="color"
-      :icon="mode == 'insert' ? 'i-ph-plus' : 'i-ph-pencil-simple'"
-      :label="showTitle ? t(`${mode}.title`) : undefined"
-      :size="size"
-      :square="!showTitle"
-      :variant="variant"
-    />
+    <UTooltip
+      :disabled="mode === 'update' || memoryStore.statistics.totalEntities > 0"
+      :text="t('insert.tooltip')"
+    >
+      <UButton
+        :block="block"
+        :color="color"
+        :disabled="
+          mode === 'insert' && memoryStore.statistics.totalEntities < 1
+        "
+        :icon="mode == 'insert' ? 'i-ph-plus' : 'i-ph-pencil-simple'"
+        :label="showTitle ? t(`${mode}.title`) : undefined"
+        :size="size"
+        :square="!showTitle"
+        :variant="variant"
+      />
+    </UTooltip>
+
     <template #body="{ close }">
       <MemoriesObservationsForm
         :mode="mode"
@@ -41,6 +50,7 @@ withDefaults(
 )
 
 const { t } = useI18n({ useScope: "local" })
+const memoryStore = useMemoryStore()
 </script>
 
 <i18n lang="yaml">
@@ -48,6 +58,7 @@ en:
   insert:
     title: Insert Observation
     description: Add a new observation to your memories.
+    tooltip: Insert an entity first
   update:
     title: Update Observation
     description: Modify this observation in your memories.
