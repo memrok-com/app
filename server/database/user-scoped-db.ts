@@ -42,7 +42,6 @@ export class UserScopedDatabase {
     return await withUserContextTransaction(this.db, this.userId, operation)
   }
 
-
   // ==================== ENTITY OPERATIONS ====================
 
   /**
@@ -100,7 +99,10 @@ export class UserScopedDatabase {
       }
       if (filters?.createdByAssistantName) {
         conditions.push(
-          eq(schema.entities.createdByAssistantName, filters.createdByAssistantName)
+          eq(
+            schema.entities.createdByAssistantName,
+            filters.createdByAssistantName
+          )
         )
       }
 
@@ -164,7 +166,10 @@ export class UserScopedDatabase {
       }
       if (filters?.createdByAssistantName) {
         conditions.push(
-          eq(schema.entities.createdByAssistantName, filters.createdByAssistantName)
+          eq(
+            schema.entities.createdByAssistantName,
+            filters.createdByAssistantName
+          )
         )
       }
 
@@ -360,7 +365,10 @@ export class UserScopedDatabase {
       }
       if (filters?.createdByAssistantName) {
         conditions.push(
-          eq(schema.relations.createdByAssistantName, filters.createdByAssistantName)
+          eq(
+            schema.relations.createdByAssistantName,
+            filters.createdByAssistantName
+          )
         )
       }
 
@@ -487,7 +495,10 @@ export class UserScopedDatabase {
       }
       if (filters?.createdByAssistantName) {
         conditions.push(
-          eq(schema.observations.createdByAssistantName, filters.createdByAssistantName)
+          eq(
+            schema.observations.createdByAssistantName,
+            filters.createdByAssistantName
+          )
         )
       }
 
@@ -566,13 +577,11 @@ export class UserScopedDatabase {
         .returning()
       const deletedRelations = await tx.delete(schema.relations).returning()
       const deletedEntities = await tx.delete(schema.entities).returning()
-      const deletedAssistants = await tx.delete(schema.assistants).returning()
 
       return {
         deletedObservations: deletedObservations.length,
         deletedRelations: deletedRelations.length,
         deletedEntities: deletedEntities.length,
-        deletedAssistants: deletedAssistants.length,
       }
     })
   }

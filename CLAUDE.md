@@ -98,14 +98,14 @@ Currently implemented:
 - ✅ **Row Level Security (RLS)** implementation with user data isolation
 - ✅ **RLS-aware API endpoints** - all endpoints use user context, no manual filtering
 - ✅ **Complete Web UI** for memory management with reactive state management
-- ✅ **Pinia State Management** - All data operations flow through type-safe stores
+- ✅ **Unified Memory Store** - Single Pinia store manages all entities, observations, and relations
 - ✅ **Business Rule Validation** - Components self-govern creation permissions via stores
 - ✅ **String-based Assistant Attribution** - Simplified assistant tracking without FK constraints
 
 Not yet implemented:
 
 - **Assistant Auto-Detection** - Automatic client identification in MCP server
-- Vector embeddings and Qdrant integration  
+- Vector embeddings and Qdrant integration
 - Full Docker deployment for app container
 
 ## Key Files to Know
@@ -140,10 +140,7 @@ Not yet implemented:
 
 **State Management (Pinia):**
 
-- `app/stores/entities.ts`: Entity CRUD operations and business rules
-- `app/stores/observations.ts`: Observation CRUD operations and validation
-- `app/stores/relations.ts`: Relation CRUD operations and predicate management
-- `app/stores/memory.ts`: Cross-store coordination and bulk operations
+- `app/stores/memory.ts`: Unified store for all entities, observations, and relations
 - `app/types/`: TypeScript interfaces for API responses and store data
 
 ## UI Conventions
@@ -195,8 +192,9 @@ memrok uses a simplified string-based approach for tracking which AI assistant o
 - **No FK Constraints**: Simplified database operations without foreign key overhead
 
 **Assistant Types Supported:**
+
 - `claude` - Claude Desktop, Claude via API
-- `cursor` - Cursor editor 
+- `cursor` - Cursor editor
 - `vscode` - VS Code with MCP extensions
 - `continue` - Continue.dev extension
 - `zed` - Zed editor
@@ -232,47 +230,54 @@ memrok uses a simplified string-based approach for tracking which AI assistant o
 - Test functionality: `bun run test:mcp`
 - Get client configs: `/api/mcp/config` endpoint (integrated into web UI)
 
-## Pinia State Management Implementation
+## Unified Memory Store Implementation
 
 **Status:** ✅ Complete and production-ready
 
 **Architecture:**
 
-- **Setup Store Pattern**: All stores use Vue 3 Composition API with `defineStore(() => { ... })`
+- **Single Store Pattern**: Uses Vue 3 Composition API with `defineStore(() => { ... })`
 - **TypeScript Integration**: Fully typed with dedicated API response interfaces
-- **Cross-Store Communication**: Stores coordinate automatically for data consistency
+- **Unified State Management**: All entities, observations, and relations in one store
 - **Business Rule Validation**: Components self-govern using store-based validation
 
-**Store Structure:**
+**Store Features:**
 
-- **Entities Store**: CRUD operations, type management, `canCreateEntities` validation
-- **Observations Store**: CRUD operations, entity relationships, `canCreateObservations` validation (≥1 entity)
-- **Relations Store**: CRUD operations, predicate management, `canCreateRelations` validation (≥2 entities)
-- **Memory Store**: Bulk operations coordinator, cross-store state management
+- **Entity Management**: CRUD operations, type management, entity filtering
+- **Observation Management**: CRUD operations, entity relationships, content filtering
+- **Relation Management**: CRUD operations, predicate management, strength filtering
+- **Business Rules**: `canCreateObservations` (≥1 entity), `canCreateRelations` (≥2 entities)
+- **Bulk Operations**: Efficient memory erasure without cross-store coordination
 
 **Usage Pattern:**
 
 ```typescript
-// In components - stores are self-sufficient
-const entitiesStore = useEntitiesStore()
-await entitiesStore.initialize() // Fetches data and types
+// In components - unified store access
+const memoryStore = useMemoryStore()
+await memoryStore.initialize() // Fetches all data (entities, observations, relations)
 
 // Business rules built-in
-const canCreate = computed(() => observationsStore.canCreateObservations)
+const canCreateObservations = computed(() => memoryStore.canCreateObservations)
+const canCreateRelations = computed(() => memoryStore.canCreateRelations)
 
-// Type-safe API calls
-const data = await $fetch<EntitiesApiResponse>('/api/entities')
+// Direct entity access
+const entities = computed(() => memoryStore.entities)
+const observations = computed(() => memoryStore.observations)
+const relations = computed(() => memoryStore.relations)
+
+// Efficient bulk operations
+await memoryStore.eraseAllMemories() // No cross-store coordination needed
 ```
 
 **Key Features:**
 
-- **Single Source of Truth**: All memory data flows through stores
+- **Single Source of Truth**: All memory data in one unified store
 - **Reactive Updates**: UI automatically updates when data changes
 - **Type Safety**: Full TypeScript support with proper API response types
-- **Cross-Store Sync**: Creating entities refreshes dependent dropdowns automatically
-- **Business Rules**: Components check their own stores for creation permissions
+- **Simplified State**: No cross-store coordination or readonly proxy issues
+- **Business Rules**: Built-in validation for creation permissions
 - **Error Handling**: Centralized error management with user feedback
-- **Performance**: Intelligent caching reduces redundant API calls
+- **Performance**: Efficient bulk operations and simplified reactivity
 
 ## GitOps Workflow
 
@@ -309,9 +314,10 @@ When implementing remaining features:
 8. Database migrations use Drizzle Kit (`bun run db:generate` and `bun run db:migrate`)
 9. Database schema tracks creator (user or assistant) using string-based attribution
 
-# important-instruction-reminders
+# Important Instruction Reminders
 
 Do what has been asked; nothing more, nothing less.
+ALWAYS make use of available sub-agents.
 NEVER create files unless they're absolutely necessary for achieving your goal.
 ALWAYS prefer editing an existing file to creating a new one.
 NEVER proactively create documentation files (\*.md) or README files. Only create documentation files if explicitly requested by the User.
