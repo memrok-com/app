@@ -33,8 +33,8 @@
         variant="ghost"
       />
       <MemoriesDeleteSingle
-        type="observation"
         :id="row.original.id"
+        type="observation"
       />
     </template>
   </UTable>

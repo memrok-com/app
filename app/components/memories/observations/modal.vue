@@ -11,7 +11,7 @@
         :block="block"
         :color="color"
         :disabled="!observation && statistics.totalEntities < 1"
-        :icon="observation ? 'i-ph-pencil-simple-fill' : 'i-ph-plus'"
+        :icon="icon || (observation ? 'i-ph-pencil-simple-fill' : 'i-ph-plus')"
         :label="
           showTitle
             ? t(observation ? 'update.title' : 'insert.title')
@@ -26,6 +26,7 @@
     <template #body="{ close }">
       <MemoriesObservationsForm
         :observation="observation"
+        :entity-id="entityId"
         @close="close"
       />
     </template>
@@ -40,7 +41,9 @@ withDefaults(
   defineProps<{
     block?: ButtonProps["block"]
     color?: ButtonProps["color"]
+    icon?: string
     observation?: ObservationData | undefined
+    entityId?: string
     showTitle?: boolean
     size?: ButtonProps["size"]
     variant?: ButtonProps["variant"]
@@ -48,7 +51,9 @@ withDefaults(
   {
     block: true,
     color: "primary",
+    icon: undefined,
     observation: undefined,
+    entityId: undefined,
     showTitle: true,
     size: "md",
     variant: "solid",
@@ -65,7 +70,6 @@ en:
   insert:
     title: Insert Observation
     description: Add a new observation to your memories.
-    tooltip: Insert an entity first
   update:
     title: Update Observation
     description: Modify this observation in your memories.

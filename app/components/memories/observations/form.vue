@@ -91,10 +91,12 @@ import type { ObservationData } from "~/types/observations"
 
 interface Props {
   observation?: ObservationData | undefined
+  entityId?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
   observation: undefined,
+  entityId: undefined,
 })
 
 const emit = defineEmits<{
@@ -126,7 +128,7 @@ const schema = z.object({
 
 // Form state
 const state = reactive({
-  entityId: props.observation?.entityId || "",
+  entityId: props.observation?.entityId || props.entityId || "",
   content: props.observation?.content || "",
   source: props.observation?.source || "",
   metadata: props.observation?.metadata
