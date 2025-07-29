@@ -16,16 +16,16 @@ export const useApi = () => {
     onRequest({ options }) {
       // Forward cookies during SSR for authentication
       if (import.meta.server && headers.cookie) {
-        // Initialize headers as a plain object if needed
+        // Set cookie header based on the type of headers object
         if (!options.headers) {
-          options.headers = {}
-        }
-        
-        // Set cookie header
-        if (options.headers instanceof Headers) {
+          // If no headers, create as plain object
+          options.headers = { cookie: headers.cookie } as any
+        } else if (options.headers instanceof Headers) {
+          // If Headers instance, use set method
           options.headers.set('cookie', headers.cookie)
         } else {
-          (options.headers as Record<string, string>)['cookie'] = headers.cookie
+          // If plain object, add cookie property
+          (options.headers as any).cookie = headers.cookie
         }
       }
     },
