@@ -26,6 +26,14 @@
         }"
       />
     </template>
+    <template #actions-cell="{ row }">
+      <MemoriesObservationsModal
+        color="neutral"
+        :observation="row.original"
+        :show-title="false"
+        variant="ghost"
+      />
+    </template>
   </UTable>
 </template>
 
@@ -72,6 +80,9 @@ const columns = [
         time: "short",
       })
     },
+  },
+  {
+    id: "actions",
   },
 ]
 </script>

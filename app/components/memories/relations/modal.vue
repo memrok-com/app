@@ -1,20 +1,20 @@
 <template>
   <UModal
-    :title="t(`${mode}.title`)"
-    :description="t(`${mode}.description`)"
+    :title="t(relation ? 'update.title' : 'insert.title')"
+    :description="t(relation ? 'update.description' : 'insert.description')"
   >
     <UTooltip
-      :disabled="mode === 'update' || memoryStore.statistics.totalEntities > 1"
-      :text="t('insert.tooltip')"
+      :disabled="showTitle"
+      :text="t(relation ? 'update.title' : 'insert.title')"
     >
       <UButton
         :block="block"
         :color="color"
-        :disabled="
-          mode === 'insert' && memoryStore.statistics.totalEntities < 2
+        :disabled="!relation && statistics.totalEntities < 1"
+        :icon="relation ? 'i-ph-pencil-simple' : 'i-ph-plus'"
+        :label="
+          showTitle ? t(relation ? 'update.title' : 'insert.title') : undefined
         "
-        :icon="mode == 'insert' ? 'i-ph-plus' : 'i-ph-pencil-simple'"
-        :label="showTitle ? t(`${mode}.title`) : undefined"
         :size="size"
         :square="!showTitle"
         :variant="variant"
@@ -23,7 +23,7 @@
 
     <template #body="{ close }">
       <MemoriesRelationsForm
-        :mode="mode"
+        :relation="relation"
         @close="close"
       />
     </template>
@@ -32,12 +32,13 @@
 
 <script setup lang="ts">
 import type { ButtonProps } from "#ui/types"
+import type { RelationData } from "~/types/relations"
 
 withDefaults(
   defineProps<{
     block?: ButtonProps["block"]
     color?: ButtonProps["color"]
-    mode?: "insert" | "update"
+    relation?: RelationData | undefined
     showTitle?: boolean
     size?: ButtonProps["size"]
     variant?: ButtonProps["variant"]
@@ -45,7 +46,7 @@ withDefaults(
   {
     block: true,
     color: "primary",
-    mode: "insert",
+    relation: undefined,
     showTitle: true,
     size: "md",
     variant: "solid",
@@ -54,6 +55,7 @@ withDefaults(
 
 const { t } = useI18n({ useScope: "local" })
 const memoryStore = useMemoryStore()
+const { statistics } = storeToRefs(memoryStore)
 </script>
 
 <i18n lang="yaml">

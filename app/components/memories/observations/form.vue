@@ -72,8 +72,10 @@
         @click="$emit('close')"
       />
       <UButton
-        :icon="mode === 'insert' ? 'i-ph-plus' : 'i-ph-pencil-simple'"
-        :label="t(`buttons.submit.${mode}`)"
+        :icon="observation ? 'i-ph-pencil-simple' : 'i-ph-plus'"
+        :label="
+          t(observation ? 'buttons.submit.update' : 'buttons.submit.insert')
+        "
         :loading="isSubmitting"
         type="submit"
       />
@@ -86,18 +88,15 @@ import { z } from "zod"
 import type { ObservationData } from "~/types/observations"
 
 interface Props {
-  mode?: "insert" | "update"
   observation?: ObservationData | undefined
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  mode: "insert",
   observation: undefined,
 })
 
 const emit = defineEmits<{
   close: []
-  success: [observation: ObservationData]
 }>()
 
 const memoryStore = useMemoryStore()
@@ -191,18 +190,8 @@ const submit = async () => {
       ...(parsedMetadata && { metadata: parsedMetadata }),
     }
 
-    let result: ObservationData
-
-    if (props.mode === "insert") {
-      result = await memoryStore.createObservation(observationData)
-      toast.add({
-        title: t("success.inserted.title"),
-        description: t("success.inserted.description"),
-        color: "success",
-        icon: "i-ph-check-circle",
-      })
-    } else if (props.observation) {
-      result = await memoryStore.updateObservation(props.observation.id, {
+    if (props.observation) {
+      await memoryStore.updateObservation(props.observation.id, {
         content: observationData.content,
         source: observationData.source,
         metadata: observationData.metadata,
@@ -214,34 +203,23 @@ const submit = async () => {
         icon: "i-ph-check-circle",
       })
     } else {
-      throw new Error("Observation ID required for update mode")
+      await memoryStore.createObservation(observationData)
+      toast.add({
+        title: t("success.inserted.title"),
+        description: t("success.inserted.description"),
+        color: "success",
+        icon: "i-ph-check-circle",
+      })
     }
 
-    emit("success", result)
     emit("close")
   } catch (error) {
     console.error("Observation form submission error:", error)
-    submitError.value = t(`error.${props.mode}`)
+    submitError.value = t(props.observation ? "error.update" : "error.insert")
   } finally {
     isSubmitting.value = false
   }
 }
-
-// Watch for observation prop changes in update mode
-watch(
-  () => props.observation,
-  (newObservation) => {
-    if (newObservation && props.mode === "update") {
-      state.entityId = newObservation.entityId
-      state.content = newObservation.content
-      state.source = newObservation.source || ""
-      state.metadata = newObservation.metadata
-        ? JSON.stringify(newObservation.metadata, null, 2)
-        : ""
-    }
-  },
-  { immediate: true }
-)
 </script>
 
 <i18n lang="yaml">

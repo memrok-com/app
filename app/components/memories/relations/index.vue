@@ -26,6 +26,14 @@
         }"
       />
     </template>
+    <template #actions-cell="{ row }">
+      <MemoriesRelationsModal
+        color="neutral"
+        :relation="row.original"
+        :show-title="false"
+        variant="ghost"
+      />
+    </template>
   </UTable>
 </template>
 
@@ -91,6 +99,9 @@ const columns = [
         time: "short",
       })
     },
+  },
+  {
+    id: "actions",
   },
 ]
 </script>

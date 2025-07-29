@@ -125,8 +125,8 @@
         @click="$emit('close')"
       />
       <UButton
-        :icon="mode === 'insert' ? 'i-ph-plus' : 'i-ph-pencil-simple'"
-        :label="t(`buttons.submit.${mode}`)"
+        :icon="relation ? 'i-ph-pencil-simple' : 'i-ph-plus'"
+        :label="t(relation ? 'buttons.submit.update' : 'buttons.submit.insert')"
         :loading="isSubmitting"
         type="submit"
       />
@@ -139,23 +139,20 @@ import { z } from "zod"
 import type { RelationData } from "~/types/relations"
 
 interface Props {
-  mode?: "insert" | "update"
   relation?: RelationData | undefined
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  mode: "insert",
   relation: undefined,
 })
 
 const emit = defineEmits<{
   close: []
-  success: [relation: RelationData]
 }>()
 
-const memoryStore = useMemoryStore()
 const { t } = useI18n({ useScope: "local" })
 const toast = useToast()
+const memoryStore = useMemoryStore()
 
 // Form validation schema
 const schema = z
@@ -290,18 +287,8 @@ const submit = async () => {
       ...(parsedMetadata && { metadata: parsedMetadata }),
     }
 
-    let result: RelationData
-
-    if (props.mode === "insert") {
-      result = await memoryStore.createRelation(relationData)
-      toast.add({
-        title: t("success.inserted.title"),
-        description: t("success.inserted.description"),
-        color: "success",
-        icon: "i-ph-check-circle",
-      })
-    } else if (props.relation) {
-      result = await memoryStore.updateRelation(props.relation.id, {
+    if (props.relation) {
+      await memoryStore.updateRelation(props.relation.id, {
         predicate: relationData.predicate,
         strength: relationData.strength,
         metadata: relationData.metadata,
@@ -313,35 +300,23 @@ const submit = async () => {
         icon: "i-ph-check-circle",
       })
     } else {
-      throw new Error("Relation ID required for update mode")
+      await memoryStore.createRelation(relationData)
+      toast.add({
+        title: t("success.inserted.title"),
+        description: t("success.inserted.description"),
+        color: "success",
+        icon: "i-ph-check-circle",
+      })
     }
 
-    emit("success", result)
     emit("close")
   } catch (error) {
     console.error("Relation form submission error:", error)
-    submitError.value = t(`error.${props.mode}`)
+    submitError.value = t(props.relation ? "error.update" : "error.insert")
   } finally {
     isSubmitting.value = false
   }
 }
-
-// Watch for relation prop changes in update mode
-watch(
-  () => props.relation,
-  (newRelation) => {
-    if (newRelation && props.mode === "update") {
-      state.subjectId = newRelation.subjectId
-      state.predicate = newRelation.predicate
-      state.objectId = newRelation.objectId
-      state.strength = newRelation.strength ?? 0.5
-      state.metadata = newRelation.metadata
-        ? JSON.stringify(newRelation.metadata, null, 2)
-        : ""
-    }
-  },
-  { immediate: true }
-)
 </script>
 
 <i18n lang="yaml">
@@ -372,7 +347,7 @@ en:
         required: Object entity is required
     strength:
       label: Relationship Strength
-      description: How strong is this relationship? (0 = weak, 1 = strong)
+      description: How strong is this relation? (0 = weak, 1 = strong)
     metadata:
       label: Metadata (JSON)
       description: Optional JSON metadata for this relation
@@ -391,10 +366,10 @@ en:
   success:
     inserted:
       title: Relation Inserted
-      description: The relationship has been successfully inserted.
+      description: The relation has been successfully inserted.
     updated:
       title: Relation Updated
-      description: The relationship has been successfully updated.
+      description: The relation has been successfully updated.
   error:
     insert: Failed to create relation. Please check your input and try again.
     update: Failed to update relation. Please check your input and try again.

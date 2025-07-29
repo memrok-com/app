@@ -64,8 +64,8 @@
         @click="$emit('close')"
       />
       <UButton
-        :icon="mode === 'insert' ? 'i-ph-plus' : 'i-ph-pencil-simple'"
-        :label="t(`buttons.submit.${mode}`)"
+        :icon="!entity ? 'i-ph-plus' : 'i-ph-pencil-simple'"
+        :label="t(entity ? 'buttons.submit.update' : 'buttons.submit.insert')"
         :loading="isSubmitting"
         type="submit"
       />
@@ -79,17 +79,14 @@ import type { EntityWithCounts } from "~/types/entities"
 
 interface Props {
   entity?: EntityWithCounts | undefined
-  mode?: "insert" | "update"
 }
 
 const props = withDefaults(defineProps<Props>(), {
   entity: undefined,
-  mode: "insert",
 })
 
 const emit = defineEmits<{
   close: []
-  success: [entity: EntityWithCounts]
 }>()
 
 const memoryStore = useMemoryStore()
@@ -175,18 +172,7 @@ const submit = async () => {
 
     let result: EntityWithCounts
 
-    if (props.mode === "insert") {
-      result = await memoryStore.createEntity(entityData)
-      toast.add({
-        title: t("success.inserted.title"),
-        description: t("success.inserted.description", {
-          name: result.name,
-          type: result.type,
-        }),
-        color: "success",
-        icon: "i-ph-check-circle",
-      })
-    } else if (props.entity) {
+    if (props.entity) {
       result = await memoryStore.updateEntity(props.entity.id, entityData)
       toast.add({
         title: t("success.updated.title"),
@@ -198,33 +184,26 @@ const submit = async () => {
         icon: "i-ph-check-circle",
       })
     } else {
-      throw new Error("Entity ID required for update mode")
+      result = await memoryStore.createEntity(entityData)
+      toast.add({
+        title: t("success.inserted.title"),
+        description: t("success.inserted.description", {
+          name: result.name,
+          type: result.type,
+        }),
+        color: "success",
+        icon: "i-ph-check-circle",
+      })
     }
 
-    emit("success", result)
     emit("close")
   } catch (error) {
     console.error("Entity form submission error:", error)
-    submitError.value = t(`error.${props.mode}`)
+    submitError.value = t(props.entity ? "error.update" : "error.insert")
   } finally {
     isSubmitting.value = false
   }
 }
-
-// Watch for entity prop changes in update mode
-watch(
-  () => props.entity,
-  (newEntity) => {
-    if (newEntity && props.mode === "update") {
-      state.name = newEntity.name
-      state.type = newEntity.type
-      state.metadata = newEntity.metadata
-        ? JSON.stringify(newEntity.metadata, null, 2)
-        : ""
-    }
-  },
-  { immediate: true }
-)
 </script>
 
 <i18n lang="yaml">

@@ -18,7 +18,7 @@
 
             <template #footer>
               <code class="font-light text-7xl">
-                {{ n(memoryStore.statistics.totalEntities) }}
+                {{ n(statistics.totalEntities) }}
               </code>
             </template>
           </UPageCard>
@@ -33,7 +33,7 @@
 
             <template #footer>
               <code class="font-light text-7xl">
-                {{ n(memoryStore.statistics.totalObservations) }}
+                {{ n(statistics.totalObservations) }}
               </code>
             </template>
           </UPageCard>
@@ -48,7 +48,7 @@
 
             <template #footer>
               <code class="font-light text-7xl">
-                {{ n(memoryStore.statistics.totalRelations) }}
+                {{ n(statistics.totalRelations) }}
               </code>
             </template>
           </UPageCard>
@@ -57,7 +57,7 @@
         <Memories />
 
         <UPageCard
-          v-if="memoryStore.statistics.totalEntities"
+          v-if="statistics.totalEntities"
           :ui="{ container: 'p-0 sm:p-0' }"
         >
           <UPageAccordion
@@ -80,7 +80,7 @@
                   {{ t("danger.erase") }}
                 </div>
 
-                <MemoriesErase />
+                <MemoriesDeleteAll />
               </div>
             </template>
           </UPageAccordion>
@@ -93,6 +93,7 @@
 <script setup lang="ts">
 const { t, n } = useI18n({ useScope: "local" })
 const memoryStore = useMemoryStore()
+const { statistics } = storeToRefs(memoryStore)
 
 try {
   await memoryStore.initialize()

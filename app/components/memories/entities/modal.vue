@@ -1,20 +1,27 @@
 <template>
   <UModal
-    :title="t(`${mode}.title`)"
-    :description="t(`${mode}.description`)"
+    :title="t(entity ? 'update.title' : 'insert.title')"
+    :description="t(entity ? 'update.description' : 'insert.description')"
   >
-    <UButton
-      :block="block"
-      :color="color"
-      :icon="mode == 'insert' ? 'i-ph-plus' : 'i-ph-pencil-simple'"
-      :label="showTitle ? t(`${mode}.title`) : undefined"
-      :size="size"
-      :square="!showTitle"
-      :variant="variant"
-    />
+    <UTooltip
+      :disabled="showTitle"
+      :text="t(entity ? 'update.title' : 'insert.title')"
+    >
+      <UButton
+        :block="block"
+        :color="color"
+        :disabled="!entity && statistics.totalEntities < 1"
+        :icon="entity ? 'i-ph-pencil-simple' : 'i-ph-plus'"
+        :label="
+          showTitle ? t(entity ? 'update.title' : 'insert.title') : undefined
+        "
+        :size="size"
+        :square="!showTitle"
+        :variant="variant"
+    /></UTooltip>
     <template #body="{ close }">
       <MemoriesEntitiesForm
-        :mode="mode"
+        :entity="entity"
         @close="close"
       />
     </template>
@@ -23,12 +30,13 @@
 
 <script setup lang="ts">
 import type { ButtonProps } from "#ui/types"
+import type { EntityWithCounts } from "~/types/entities"
 
 withDefaults(
   defineProps<{
     block?: ButtonProps["block"]
     color?: ButtonProps["color"]
-    mode?: "insert" | "update"
+    entity?: EntityWithCounts | undefined
     showTitle?: boolean
     size?: ButtonProps["size"]
     variant?: ButtonProps["variant"]
@@ -36,7 +44,7 @@ withDefaults(
   {
     block: true,
     color: "primary",
-    mode: "insert",
+    entity: undefined,
     showTitle: true,
     size: "md",
     variant: "solid",
@@ -44,6 +52,8 @@ withDefaults(
 )
 
 const { t } = useI18n({ useScope: "local" })
+const memoryStore = useMemoryStore()
+const { statistics } = storeToRefs(memoryStore)
 </script>
 
 <i18n lang="yaml">

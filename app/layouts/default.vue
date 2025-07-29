@@ -80,14 +80,14 @@ const items = computed<NavigationMenuItem[][]>(() => [
     {
       icon: "i-ph-head-circuit-fill",
       label: t("assistants"),
-      to: `/${locale.value}/my/assistants/`,
-      active: route.path.includes("/my/assistants"),
+      to: `/${locale.value}/assistants/`,
+      active: route.path.includes("/assistants"),
     },
     {
       icon: "i-ph-memory-fill",
       label: t("memories"),
-      to: `/${locale.value}/my/memories/`,
-      active: route.path.includes("/my/memories"),
+      to: `/${locale.value}/memories/`,
+      active: route.path.includes("/memories"),
     },
     {
       icon: "i-ph-github-logo-fill",

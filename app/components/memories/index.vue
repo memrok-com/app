@@ -27,6 +27,14 @@
         }"
       />
     </template>
+    <template #actions-cell="{ row }">
+      <MemoriesEntitiesModal
+        color="neutral"
+        :entity="row.original"
+        :show-title="false"
+        variant="ghost"
+      />
+    </template>
     <template #expanded="{ row }">
       <div class="space-y-3">
         <UCard :ui="{ body: 'p-0 sm:p-0' }">
@@ -127,6 +135,9 @@ const columns: TableColumn<EntityWithCounts>[] = [
       })
     },
   },
+  {
+    id: "actions",
+  },
 ]
 </script>
 
@@ -141,7 +152,4 @@ en:
     created: Created
     creator: Creator
     you: You
-  tabs:
-    observations: "Observations ({count})"
-    relations: "Relations ({count})"
 </i18n>

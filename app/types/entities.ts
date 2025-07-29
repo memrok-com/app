@@ -16,7 +16,7 @@ export type EntityWithCounts = {
   userId: string
   type: string
   name: string
-  metadata: unknown
+  metadata: Record<string, unknown> | null
   createdByUser: string | null
   createdByAssistantName: string | null
   createdByAssistantType: string | null

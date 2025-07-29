@@ -1,20 +1,22 @@
 <template>
   <UModal
-    :title="t(`${mode}.title`)"
-    :description="t(`${mode}.description`)"
+    :title="t(observation ? 'update.title' : 'insert.title')"
+    :description="t(observation ? 'update.description' : 'insert.description')"
   >
     <UTooltip
-      :disabled="mode === 'update' || memoryStore.statistics.totalEntities > 0"
-      :text="t('insert.tooltip')"
+      :disabled="showTitle"
+      :text="t(observation ? 'update.title' : 'insert.title')"
     >
       <UButton
         :block="block"
         :color="color"
-        :disabled="
-          mode === 'insert' && memoryStore.statistics.totalEntities < 1
+        :disabled="!observation && statistics.totalEntities < 1"
+        :icon="observation ? 'i-ph-pencil-simple' : 'i-ph-plus'"
+        :label="
+          showTitle
+            ? t(observation ? 'update.title' : 'insert.title')
+            : undefined
         "
-        :icon="mode == 'insert' ? 'i-ph-plus' : 'i-ph-pencil-simple'"
-        :label="showTitle ? t(`${mode}.title`) : undefined"
         :size="size"
         :square="!showTitle"
         :variant="variant"
@@ -23,7 +25,7 @@
 
     <template #body="{ close }">
       <MemoriesObservationsForm
-        :mode="mode"
+        :observation="observation"
         @close="close"
       />
     </template>
@@ -32,12 +34,13 @@
 
 <script setup lang="ts">
 import type { ButtonProps } from "#ui/types"
+import type { ObservationData } from "~/types/observations"
 
 withDefaults(
   defineProps<{
     block?: ButtonProps["block"]
     color?: ButtonProps["color"]
-    mode?: "insert" | "update"
+    observation?: ObservationData | undefined
     showTitle?: boolean
     size?: ButtonProps["size"]
     variant?: ButtonProps["variant"]
@@ -45,7 +48,7 @@ withDefaults(
   {
     block: true,
     color: "primary",
-    mode: "insert",
+    observation: undefined,
     showTitle: true,
     size: "md",
     variant: "solid",
@@ -54,6 +57,7 @@ withDefaults(
 
 const { t } = useI18n({ useScope: "local" })
 const memoryStore = useMemoryStore()
+const { statistics } = storeToRefs(memoryStore)
 </script>
 
 <i18n lang="yaml">
