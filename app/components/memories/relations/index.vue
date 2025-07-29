@@ -2,6 +2,7 @@
   <UTable
     :columns="columns"
     :data="relations"
+    sticky
     :ui="{
       separator: 'bg-(--ui-border-muted) dark:bg-(--ui-bg-muted)',
     }"
@@ -49,21 +50,27 @@ const relations = computed(() =>
 
 const columns = [
   {
+    cell: ({ row }: CellContext<RelationData, unknown>) => {
+      return row.original.subjectEntity?.name || t("columns.unknown")
+    },
+    accessorKey: "subjectEntity",
+    header: t("columns.subject"),
+  },
+  {
     accessorKey: "predicate",
     header: t("columns.type"),
   },
   {
-    accessorKey: "subjectEntity",
-    header: t("columns.source"),
-    cell: ({ row }: CellContext<RelationData, unknown>) => {
-      return row.original.subjectEntity?.name || t("columns.unknown")
-    },
-  },
-  {
-    accessorKey: "objectEntity",
-    header: t("columns.target"),
     cell: ({ row }: CellContext<RelationData, unknown>) => {
       return row.original.objectEntity?.name || t("columns.unknown")
+    },
+    accessorKey: "objectEntity",
+    header: t("columns.object"),
+    meta: {
+      class: {
+        th: "w-full",
+        td: "w-full",
+      },
     },
   },
   {
@@ -87,9 +94,9 @@ const columns = [
 en:
   empty: No relations available
   columns:
-    type: Relationship Type
-    source: Source Entity
-    target: Target Entity
+    subject: Subject
+    type: Relation
+    object: Object
     creator: Creator
     created: Created
     you: You

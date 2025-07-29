@@ -39,17 +39,36 @@ export default createAuthenticatedHandler(async (event, userDb, _user) => {
     updateData.updatedByAssistant = body.updatedByAssistant
 
   // Update entity using user-scoped database
-  const updatedEntity = await userDb.updateEntity(id, updateData as any)
+  const baseEntity = await userDb.updateEntity(id, updateData as any)
 
-  if (!updatedEntity) {
+  if (!baseEntity) {
     throw createError({
       statusCode: 404,
       statusMessage: "Entity not found or update failed",
     })
   }
 
+  // Get current counts for the updated entity
+  const [relationsResult, observationsResult] = await Promise.all([
+    userDb.getRelationsCount(id),
+    userDb.getObservationsCount(id)
+  ])
+
+  // Return entity with current counts
+  const entity = {
+    ...baseEntity,
+    relationsCount: relationsResult || 0,
+    observationsCount: observationsResult || 0,
+    createdByAssistantInfo: baseEntity.createdByAssistantName
+      ? {
+          name: baseEntity.createdByAssistantName,
+          type: baseEntity.createdByAssistantType,
+        }
+      : null,
+  }
+
   return {
-    entity: updatedEntity,
+    entity,
     message: "Entity updated successfully",
   }
 })

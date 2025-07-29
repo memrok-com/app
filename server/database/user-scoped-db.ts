@@ -589,6 +589,37 @@ export class UserScopedDatabase {
   // ==================== STATIC FACTORY METHODS ====================
 
   /**
+   * Get relations count for a specific entity
+   */
+  async getRelationsCount(entityId: string): Promise<number> {
+    return await this.execute(async (db) => {
+      const result = await db
+        .select({ count: count() })
+        .from(schema.relations)
+        .where(
+          or(
+            eq(schema.relations.subjectId, entityId),
+            eq(schema.relations.objectId, entityId)
+          )
+        )
+      return result[0]?.count || 0
+    })
+  }
+
+  /**
+   * Get observations count for a specific entity
+   */
+  async getObservationsCount(entityId: string): Promise<number> {
+    return await this.execute(async (db) => {
+      const result = await db
+        .select({ count: count() })
+        .from(schema.observations)
+        .where(eq(schema.observations.entityId, entityId))
+      return result[0]?.count || 0
+    })
+  }
+
+  /**
    * Create a user-scoped database instance
    */
   static create(db: DatabaseWithSchema, userId: string): UserScopedDatabase {

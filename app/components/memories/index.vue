@@ -27,73 +27,62 @@
         }"
       />
     </template>
-    <template #expand-cell="{ row }">
-      <UButton
-        :icon="row.getIsExpanded() ? 'i-ph-caret-down' : 'i-ph-caret-right'"
-        variant="ghost"
-        size="xs"
-        :disabled="
-          !row.original.observationsCount && !row.original.relationsCount
-        "
-        @click="row.toggleExpanded()"
-      />
-    </template>
     <template #expanded="{ row }">
-      <div class="p-4 bg-gray-50 dark:bg-gray-800/50">
-        <UTabs
-          :items="getTabItems(row.original)"
-          class="w-full"
-        >
-          <template #observations>
-            <MemoriesObservations :entity-id="row.original.id" />
-          </template>
-          <template #relations>
-            <MemoriesRelations :entity-id="row.original.id" />
-          </template>
-        </UTabs>
+      <div class="space-y-3">
+        <UCard :ui="{ body: 'p-0 sm:p-0' }">
+          <MemoriesObservations :entity-id="row.original.id" />
+        </UCard>
+        <UCard :ui="{ body: 'p-0 sm:p-0' }">
+          <MemoriesRelations :entity-id="row.original.id" />
+        </UCard>
       </div>
     </template>
   </UTable>
 </template>
 
 <script setup lang="ts">
+import { h, resolveComponent } from "vue"
 import { format } from "@formkit/tempo"
+import type { TableColumn } from "@nuxt/ui"
 import type { CellContext } from "@tanstack/vue-table"
 import type { EntityWithCounts } from "~/types/entities"
 
+const UButton = resolveComponent("UButton")
 const { t, n } = useI18n({ useScope: "local" })
 const memoryStore = useMemoryStore()
+
 
 // Use storeToRefs to ensure proper reactivity with Pinia store
 const { entities } = storeToRefs(memoryStore)
 
-// Generate tab items based on entity counts
-const getTabItems = (entity: EntityWithCounts) => {
-  const items = []
-
-  if (entity.observationsCount > 0) {
-    items.push({
-      slot: "observations",
-      label: t("tabs.observations", { count: entity.observationsCount }),
-      icon: "i-ph-note",
-    })
-  }
-
-  if (entity.relationsCount > 0) {
-    items.push({
-      slot: "relations",
-      label: t("tabs.relations", { count: entity.relationsCount }),
-      icon: "i-ph-graph",
-    })
-  }
-
-  return items
-}
-
-const columns = [
+const columns: TableColumn<EntityWithCounts>[] = [
+  {
+    id: "expand",
+    cell: ({ row }) =>
+      h(UButton, {
+        color: "neutral",
+        variant: "ghost",
+        icon: "i-ph-caret-down",
+        square: true,
+        "aria-label": "Expand",
+        ui: {
+          leadingIcon: [
+            "transition-transform",
+            row.getIsExpanded() ? "duration-200 rotate-180" : "",
+          ],
+        },
+        onClick: () => row.toggleExpanded(),
+      }),
+  },
   {
     accessorKey: "name",
     header: t("columns.name"),
+    meta: {
+      class: {
+        th: "w-full",
+        td: "w-full",
+      },
+    },
   },
   {
     accessorKey: "type",
@@ -138,9 +127,6 @@ const columns = [
         time: "short",
       })
     },
-  },
-  {
-    id: "expand",
   },
 ]
 </script>

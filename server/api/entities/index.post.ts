@@ -13,7 +13,7 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
 
   // Create entity using user-scoped database
   // The userDb automatically sets the correct user_id and RLS context
-  const entity = await userDb.createEntity({
+  const baseEntity = await userDb.createEntity({
     name: body.name,
     type: body.type,
     metadata: body.metadata || undefined,
@@ -21,6 +21,19 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
     createdByAssistantName: body.createdByAssistantName || undefined,
     createdByAssistantType: body.createdByAssistantType || undefined,
   })
+
+  // Return entity with counts (new entities have 0 relations and observations)
+  const entity = {
+    ...baseEntity,
+    relationsCount: 0,
+    observationsCount: 0,
+    createdByAssistantInfo: baseEntity.createdByAssistantName
+      ? {
+          name: baseEntity.createdByAssistantName,
+          type: baseEntity.createdByAssistantType,
+        }
+      : null,
+  }
 
   return {
     entity,

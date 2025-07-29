@@ -640,6 +640,7 @@ export const useMemoryStore = defineStore("memory", () => {
         objectEntity.relationsCount += 1
       }
       
+      
       return response.relation
     } catch (err) {
       const message = getUserFriendlyErrorMessage("Create relation", err)
@@ -795,6 +796,7 @@ export const useMemoryStore = defineStore("memory", () => {
   const getRelationsByPredicate = (predicate: string): RelationData[] => {
     return relationsByPredicate.value.get(predicate) || []
   }
+
 
   return {
     // State - use computed to provide reactive but immutable access
