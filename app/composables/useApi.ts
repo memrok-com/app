@@ -7,7 +7,9 @@
  * - Error handling
  */
 
-export const useApi = () => {
+import type { $Fetch } from 'ofetch'
+
+export const useApi = (): $Fetch => {
   // Get request headers for SSR cookie forwarding
   const headers = useRequestHeaders(['cookie'])
   
@@ -38,5 +40,5 @@ export const useApi = () => {
     }
   })
   
-  return api
+  return api as $Fetch
 }

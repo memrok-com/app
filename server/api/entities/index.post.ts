@@ -22,6 +22,13 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
     createdByAssistantType: body.createdByAssistantType || undefined,
   })
 
+  if (!baseEntity) {
+    throw createError({
+      statusCode: 500,
+      statusMessage: "Failed to create entity",
+    })
+  }
+
   // Return entity with counts (new entities have 0 relations and observations)
   const entity = {
     ...baseEntity,

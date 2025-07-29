@@ -34,14 +34,18 @@ export default createAuthenticatedHandler(async (event, userDb, _user) => {
   }
 
   // Build update object with only provided fields
-  const updateData: Partial<{ content: string; source: string | null; metadata: Record<string, unknown> | null }> = {}
+  const updateData: {
+    content?: string
+    source?: string
+    metadata?: Record<string, unknown>
+  } = {}
 
   if (body.content !== undefined) updateData.content = body.content
   if (body.source !== undefined) updateData.source = body.source
   if (body.metadata !== undefined) updateData.metadata = body.metadata
 
   // Update observation using RLS-aware database
-  const updatedObservation = await userDb.updateObservation(id, updateData as any)
+  const updatedObservation = await userDb.updateObservation(id, updateData)
 
   if (!updatedObservation) {
     throw createError({

@@ -22,24 +22,27 @@ export default createAuthenticatedHandler(async (event, userDb, _user) => {
   }
 
   // Build update data with only provided fields
-  const updateData: Partial<{ 
-    name: string
-    type: string
-    metadata: Record<string, unknown> | null
-    updatedByUser?: string | null
-    updatedByAssistant?: string | null
-  }> = {}
+  const updateData: {
+    type?: string
+    name?: string
+    metadata?: Record<string, unknown>
+    updatedByUser?: string
+    updatedByAssistantName?: string
+    updatedByAssistantType?: string
+  } = {}
 
   if (body.name !== undefined) updateData.name = body.name
   if (body.type !== undefined) updateData.type = body.type
   if (body.metadata !== undefined) updateData.metadata = body.metadata
   if (body.updatedByUser !== undefined)
     updateData.updatedByUser = body.updatedByUser
-  if (body.updatedByAssistant !== undefined)
-    updateData.updatedByAssistant = body.updatedByAssistant
+  if (body.updatedByAssistantName !== undefined)
+    updateData.updatedByAssistantName = body.updatedByAssistantName
+  if (body.updatedByAssistantType !== undefined)
+    updateData.updatedByAssistantType = body.updatedByAssistantType
 
   // Update entity using user-scoped database
-  const baseEntity = await userDb.updateEntity(id, updateData as any)
+  const baseEntity = await userDb.updateEntity(id, updateData)
 
   if (!baseEntity) {
     throw createError({

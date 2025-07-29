@@ -376,7 +376,7 @@ export const useMemoryStore = defineStore("memory", () => {
     try {
       const api = useApi()
       await withRetry(async () => {
-        return await $fetch(`/api/entities/${id}`, {
+        return await api(`/api/entities/${id}`, {
           method: "DELETE",
         })
       })
@@ -545,7 +545,7 @@ export const useMemoryStore = defineStore("memory", () => {
     try {
       const api = useApi()
       await withRetry(async () => {
-        return await $fetch(`/api/observations/${id}`, {
+        return await api(`/api/observations/${id}`, {
           method: "DELETE",
         })
       })
@@ -720,7 +720,7 @@ export const useMemoryStore = defineStore("memory", () => {
     try {
       const api = useApi()
       await withRetry(async () => {
-        return await $fetch(`/api/relations/${id}`, {
+        return await api(`/api/relations/${id}`, {
           method: "DELETE",
         })
       })
@@ -761,7 +761,7 @@ export const useMemoryStore = defineStore("memory", () => {
     try {
       const api = useApi()
       await withRetry(async () => {
-        return await $fetch("/api/memories", {
+        return await api("/api/memories", {
           method: "DELETE",
         })
       })

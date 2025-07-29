@@ -53,22 +53,18 @@ export default createAuthenticatedHandler(async (event, userDb, _user) => {
   }
 
   // Build update object with only provided fields
-  const updateData: Partial<{ 
-    subjectId: string
-    predicate: string
-    objectId: string
-    strength: number | null
-    metadata: Record<string, unknown> | null 
-  }> = {}
+  const updateData: {
+    predicate?: string
+    strength?: number
+    metadata?: Record<string, unknown>
+  } = {}
 
-  if (body.subjectId !== undefined) updateData.subjectId = body.subjectId
-  if (body.objectId !== undefined) updateData.objectId = body.objectId
   if (body.predicate !== undefined) updateData.predicate = body.predicate
   if (body.strength !== undefined) updateData.strength = body.strength
   if (body.metadata !== undefined) updateData.metadata = body.metadata
 
   // Update relation using RLS-aware database
-  const updatedRelation = await userDb.updateRelation(id, updateData as any)
+  const updatedRelation = await userDb.updateRelation(id, updateData)
 
   if (!updatedRelation) {
     throw createError({
