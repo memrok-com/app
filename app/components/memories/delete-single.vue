@@ -54,6 +54,8 @@ const item = computed(() => {
       return memoryStore.observations.find((o) => o.id === props.id)
     case "relation":
       return memoryStore.relations.find((r) => r.id === props.id)
+    default:
+      return undefined
   }
 })
 
@@ -66,6 +68,8 @@ const isDeleting = computed(() => {
       return memoryStore.loading.observations.deleting.has(props.id)
     case "relation":
       return memoryStore.loading.relations.deleting.has(props.id)
+    default:
+      return false
   }
 })
 
@@ -98,21 +102,32 @@ onMounted(() => {
 })
 
 // Get display name for toast messages
-const getDisplayName = () => {
+const getDisplayName = (): string => {
   if (!item.value) return t("unknown")
 
   switch (props.type) {
-    case "entity":
-      return (item.value as any).name
-    case "observation":
-      const content = (item.value as any).content
+    case "entity": {
+      const entity = item.value as { name: string }
+      return entity.name
+    }
+    case "observation": {
+      const observation = item.value as { content: string }
+      const content = observation.content
       return content.length > 50 ? content.substring(0, 50) + "..." : content
-    case "relation":
-      const relation = item.value as any
+    }
+    case "relation": {
+      const relation = item.value as {
+        predicate: string
+        subjectEntity?: { name: string }
+        objectEntity?: { name: string }
+      }
       const subject = relation.subjectEntity?.name || t("unknown")
       const predicate = relation.predicate
       const object = relation.objectEntity?.name || t("unknown")
       return `${subject} ${predicate} ${object}`
+    }
+    default:
+      return t("unknown")
   }
 }
 
@@ -201,7 +216,7 @@ const handleDelete = async () => {
 }
 
 // Recreate item based on type
-const recreateItem = async (originalItem: any) => {
+const recreateItem = async (originalItem: Record<string, unknown>) => {
   switch (props.type) {
     case "entity":
       await memoryStore.createEntity({
