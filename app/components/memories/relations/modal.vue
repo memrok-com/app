@@ -11,7 +11,7 @@
         :block="block"
         :color="color"
         :disabled="!relation && statistics.totalEntities < 1"
-        :icon="relation ? 'i-ph-pencil-simple' : 'i-ph-plus'"
+        :icon="relation ? 'i-ph-pencil-simple-fill' : 'i-ph-plus'"
         :label="
           showTitle ? t(relation ? 'update.title' : 'insert.title') : undefined
         "

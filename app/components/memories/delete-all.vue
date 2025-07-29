@@ -19,7 +19,7 @@
       >
         <UAlert
           color="warning"
-          icon="i-ph-warning"
+          icon="i-ph-warning-fill"
           :title="t('warning.title')"
           :description="t('warning.description')"
           variant="subtle"
@@ -41,7 +41,7 @@
         <UAlert
           v-if="submitError"
           color="error"
-          icon="i-ph-warning"
+          icon="i-ph-warning-fill"
           :title="submitError"
           variant="subtle"
         />
@@ -123,7 +123,7 @@ const submit = async () => {
       title: t("form.success.title"),
       description: t("form.success.description"),
       color: "success",
-      icon: "i-ph-check-circle",
+      icon: "i-ph-check-circle-fill",
     })
 
     // Reset form and close modal

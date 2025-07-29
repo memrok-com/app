@@ -10,15 +10,15 @@
       <UButton
         :block="block"
         :color="color"
-        :disabled="!entity && statistics.totalEntities < 1"
-        :icon="entity ? 'i-ph-pencil-simple' : 'i-ph-plus'"
+        :icon="entity ? 'i-ph-pencil-simple-fill' : 'i-ph-plus'"
         :label="
           showTitle ? t(entity ? 'update.title' : 'insert.title') : undefined
         "
         :size="size"
         :square="!showTitle"
         :variant="variant"
-    /></UTooltip>
+      />
+    </UTooltip>
     <template #body="{ close }">
       <MemoriesEntitiesForm
         :entity="entity"
@@ -52,8 +52,6 @@ withDefaults(
 )
 
 const { t } = useI18n({ useScope: "local" })
-const memoryStore = useMemoryStore()
-const { statistics } = storeToRefs(memoryStore)
 </script>
 
 <i18n lang="yaml">

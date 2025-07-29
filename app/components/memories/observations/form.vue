@@ -59,20 +59,22 @@
     <UAlert
       v-if="submitError"
       color="error"
-      icon="i-ph-warning"
+      icon="i-ph-warning-fill"
       :title="submitError"
       variant="subtle"
     />
 
     <div class="flex justify-end gap-x-4 gap-y-3 pt-4">
       <UButton
+        class="!rounded-md"
         color="neutral"
         :label="t('buttons.cancel')"
         variant="ghost"
         @click="$emit('close')"
       />
       <UButton
-        :icon="observation ? 'i-ph-pencil-simple' : 'i-ph-plus'"
+        class="!rounded-md"
+        :icon="observation ? 'i-ph-pencil-simple-fill' : 'i-ph-plus'"
         :label="
           t(observation ? 'buttons.submit.update' : 'buttons.submit.insert')
         "
@@ -200,7 +202,7 @@ const submit = async () => {
         title: t("success.updated.title"),
         description: t("success.updated.description"),
         color: "success",
-        icon: "i-ph-check-circle",
+        icon: "i-ph-check-circle-fill",
       })
     } else {
       await memoryStore.createObservation(observationData)
@@ -208,7 +210,7 @@ const submit = async () => {
         title: t("success.inserted.title"),
         description: t("success.inserted.description"),
         color: "success",
-        icon: "i-ph-check-circle",
+        icon: "i-ph-check-circle-fill",
       })
     }
 

@@ -51,20 +51,22 @@
     <UAlert
       v-if="submitError"
       color="error"
-      icon="i-ph-warning"
+      icon="i-ph-warning-fill"
       :title="submitError"
       variant="subtle"
     />
 
     <div class="flex justify-end gap-x-4 gap-y-3 pt-4">
       <UButton
+        class="!rounded-md"
         color="neutral"
         :label="t('buttons.cancel')"
         variant="ghost"
         @click="$emit('close')"
       />
       <UButton
-        :icon="!entity ? 'i-ph-plus' : 'i-ph-pencil-simple'"
+        class="!rounded-md"
+        :icon="!entity ? 'i-ph-plus' : 'i-ph-pencil-simple-fill'"
         :label="t(entity ? 'buttons.submit.update' : 'buttons.submit.insert')"
         :loading="isSubmitting"
         type="submit"
@@ -181,7 +183,7 @@ const submit = async () => {
           type: result.type,
         }),
         color: "success",
-        icon: "i-ph-check-circle",
+        icon: "i-ph-check-circle-fill",
       })
     } else {
       result = await memoryStore.createEntity(entityData)
@@ -192,7 +194,7 @@ const submit = async () => {
           type: result.type,
         }),
         color: "success",
-        icon: "i-ph-check-circle",
+        icon: "i-ph-check-circle-fill",
       })
     }
 

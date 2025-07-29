@@ -11,7 +11,7 @@
         :block="block"
         :color="color"
         :disabled="!observation && statistics.totalEntities < 1"
-        :icon="observation ? 'i-ph-pencil-simple' : 'i-ph-plus'"
+        :icon="observation ? 'i-ph-pencil-simple-fill' : 'i-ph-plus'"
         :label="
           showTitle
             ? t(observation ? 'update.title' : 'insert.title')
