@@ -93,17 +93,12 @@
 <script setup lang="ts">
 const { t, n } = useI18n({ useScope: "local" })
 const memoryStore = useMemoryStore()
-const isClient = ref(false)
 
-onMounted(async () => {
-  isClient.value = true
-  // Initialize the memory store to load all memories
-  try {
-    await memoryStore.initialize()
-  } catch (error) {
-    console.error("Failed to initialize memory store:", error)
-  }
-})
+try {
+  await memoryStore.initialize()
+} catch (error) {
+  console.error("Failed to initialize memory store:", error)
+}
 
 useHead({
   title: t("title"),

@@ -2,6 +2,7 @@
   <UApp :locale="locales[locale]">
     <NuxtRouteAnnouncer />
     <UMain>
+      <NuxtLoadingIndicator color="indigo-500 dark:indigo-400" />
       <NuxtLayout />
     </UMain>
   </UApp>

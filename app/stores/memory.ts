@@ -214,8 +214,9 @@ export const useMemoryStore = defineStore("memory", () => {
     loading.value.entities.fetching = true
 
     try {
+      const api = useApi()
       const response = await withRetry(async () => {
-        return await $fetch<EntitiesApiResponse>("/api/entities", {
+        return await api<EntitiesApiResponse>("/api/entities", {
           query: { limit: 1000 },
         })
       })
@@ -280,8 +281,9 @@ export const useMemoryStore = defineStore("memory", () => {
     entities.value.push(optimisticEntity)
 
     try {
+      const api = useApi()
       const response = await withRetry(async () => {
-        return await $fetch<{ entity: EntityWithCounts }>("/api/entities", {
+        return await api<{ entity: EntityWithCounts }>("/api/entities", {
           method: "POST",
           body: validatedData,
         })
@@ -338,8 +340,9 @@ export const useMemoryStore = defineStore("memory", () => {
     loading.value.entities.updating.add(id)
 
     try {
+      const api = useApi()
       const response = await withRetry(async () => {
-        return await $fetch<{ entity: EntityWithCounts }>(
+        return await api<{ entity: EntityWithCounts }>(
           `/api/entities/${id}`,
           {
             method: "PUT",
@@ -372,8 +375,9 @@ export const useMemoryStore = defineStore("memory", () => {
     loading.value.entities.deleting.add(id)
 
     try {
+      const api = useApi()
       await withRetry(async () => {
-        return await $fetch(`/api/entities/${id}`, {
+        return await api(`/api/entities/${id}`, {
           method: "DELETE" as any,
         })
       })
@@ -403,8 +407,9 @@ export const useMemoryStore = defineStore("memory", () => {
     loading.value.observations.fetching = true
 
     try {
+      const api = useApi()
       const response = await withRetry(async () => {
-        return await $fetch<ObservationsApiResponse>("/api/observations", {
+        return await api<ObservationsApiResponse>("/api/observations", {
           query: { limit: 1000 },
         })
       })
@@ -442,8 +447,9 @@ export const useMemoryStore = defineStore("memory", () => {
     loading.value.observations.creating = true
 
     try {
+      const api = useApi()
       const response = await withRetry(async () => {
-        return await $fetch<{ observation: ObservationData }>(
+        return await api<{ observation: ObservationData }>(
           "/api/observations",
           {
             method: "POST",
@@ -500,8 +506,9 @@ export const useMemoryStore = defineStore("memory", () => {
     loading.value.observations.updating.add(id)
 
     try {
+      const api = useApi()
       const response = await withRetry(async () => {
-        return await $fetch<{ observation: ObservationData }>(
+        return await api<{ observation: ObservationData }>(
           `/api/observations/${id}`,
           {
             method: "PUT",
@@ -537,8 +544,9 @@ export const useMemoryStore = defineStore("memory", () => {
     loading.value.observations.deleting.add(id)
 
     try {
+      const api = useApi()
       await withRetry(async () => {
-        return await $fetch(`/api/observations/${id}`, {
+        return await api(`/api/observations/${id}`, {
           method: "DELETE" as any,
         })
       })
@@ -570,8 +578,9 @@ export const useMemoryStore = defineStore("memory", () => {
     loading.value.relations.fetching = true
 
     try {
+      const api = useApi()
       const response = await withRetry(async () => {
-        return await $fetch<RelationsApiResponse>("/api/relations", {
+        return await api<RelationsApiResponse>("/api/relations", {
           query: { limit: 1000 },
         })
       })
@@ -610,8 +619,9 @@ export const useMemoryStore = defineStore("memory", () => {
     loading.value.relations.creating = true
 
     try {
+      const api = useApi()
       const response = await withRetry(async () => {
-        return await $fetch<{ relation: RelationData }>("/api/relations", {
+        return await api<{ relation: RelationData }>("/api/relations", {
           method: "POST",
           body: validatedData,
         })
@@ -670,8 +680,9 @@ export const useMemoryStore = defineStore("memory", () => {
     loading.value.relations.updating.add(id)
 
     try {
+      const api = useApi()
       const response = await withRetry(async () => {
-        return await $fetch<{ relation: RelationData }>(
+        return await api<{ relation: RelationData }>(
           `/api/relations/${id}`,
           {
             method: "PUT",
@@ -707,8 +718,9 @@ export const useMemoryStore = defineStore("memory", () => {
     loading.value.relations.deleting.add(id)
 
     try {
+      const api = useApi()
       await withRetry(async () => {
-        return await $fetch(`/api/relations/${id}`, {
+        return await api(`/api/relations/${id}`, {
           method: "DELETE" as any,
         })
       })
@@ -747,8 +759,9 @@ export const useMemoryStore = defineStore("memory", () => {
     loading.value.bulkOperations = true
 
     try {
+      const api = useApi()
       await withRetry(async () => {
-        return await $fetch("/api/memories", {
+        return await api("/api/memories", {
           method: "DELETE" as any,
         })
       })
