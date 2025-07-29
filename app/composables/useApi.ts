@@ -16,8 +16,13 @@ export const useApi = () => {
     onRequest({ options }) {
       // Forward cookies during SSR for authentication
       if (import.meta.server && headers.cookie) {
+        // Ensure headers is a proper Headers object or plain object
+        const headersObj = options.headers instanceof Headers 
+          ? Object.fromEntries(options.headers.entries())
+          : options.headers || {}
+        
         options.headers = {
-          ...options.headers,
+          ...headersObj,
           cookie: headers.cookie
         }
       }
