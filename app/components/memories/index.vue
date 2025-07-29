@@ -51,7 +51,6 @@ const UButton = resolveComponent("UButton")
 const { t, n } = useI18n({ useScope: "local" })
 const memoryStore = useMemoryStore()
 
-
 // Use storeToRefs to ensure proper reactivity with Pinia store
 const { entities } = storeToRefs(memoryStore)
 
@@ -80,7 +79,7 @@ const columns: TableColumn<EntityWithCounts>[] = [
     meta: {
       class: {
         th: "w-full",
-        td: "w-full",
+        td: "font-bold w-full",
       },
     },
   },

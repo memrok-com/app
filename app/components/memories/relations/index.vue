@@ -55,6 +55,11 @@ const columns = [
     },
     accessorKey: "subjectEntity",
     header: t("columns.subject"),
+    meta: {
+      class: {
+        td: "font-bold",
+      },
+    },
   },
   {
     accessorKey: "predicate",

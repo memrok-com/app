@@ -27,6 +27,6 @@ useHead({
 
 <i18n lang="yaml">
 en:
-  title: Secure Memories for All Your Assistants
+  title: Secure Memories for AI Assistants
   description: Your data. On your infrastructure. Under your control.
 </i18n>

@@ -27,6 +27,31 @@
       name="predicate"
       required
     >
+      <template #help>
+        <i18n-t keypath="fields.predicate.help">
+          <template #work>
+            <UBadge
+              color="neutral"
+              :label="t('fields.predicate.helpExamples.work')"
+              variant="soft"
+            />
+          </template>
+          <template #love>
+            <UBadge
+              color="neutral"
+              :label="t('fields.predicate.helpExamples.love')"
+              variant="soft"
+            />
+          </template>
+          <template #travel>
+            <UBadge
+              color="neutral"
+              :label="t('fields.predicate.helpExamples.travel')"
+              variant="soft"
+            />
+          </template>
+        </i18n-t>
+      </template>
       <UInputMenu
         v-model="state.predicate"
         create-item
@@ -323,19 +348,24 @@ watch(
 en:
   fields:
     subject:
-      label: Subject Entity
+      label: Subject
       placeholder: Select the subject of this relation
       empty: No entities available. Create entities first.
       validation:
         required: Subject entity is required
     predicate:
-      label: Relationship Type
-      placeholder: Select or create relationship type
+      label: Relation
+      placeholder: Select or create relation type
+      help: "Examples: {work} {love} {travel}"
+      helpExamples:
+        work: works at
+        love: is in love with
+        travel: has traveled to
       empty: No predicates available. Type to create.
       validation:
-        required: Relationship type is required
+        required: Relation is required
     object:
-      label: Object Entity
+      label: Object
       placeholder: Select the object of this relation
       empty: No entities available. Create entities first.
       validation:

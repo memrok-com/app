@@ -2,6 +2,7 @@
   <UTable
     :columns="columns"
     :data="observations"
+    sticky
     :ui="{
       separator: 'bg-(--ui-border-muted) dark:bg-(--ui-bg-muted)',
     }"
@@ -51,6 +52,12 @@ const columns = [
   {
     accessorKey: "content",
     header: t("columns.content"),
+    meta: {
+      class: {
+        th: "w-full",
+        td: "font-bold w-full",
+      },
+    },
   },
   {
     accessorKey: "creator",
@@ -73,7 +80,7 @@ const columns = [
 en:
   empty: No observations available
   columns:
-    content: Content
+    content: Observation
     creator: Creator
     created: Created
     you: You
