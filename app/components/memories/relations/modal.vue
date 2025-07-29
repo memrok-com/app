@@ -44,8 +44,11 @@ withDefaults(
   }>(),
   {
     block: true,
+    color: "primary",
     mode: "insert",
     showTitle: true,
+    size: "md",
+    variant: "solid",
   }
 )
 

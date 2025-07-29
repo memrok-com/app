@@ -2,7 +2,7 @@ import { sql } from "drizzle-orm"
 import { createAuthenticatedHandler } from "../../utils/auth-middleware"
 import { schema } from "../../utils/db"
 
-export default createAuthenticatedHandler(async (event, userDb, user) => {
+export default createAuthenticatedHandler(async (event, userDb, _user) => {
   // Get distinct predicates with count and average strength using RLS-aware database
   const predicates = await userDb.execute(async (db) => {
     return await db

@@ -1,5 +1,5 @@
 import { defineStore } from "pinia"
-import { ref, computed, readonly } from "vue"
+import { ref, computed } from "vue"
 import type { EntityWithCounts, EntitiesApiResponse } from "../types/entities"
 import type {
   ObservationData,
@@ -18,7 +18,6 @@ import {
 import {
   getUserFriendlyErrorMessage,
   withRetry,
-  isRetryableError,
 } from "../utils/security"
 
 // Enhanced loading states interface
@@ -49,7 +48,7 @@ interface LoadingStates {
 interface CreateEntityInput {
   type: string
   name: string
-  metadata?: any
+  metadata?: Record<string, unknown>
   createdByAssistantName?: string
   createdByAssistantType?: string
 }
@@ -58,7 +57,7 @@ interface CreateObservationInput {
   entityId: string
   content: string
   source?: string
-  metadata?: any
+  metadata?: Record<string, unknown>
   createdByAssistantName?: string
   createdByAssistantType?: string
 }
@@ -68,7 +67,7 @@ interface CreateRelationInput {
   predicate: string
   objectId: string
   strength?: number
-  metadata?: any
+  metadata?: Record<string, unknown>
   createdByAssistantName?: string
   createdByAssistantType?: string
 }
@@ -186,7 +185,7 @@ export const useMemoryStore = defineStore("memory", () => {
   }
 
   // Enhanced initialization
-  const initialize = async (force = false): Promise<void> => {
+  const initialize = async (_force = false): Promise<void> => {
     if (loading.value.initializing) return
 
     loading.value.initializing = true
@@ -316,7 +315,7 @@ export const useMemoryStore = defineStore("memory", () => {
     updates: {
       name?: string
       type?: string
-      metadata?: any
+      metadata?: Record<string, unknown>
     }
   ): Promise<EntityWithCounts> => {
     if (loading.value.entities.updating.has(id)) {
@@ -324,7 +323,7 @@ export const useMemoryStore = defineStore("memory", () => {
     }
 
     // Input validation and sanitization
-    const validatedUpdates: any = {}
+    const validatedUpdates: Partial<{ name: string; type: string; metadata: Record<string, unknown> | null }> = {}
     if (updates.name !== undefined) {
       validatedUpdates.name = validateEntityName(updates.name)
     }
@@ -333,7 +332,7 @@ export const useMemoryStore = defineStore("memory", () => {
     }
     if (updates.metadata !== undefined) {
       validatedUpdates.metadata = updates.metadata
-        ? sanitizeMetadata(updates.metadata)
+        ? sanitizeMetadata(updates.metadata) as Record<string, unknown>
         : null
     }
 
@@ -377,8 +376,8 @@ export const useMemoryStore = defineStore("memory", () => {
     try {
       const api = useApi()
       await withRetry(async () => {
-        return await api(`/api/entities/${id}`, {
-          method: "DELETE" as any,
+        return await $fetch(`/api/entities/${id}`, {
+          method: "DELETE",
         })
       })
 
@@ -482,7 +481,7 @@ export const useMemoryStore = defineStore("memory", () => {
     updates: {
       content?: string
       source?: string
-      metadata?: any
+      metadata?: Record<string, unknown>
     }
   ): Promise<ObservationData> => {
     if (loading.value.observations.updating.has(id)) {
@@ -490,7 +489,7 @@ export const useMemoryStore = defineStore("memory", () => {
     }
 
     // Input validation and sanitization
-    const validatedUpdates: any = {}
+    const validatedUpdates: Partial<{ content: string; source: string | null; metadata: Record<string, unknown> | null }> = {}
     if (updates.content !== undefined) {
       validatedUpdates.content = validateObservationContent(updates.content)
     }
@@ -499,7 +498,7 @@ export const useMemoryStore = defineStore("memory", () => {
     }
     if (updates.metadata !== undefined) {
       validatedUpdates.metadata = updates.metadata
-        ? sanitizeMetadata(updates.metadata)
+        ? sanitizeMetadata(updates.metadata) as Record<string, unknown>
         : null
     }
 
@@ -546,8 +545,8 @@ export const useMemoryStore = defineStore("memory", () => {
     try {
       const api = useApi()
       await withRetry(async () => {
-        return await api(`/api/observations/${id}`, {
-          method: "DELETE" as any,
+        return await $fetch(`/api/observations/${id}`, {
+          method: "DELETE",
         })
       })
 
@@ -656,7 +655,7 @@ export const useMemoryStore = defineStore("memory", () => {
     updates: {
       predicate?: string
       strength?: number
-      metadata?: any
+      metadata?: Record<string, unknown>
     }
   ): Promise<RelationData> => {
     if (loading.value.relations.updating.has(id)) {
@@ -664,7 +663,7 @@ export const useMemoryStore = defineStore("memory", () => {
     }
 
     // Input validation and sanitization
-    const validatedUpdates: any = {}
+    const validatedUpdates: Partial<{ predicate: string; strength: number | null; metadata: Record<string, unknown> | null }> = {}
     if (updates.predicate !== undefined) {
       validatedUpdates.predicate = validatePredicate(updates.predicate)
     }
@@ -673,7 +672,7 @@ export const useMemoryStore = defineStore("memory", () => {
     }
     if (updates.metadata !== undefined) {
       validatedUpdates.metadata = updates.metadata
-        ? sanitizeMetadata(updates.metadata)
+        ? sanitizeMetadata(updates.metadata) as Record<string, unknown>
         : null
     }
 
@@ -720,8 +719,8 @@ export const useMemoryStore = defineStore("memory", () => {
     try {
       const api = useApi()
       await withRetry(async () => {
-        return await api(`/api/relations/${id}`, {
-          method: "DELETE" as any,
+        return await $fetch(`/api/relations/${id}`, {
+          method: "DELETE",
         })
       })
 
@@ -761,8 +760,8 @@ export const useMemoryStore = defineStore("memory", () => {
     try {
       const api = useApi()
       await withRetry(async () => {
-        return await api("/api/memories", {
-          method: "DELETE" as any,
+        return await $fetch("/api/memories", {
+          method: "DELETE",
         })
       })
 

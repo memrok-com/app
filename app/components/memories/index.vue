@@ -9,7 +9,7 @@
     }"
   >
     <template #empty>
-      <Empty
+      <EmptyState
         class="justify-center"
         :message="t('empty')"
       />
@@ -32,7 +32,9 @@
         :icon="row.getIsExpanded() ? 'i-ph-caret-down' : 'i-ph-caret-right'"
         variant="ghost"
         size="xs"
-        :disabled="!row.original.observationsCount && !row.original.relationsCount"
+        :disabled="
+          !row.original.observationsCount && !row.original.relationsCount
+        "
         @click="row.toggleExpanded()"
       />
     </template>
@@ -56,8 +58,8 @@
 
 <script setup lang="ts">
 import { format } from "@formkit/tempo"
-import type { CellContext } from '@tanstack/vue-table'
-import type { EntityWithCounts } from '~/types/entities'
+import type { CellContext } from "@tanstack/vue-table"
+import type { EntityWithCounts } from "~/types/entities"
 
 const { t, n } = useI18n({ useScope: "local" })
 const memoryStore = useMemoryStore()
@@ -68,23 +70,23 @@ const { entities } = storeToRefs(memoryStore)
 // Generate tab items based on entity counts
 const getTabItems = (entity: EntityWithCounts) => {
   const items = []
-  
+
   if (entity.observationsCount > 0) {
     items.push({
-      slot: 'observations',
-      label: t('tabs.observations', { count: entity.observationsCount }),
-      icon: 'i-ph-note'
+      slot: "observations",
+      label: t("tabs.observations", { count: entity.observationsCount }),
+      icon: "i-ph-note",
     })
   }
-  
+
   if (entity.relationsCount > 0) {
     items.push({
-      slot: 'relations', 
-      label: t('tabs.relations', { count: entity.relationsCount }),
-      icon: 'i-ph-graph'
+      slot: "relations",
+      label: t("tabs.relations", { count: entity.relationsCount }),
+      icon: "i-ph-graph",
     })
   }
-  
+
   return items
 }
 

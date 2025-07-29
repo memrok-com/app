@@ -7,7 +7,7 @@
     }"
   >
     <template #empty>
-      <Empty
+      <EmptyState
         class="justify-center"
         :message="t('empty')"
       />
@@ -30,8 +30,8 @@
 
 <script setup lang="ts">
 import { format } from "@formkit/tempo"
-import type { CellContext } from '@tanstack/vue-table'
-import type { ObservationData } from '~/types/observations'
+import type { CellContext } from "@tanstack/vue-table"
+import type { ObservationData } from "~/types/observations"
 
 interface Props {
   entityId: string
@@ -43,7 +43,7 @@ const { t } = useI18n({ useScope: "local" })
 const memoryStore = useMemoryStore()
 
 // Get observations for the specific entity
-const observations = computed(() => 
+const observations = computed(() =>
   memoryStore.getObservationsForEntity(props.entityId)
 )
 

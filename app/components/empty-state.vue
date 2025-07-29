@@ -9,13 +9,11 @@
 </template>
 
 <script setup lang="ts">
-const { t } = useI18n({ useScope: "local" })
-
-interface Props {
+defineProps<{
   message?: string
-}
+}>()
 
-const props = defineProps<Props>()
+const { t } = useI18n({ useScope: "local" })
 </script>
 
 <i18n lang="yaml">

@@ -7,7 +7,7 @@
     }"
   >
     <template #empty>
-      <Empty
+      <EmptyState
         class="justify-center"
         :message="t('empty')"
       />
@@ -30,8 +30,8 @@
 
 <script setup lang="ts">
 import { format } from "@formkit/tempo"
-import type { CellContext } from '@tanstack/vue-table'
-import type { RelationData } from '~/types/relations'
+import type { CellContext } from "@tanstack/vue-table"
+import type { RelationData } from "~/types/relations"
 
 interface Props {
   entityId: string
@@ -43,7 +43,7 @@ const { t } = useI18n({ useScope: "local" })
 const memoryStore = useMemoryStore()
 
 // Get relations for the specific entity
-const relations = computed(() => 
+const relations = computed(() =>
   memoryStore.getRelationsForEntity(props.entityId)
 )
 
@@ -56,14 +56,14 @@ const columns = [
     accessorKey: "subjectEntity",
     header: t("columns.source"),
     cell: ({ row }: CellContext<RelationData, unknown>) => {
-      return row.original.subjectEntity?.name || t('columns.unknown')
+      return row.original.subjectEntity?.name || t("columns.unknown")
     },
   },
   {
     accessorKey: "objectEntity",
     header: t("columns.target"),
     cell: ({ row }: CellContext<RelationData, unknown>) => {
-      return row.original.objectEntity?.name || t('columns.unknown')
+      return row.original.objectEntity?.name || t("columns.unknown")
     },
   },
   {

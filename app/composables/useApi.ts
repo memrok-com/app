@@ -18,14 +18,14 @@ export const useApi = () => {
       if (import.meta.server && headers.cookie) {
         // Set cookie header based on the type of headers object
         if (!options.headers) {
-          // If no headers, create as plain object
-          options.headers = { cookie: headers.cookie } as any
+          // If no headers, create as Headers instance
+          options.headers = new Headers({ cookie: headers.cookie })
         } else if (options.headers instanceof Headers) {
           // If Headers instance, use set method
           options.headers.set('cookie', headers.cookie)
         } else {
           // If plain object, add cookie property
-          (options.headers as any).cookie = headers.cookie
+          (options.headers as Record<string, string>).cookie = headers.cookie
         }
       }
     },

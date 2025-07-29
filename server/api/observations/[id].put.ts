@@ -1,6 +1,6 @@
 import { createAuthenticatedHandler } from "../../utils/auth-middleware"
 
-export default createAuthenticatedHandler(async (event, userDb, user) => {
+export default createAuthenticatedHandler(async (event, userDb, _user) => {
   const id = getRouterParam(event, "id")
   const body = await readBody(event)
 
@@ -34,14 +34,14 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
   }
 
   // Build update object with only provided fields
-  const updateData: any = {}
+  const updateData: Partial<{ content: string; source: string | null; metadata: Record<string, unknown> | null }> = {}
 
   if (body.content !== undefined) updateData.content = body.content
   if (body.source !== undefined) updateData.source = body.source
   if (body.metadata !== undefined) updateData.metadata = body.metadata
 
   // Update observation using RLS-aware database
-  const updatedObservation = await userDb.updateObservation(id, updateData)
+  const updatedObservation = await userDb.updateObservation(id, updateData as any)
 
   if (!updatedObservation) {
     throw createError({

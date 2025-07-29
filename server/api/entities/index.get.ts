@@ -1,7 +1,7 @@
 import { createAuthenticatedHandler } from "../../utils/auth-middleware"
 import type { EntitiesApiResponse } from "../../../app/types/entities"
 
-export default createAuthenticatedHandler(async (event, userDb, user) => {
+export default createAuthenticatedHandler(async (event, userDb, _user) => {
   const query = getQuery(event)
   const {
     limit = 50,
@@ -14,7 +14,15 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
   } = query
 
   // Build filters for the user-scoped database
-  const filters: any = {
+  const filters: {
+    limit: number
+    offset: number
+    type?: string
+    search?: string
+    createdByAssistantName?: string
+    sortBy: string
+    sortOrder: string
+  } = {
     limit: parseInt(limit as string),
     offset: parseInt(offset as string),
     sortBy: sortBy as string,
@@ -60,7 +68,11 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
   }
 
   const response: EntitiesApiResponse = {
-    entities: finalEntities,
+    entities: finalEntities.map(entity => ({
+      ...entity,
+      createdAt: entity.createdAt.toISOString(),
+      updatedAt: entity.updatedAt.toISOString(),
+    })),
     pagination: {
       limit: filters.limit,
       offset: filters.offset,

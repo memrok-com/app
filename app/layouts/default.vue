@@ -1,60 +1,63 @@
 <template>
-  <UHeader>
-    <template #left>
-      <ULink :to="`/${locale}/`">
-        <Logo class="max-h-6" />
-      </ULink>
-      <UBadge
-        size="sm"
-        variant="soft"
-        >{{ version }}</UBadge
-      >
-    </template>
-    <UNavigationMenu
-      :items="items"
-      highlight
-    />
-    <template #right>
-      <UDropdownMenu
-        :content="{ align: 'end' }"
-        :items="userMenuItems"
-      >
-        <UAvatar
-          :alt="
-            typeof user?.userInfo?.name === 'string'
-              ? user.userInfo.name
-              : undefined
-          "
-          class="cursor-pointer"
-        />
-        <template #loggedInAs>
-          <UUser
-            :avatar="{
-              alt:
-                typeof user?.userInfo?.name === 'string'
-                  ? user.userInfo.name
-                  : undefined,
-            }"
-            :name="
+  <UMain>
+    <NuxtLoadingIndicator color="indigo-500 dark:indigo-400" />
+    <UHeader>
+      <template #left>
+        <ULink :to="`/${locale}/`">
+          <MemrokLogo class="max-h-6" />
+        </ULink>
+        <UBadge
+          size="sm"
+          variant="soft"
+          >{{ version }}</UBadge
+        >
+      </template>
+      <UNavigationMenu
+        :items="items"
+        highlight
+      />
+      <template #right>
+        <UDropdownMenu
+          :content="{ align: 'end' }"
+          :items="userMenuItems"
+        >
+          <UAvatar
+            :alt="
               typeof user?.userInfo?.name === 'string'
                 ? user.userInfo.name
                 : undefined
             "
-            :description="
-              typeof user?.userInfo?.email === 'string'
-                ? user.userInfo.email
-                : undefined
-            "
+            class="cursor-pointer"
           />
-        </template>
-      </UDropdownMenu>
-    </template>
-  </UHeader>
-  <NuxtPage />
+          <template #loggedInAs>
+            <UUser
+              :avatar="{
+                alt:
+                  typeof user?.userInfo?.name === 'string'
+                    ? user.userInfo.name
+                    : undefined,
+              }"
+              :name="
+                typeof user?.userInfo?.name === 'string'
+                  ? user.userInfo.name
+                  : undefined
+              "
+              :description="
+                typeof user?.userInfo?.email === 'string'
+                  ? user.userInfo.email
+                  : undefined
+              "
+            />
+          </template>
+        </UDropdownMenu>
+      </template>
+    </UHeader>
+    <NuxtPage />
+  </UMain>
 </template>
 
 <script setup lang="ts">
-import type { NavigationMenuItem, DropdownMenuItem  } from "#ui/types"
+import type { NavigationMenuItem, DropdownMenuItem } from "#ui/types"
 
 const { locale, t } = useI18n({ useScope: "local" })
 const config = useRuntimeConfig()

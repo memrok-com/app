@@ -11,7 +11,7 @@ export interface RelationData {
   predicate: string
   objectId: string
   strength?: number | null
-  metadata?: any
+  metadata?: Record<string, unknown> | null
   createdByUser?: string | null
   createdByAssistantName?: string | null
   createdByAssistantType?: string | null

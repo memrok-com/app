@@ -50,27 +50,32 @@ memrok is a self-hosted, privacy-first memory service for AI assistants. It impl
 ## Development Commands
 
 ### Core Commands
+
 - `bun run dev` - Start development server with SSL certificates
 - `bun run build` - Build for production
 - `bun run preview` - Preview production build
 
 ### Code Quality
+
 - `bun run lint` - Run ESLint on all files
 - `bun run lint:fix` - Fix ESLint issues automatically
 - `bun run typecheck` - Run TypeScript type checking
 - `bun run check` - Run both lint and typecheck
 
 ### Database
+
 - `bun run db:generate` - Generate database migrations
 - `bun run db:migrate` - Apply database migrations
 - `bun run db:studio` - Open Drizzle Studio
 
 ### Infrastructure
+
 - `bun run setup` - Complete development environment setup
 - `bun run infra:start` - Start Docker infrastructure
 - `bun run infra:stop` - Stop Docker infrastructure
 
 ### Testing
+
 - `bun run test:mcp` - Test MCP server functionality
 
 See [CONTRIBUTING.md](/CONTRIBUTING.md) for detailed setup instructions.
@@ -180,6 +185,7 @@ Not yet implemented:
 ## Key Implementation Status
 
 **✅ Complete Systems:**
+
 - **RLS (Row Level Security)**: Multi-tenant data isolation via PostgreSQL policies (`rls-context.ts`, `auth-middleware.ts`)
 - **Assistant Attribution**: String-based tracking without FK constraints (supports claude, cursor, vscode, etc.)
 - **MCP Server**: 5 memory tools with stdio/HTTP transports (`server/api/mcp/`)
@@ -198,15 +204,15 @@ This project uses specialized advisory agents to provide expert guidance while y
 
 ### Agent Consultation Matrix
 
-| Task Type | Primary Agent | Secondary Agent | When to Consult |
-|-----------|---------------|-----------------|-----------------|
-| **API Endpoints** | api-architect | security-auditor | Before implementing any new endpoints, modifying existing routes, or adding server-side functionality |
-| **Vue Components** | frontend-architect | test-architect | Before creating components, modifying Pinia stores, or changing UI patterns |
-| **Database Changes** | database-architect | security-auditor | Before schema changes, adding tables/columns, or writing complex queries |
-| **Security Features** | security-auditor | api-architect | Before implementing authentication, data access, or privacy-sensitive features |
-| **MCP Tools** | mcp-specialist | security-auditor | Before adding MCP tools, modifying server configs, or changing AI assistant integrations |
-| **Infrastructure** | deployment-architect | security-auditor | Before Docker changes, adding containers, or modifying deployment configs |
-| **Testing Strategy** | test-architect | All relevant agents | Before implementing features, when adding test coverage, or setting up testing infrastructure |
+| Task Type             | Primary Agent        | Secondary Agent     | When to Consult                                                                                       |
+| --------------------- | -------------------- | ------------------- | ----------------------------------------------------------------------------------------------------- |
+| **API Endpoints**     | api-architect        | security-auditor    | Before implementing any new endpoints, modifying existing routes, or adding server-side functionality |
+| **Vue Components**    | frontend-architect   | test-architect      | Before creating components, modifying Pinia stores, or changing UI patterns                           |
+| **Database Changes**  | database-architect   | security-auditor    | Before schema changes, adding tables/columns, or writing complex queries                              |
+| **Security Features** | security-auditor     | api-architect       | Before implementing authentication, data access, or privacy-sensitive features                        |
+| **MCP Tools**         | mcp-specialist       | security-auditor    | Before adding MCP tools, modifying server configs, or changing AI assistant integrations              |
+| **Infrastructure**    | deployment-architect | security-auditor    | Before Docker changes, adding containers, or modifying deployment configs                             |
+| **Testing Strategy**  | test-architect       | All relevant agents | Before implementing features, when adding test coverage, or setting up testing infrastructure         |
 
 ### Mandatory Consultation Triggers
 
@@ -214,7 +220,7 @@ This project uses specialized advisory agents to provide expert guidance while y
 
 1. **New Feature Implementation** → Consult relevant agent(s) based on feature type
 2. **Security-Sensitive Work** → security-auditor + domain-specific agent
-3. **Infrastructure Changes** → deployment-architect + security-auditor  
+3. **Infrastructure Changes** → deployment-architect + security-auditor
 4. **Database Modifications** → database-architect + security-auditor
 5. **API Development** → api-architect + security-auditor
 6. **UI/UX Development** → frontend-architect + test-architect
@@ -235,6 +241,7 @@ This project uses specialized advisory agents to provide expert guidance while y
 ## Development Workflow
 
 **Mandatory Process:**
+
 1. **Assess** → Use Agent Consultation Matrix to identify required agents
 2. **Consult** → Use Task tool with primary + secondary agents before coding
 3. **Implement** → Follow agent recommendations and memrok patterns
@@ -263,6 +270,7 @@ Do what has been asked; nothing more, nothing less.
 NEVER create files unless they're absolutely necessary for achieving your goal.
 ALWAYS prefer editing an existing file to creating a new one.
 NEVER proactively create documentation files (\*.md) or README files. Only create documentation files if explicitly requested by the User.
+ALWAYS ensure quality of new code with `bun run lint` and `bun run typecheck`.
 
 ## Agent Usage Checklist
 

@@ -17,7 +17,7 @@
         searchable
       >
         <template #empty>
-          <Empty :message="t('fields.subject.empty')" />
+          <EmptyState :message="t('fields.subject.empty')" />
         </template>
       </UInputMenu>
     </UFormField>
@@ -36,7 +36,7 @@
         @create="onCreatePredicate"
       >
         <template #empty>
-          <Empty :message="t('fields.predicate.empty')" />
+          <EmptyState :message="t('fields.predicate.empty')" />
         </template>
       </UInputMenu>
     </UFormField>
@@ -53,7 +53,7 @@
         searchable
       >
         <template #empty>
-          <Empty :message="t('fields.object.empty')" />
+          <EmptyState :message="t('fields.object.empty')" />
         </template>
       </UInputMenu>
     </UFormField>
@@ -115,11 +115,12 @@ import type { RelationData } from "~/types/relations"
 
 interface Props {
   mode?: "insert" | "update"
-  relation?: RelationData
+  relation?: RelationData | undefined
 }
 
 const props = withDefaults(defineProps<Props>(), {
   mode: "insert",
+  relation: undefined,
 })
 
 const emit = defineEmits<{
@@ -251,7 +252,7 @@ const submit = async () => {
     if (state.metadata.trim()) {
       try {
         parsedMetadata = JSON.parse(state.metadata)
-      } catch (error) {
+      } catch {
         throw new Error(t("fields.metadata.validation.invalidJson"))
       }
     }

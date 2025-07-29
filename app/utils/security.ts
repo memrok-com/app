@@ -18,29 +18,31 @@ export const createSecureError = (
 }
 
 // Network error detection helper
-export const isNetworkError = (error: any): boolean => {
+export const isNetworkError = (error: unknown): boolean => {
+  const err = error as Record<string, unknown>
   return (
-    error?.name === "FetchError" ||
-    error?.code === "NETWORK_ERROR" ||
-    error?.message?.includes("fetch") ||
-    error?.message?.includes("network")
+    err?.name === "FetchError" ||
+    err?.code === "NETWORK_ERROR" ||
+    (typeof err?.message === "string" && err.message.includes("fetch")) ||
+    (typeof err?.message === "string" && err.message.includes("network"))
   )
 }
 
 // Check if error is retryable (for simple retry logic)
-export const isRetryableError = (error: any): boolean => {
+export const isRetryableError = (error: unknown): boolean => {
   // Network errors are retryable
   if (isNetworkError(error)) {
     return true
   }
 
+  const err = error as Record<string, unknown>
   // Temporary server errors are retryable
-  if (error?.status >= 500 && error?.status < 600) {
+  if (typeof err?.status === "number" && err.status >= 500 && err.status < 600) {
     return true
   }
 
   // Rate limit errors might be retryable after delay
-  if (error?.status === 429) {
+  if (err?.status === 429) {
     return true
   }
 
@@ -50,13 +52,14 @@ export const isRetryableError = (error: any): boolean => {
 // Create user-friendly error messages based on HTTP status codes
 export const getUserFriendlyErrorMessage = (
   operation: string,
-  error: any
+  error: unknown
 ): string => {
   if (isNetworkError(error)) {
     return `${operation} failed due to network issues. Please check your connection and try again.`
   }
 
-  switch (error?.status) {
+  const err = error as Record<string, unknown>
+  switch (err?.status) {
     case 400:
       return `${operation} failed due to invalid data. Please check your input and try again.`
     case 401:
@@ -85,7 +88,7 @@ export const withRetry = async <T>(
   maxRetries = 1,
   delayMs = 1000
 ): Promise<T> => {
-  let lastError: any
+  let lastError: unknown
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {

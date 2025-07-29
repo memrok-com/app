@@ -98,7 +98,7 @@ export const validateAssistantName = (name?: string): string | undefined => {
 }
 
 // Basic metadata sanitization (recursive with depth limit)
-export const sanitizeMetadata = (metadata: any, depth = 0): any => {
+export const sanitizeMetadata = (metadata: unknown, depth = 0): unknown => {
   if (depth > VALIDATION_LIMITS.METADATA_MAX_DEPTH) {
     throw new Error("Metadata object is too deeply nested")
   }
@@ -121,8 +121,9 @@ export const sanitizeMetadata = (metadata: any, depth = 0): any => {
   }
 
   if (typeof metadata === "object") {
-    const sanitized: Record<string, any> = {}
-    const keys = Object.keys(metadata)
+    const sanitized: Record<string, unknown> = {}
+    const obj = metadata as Record<string, unknown>
+    const keys = Object.keys(obj)
 
     if (keys.length > VALIDATION_LIMITS.METADATA_MAX_KEYS) {
       throw new Error(
@@ -134,7 +135,7 @@ export const sanitizeMetadata = (metadata: any, depth = 0): any => {
       // Sanitize the key itself
       const sanitizedKey = sanitizeText(key)
       if (sanitizedKey) {
-        sanitized[sanitizedKey] = sanitizeMetadata(metadata[key], depth + 1)
+        sanitized[sanitizedKey] = sanitizeMetadata(obj[key], depth + 1)
       }
     }
 

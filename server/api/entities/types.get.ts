@@ -1,6 +1,6 @@
 import { createAuthenticatedHandler } from "../../utils/auth-middleware"
 
-export default createAuthenticatedHandler(async (event, userDb, user) => {
+export default createAuthenticatedHandler(async (event, userDb, _user) => {
   // Get all user's entities (RLS ensures only user's data is accessible)
   const entities = await userDb.getEntities()
 

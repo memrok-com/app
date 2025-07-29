@@ -70,7 +70,7 @@ export async function getCurrentUserContext(
     )
     const userId = result[0]?.user_id as string
     return userId && userId !== "" ? userId : null
-  } catch (error) {
+  } catch {
     // current_setting() throws an error if the setting doesn't exist
     // We handle this gracefully by returning null
     return null

@@ -1,6 +1,6 @@
 import { createAuthenticatedHandler } from "../../utils/auth-middleware"
 
-export default createAuthenticatedHandler(async (event, userDb, user) => {
+export default createAuthenticatedHandler(async (event, userDb, _user) => {
   const body = await readBody(event)
 
   // Validate required fields

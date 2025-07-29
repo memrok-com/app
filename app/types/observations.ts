@@ -10,7 +10,7 @@ export interface ObservationData {
   entityId: string
   content: string
   source?: string | null
-  metadata?: any
+  metadata?: Record<string, unknown> | null
   createdByUser?: string | null
   createdByAssistantName?: string | null
   createdByAssistantType?: string | null

@@ -1,6 +1,6 @@
 import { createAuthenticatedHandler } from "../../utils/auth-middleware"
 
-export default createAuthenticatedHandler(async (event, userDb, user) => {
+export default createAuthenticatedHandler(async (event, userDb, _user) => {
   const query = getQuery(event)
   const {
     limit = "50",
@@ -10,12 +10,24 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
     fromDate,
     toDate,
     createdByAssistantName,
+    sortBy = "createdAt",
+    sortOrder = "desc",
   } = query
 
   // Build filters object for user-scoped database
-  const filters: any = {
+  const filters: {
+    limit: number
+    offset: number
+    entityId?: string
+    search?: string
+    createdByAssistantName?: string
+    sortBy: string
+    sortOrder: string
+  } = {
     limit: parseInt(limit as string),
     offset: parseInt(offset as string),
+    sortBy: sortBy as string,
+    sortOrder: sortOrder as string,
   }
 
   if (entityId) {

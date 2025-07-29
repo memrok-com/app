@@ -1,6 +1,6 @@
 import { createAuthenticatedHandler } from "../../utils/auth-middleware"
 
-export default createAuthenticatedHandler(async (event, userDb, user) => {
+export default createAuthenticatedHandler(async (event, userDb, _user) => {
   const query = getQuery(event)
   const {
     limit = 50,
@@ -12,12 +12,26 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
     minStrength,
     maxStrength,
     createdByAssistantName,
+    sortBy = "createdAt",
+    sortOrder = "desc",
   } = query
 
   // Build filters for the user-scoped database
-  const filters: any = {
+  const filters: {
+    limit: number
+    offset: number
+    subjectId?: string
+    objectId?: string
+    predicate?: string
+    search?: string
+    createdByAssistantName?: string
+    sortBy: string
+    sortOrder: string
+  } = {
     limit: parseInt(limit as string),
     offset: parseInt(offset as string),
+    sortBy: sortBy as string,
+    sortOrder: sortOrder as string,
   }
 
   if (subjectId) {
@@ -67,7 +81,7 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
       ...relations.map((r) => r.objectId),
     ]),
   ]
-  const entityDetails: Record<string, any> = {}
+  const entityDetails: Record<string, { id: string; name: string; type: string }> = {}
 
   // Fetch entities in batches
   for (const entityId of entityIds) {

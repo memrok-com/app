@@ -31,7 +31,7 @@
         @create="onCreateType"
       >
         <template #empty>
-          <Empty :message="t('fields.type.empty')" />
+          <EmptyState :message="t('fields.type.empty')" />
         </template>
       </UInputMenu>
     </UFormField>
@@ -78,11 +78,12 @@ import { z } from "zod"
 import type { EntityWithCounts } from "~/types/entities"
 
 interface Props {
+  entity?: EntityWithCounts | undefined
   mode?: "insert" | "update"
-  entity?: EntityWithCounts
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  entity: undefined,
   mode: "insert",
 })
 
@@ -161,7 +162,7 @@ const submit = async () => {
     if (state.metadata.trim()) {
       try {
         parsedMetadata = JSON.parse(state.metadata)
-      } catch (error) {
+      } catch {
         throw new Error(t("validation.metadata.invalidJson"))
       }
     }

@@ -1,6 +1,6 @@
 import { createAuthenticatedHandler } from "../../utils/auth-middleware"
 
-export default createAuthenticatedHandler(async (event, userDb, user) => {
+export default createAuthenticatedHandler(async (event, userDb, _user) => {
   const id = getRouterParam(event, "id")
   const body = await readBody(event)
 
@@ -22,7 +22,13 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
   }
 
   // Build update data with only provided fields
-  const updateData: any = {}
+  const updateData: Partial<{ 
+    name: string
+    type: string
+    metadata: Record<string, unknown> | null
+    updatedByUser?: string | null
+    updatedByAssistant?: string | null
+  }> = {}
 
   if (body.name !== undefined) updateData.name = body.name
   if (body.type !== undefined) updateData.type = body.type
@@ -33,7 +39,7 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
     updateData.updatedByAssistant = body.updatedByAssistant
 
   // Update entity using user-scoped database
-  const updatedEntity = await userDb.updateEntity(id, updateData)
+  const updatedEntity = await userDb.updateEntity(id, updateData as any)
 
   if (!updatedEntity) {
     throw createError({

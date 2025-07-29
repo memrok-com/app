@@ -2,7 +2,7 @@ import { sql, gte } from "drizzle-orm"
 import { createAuthenticatedHandler } from "../../utils/auth-middleware"
 import { schema } from "../../utils/db"
 
-export default createAuthenticatedHandler(async (event, userDb, user) => {
+export default createAuthenticatedHandler(async (event, userDb, _user) => {
   // Get observation statistics using RLS-aware database
   const stats = await userDb.execute(async (db) => {
     // Get total observation count
@@ -41,8 +41,8 @@ export default createAuthenticatedHandler(async (event, userDb, user) => {
   })
 
   return {
-    total: parseInt(stats.totalCount.count as string),
-    recentActivity: parseInt(stats.recentCount.count as string),
+    total: parseInt(stats.totalCount?.count as string) || 0,
+    recentActivity: parseInt(stats.recentCount?.count as string) || 0,
     byEntityType: stats.entityTypeStats.map((stat) => ({
       entityType: stat.entityType || "unknown",
       count: parseInt(stat.count as string),

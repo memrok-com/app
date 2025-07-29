@@ -17,7 +17,7 @@
         searchable
       >
         <template #empty>
-          <Empty :message="t('fields.entity.empty')" />
+          <EmptyState :message="t('fields.entity.empty')" />
         </template>
       </UInputMenu>
     </UFormField>
@@ -87,11 +87,12 @@ import type { ObservationData } from "~/types/observations"
 
 interface Props {
   mode?: "insert" | "update"
-  observation?: ObservationData
+  observation?: ObservationData | undefined
 }
 
 const props = withDefaults(defineProps<Props>(), {
   mode: "insert",
+  observation: undefined,
 })
 
 const emit = defineEmits<{
@@ -178,7 +179,7 @@ const submit = async () => {
     if (state.metadata.trim()) {
       try {
         parsedMetadata = JSON.parse(state.metadata)
-      } catch (error) {
+      } catch {
         throw new Error(t("fields.metadata.validation.invalidJson"))
       }
     }

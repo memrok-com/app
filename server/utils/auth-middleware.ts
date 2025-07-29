@@ -25,7 +25,7 @@ export interface AuthenticatedUser {
   id: string
   email?: string
   name?: string
-  [key: string]: any
+  [key: string]: unknown
 }
 
 /**
@@ -46,7 +46,7 @@ export async function extractUser(
         ...session.userInfo,
       }
     }
-  } catch (error) {
+  } catch {
     // Session doesn't exist or is invalid, try fallback methods
     console.log("No OIDC session found, trying fallback methods")
   }
@@ -205,7 +205,8 @@ export async function validateResourceOwnership(
       resource = await userDb.getObservation(resourceId)
       break
     case "assistant":
-      resource = await userDb.getAssistant(resourceId)
+      // TODO: Assistant resource access not yet implemented
+      resource = null
       break
     default:
       throw new Error(`Unknown resource type: ${resourceType}`)
