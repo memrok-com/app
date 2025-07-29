@@ -28,12 +28,18 @@
       />
     </template>
     <template #actions-cell="{ row }">
-      <MemoriesEntitiesModal
-        color="neutral"
-        :entity="row.original"
-        :show-title="false"
-        variant="ghost"
-      />
+      <UButtonGroup>
+        <MemoriesEntitiesModal
+          color="neutral"
+          :entity="row.original"
+          :show-title="false"
+          variant="ghost"
+        />
+        <MemoriesDeleteSingle
+          type="entity"
+          :id="row.original.id"
+        />
+      </UButtonGroup>
     </template>
     <template #expanded="{ row }">
       <div class="space-y-3">

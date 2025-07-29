@@ -8,10 +8,9 @@
     }"
   >
     <template #empty>
-      <EmptyState
-        class="justify-center"
-        :message="t('empty')"
-      />
+      <EmptyState :message="t('empty')">
+        <MemoriesRelationsModal size="sm" />
+      </EmptyState>
     </template>
     <template #creator-cell="{ row }">
       <UUser
@@ -32,6 +31,10 @@
         :relation="row.original"
         :show-title="false"
         variant="ghost"
+      />
+      <MemoriesDeleteSingle
+        type="relation"
+        :id="row.original.id"
       />
     </template>
   </UTable>
@@ -117,4 +120,7 @@ en:
     created: Created
     you: You
     unknown: Unknown
+  actions:
+    edit: Edit relation
+    delete: Delete relation
 </i18n>

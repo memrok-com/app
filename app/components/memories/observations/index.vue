@@ -8,10 +8,9 @@
     }"
   >
     <template #empty>
-      <EmptyState
-        class="justify-center"
-        :message="t('empty')"
-      />
+      <EmptyState :message="t('empty')">
+        <MemoriesObservationsModal size="sm" />
+      </EmptyState>
     </template>
     <template #creator-cell="{ row }">
       <UUser
@@ -32,6 +31,10 @@
         :observation="row.original"
         :show-title="false"
         variant="ghost"
+      />
+      <MemoriesDeleteSingle
+        type="observation"
+        :id="row.original.id"
       />
     </template>
   </UTable>
@@ -95,4 +98,7 @@ en:
     creator: Creator
     created: Created
     you: You
+  actions:
+    edit: Edit observation
+    delete: Delete observation
 </i18n>
