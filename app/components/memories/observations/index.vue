@@ -9,7 +9,10 @@
   >
     <template #empty>
       <EmptyState :message="t('empty')">
-        <MemoriesObservationsModal size="sm" />
+        <MemoriesObservationsModal
+          :entity-id="entityId"
+          size="sm"
+        />
       </EmptyState>
     </template>
     <template #creator-cell="{ row }">
