@@ -153,131 +153,13 @@ Not yet implemented:
 - Component naming: Use lowercase only (e.g., `table.vue`, not `Table.vue`)
 - Internationalization: Keep translation messages with `const { t } = useI18n({ useScope: "local" })` in the component that uses them (SFC, Single File Component)
 
-## Row Level Security (RLS) Implementation
+## Key Implementation Status
 
-**Status:** ✅ Complete and production-ready
-
-**Architecture:**
-
-- **User Context Management**: `rls-context.ts` handles PostgreSQL `app.current_user_id` setting
-- **Scoped Operations**: `user-scoped-db.ts` provides user-isolated database operations
-- **Authentication**: `auth-middleware.ts` extracts user context and provides RLS-aware database instances
-- **Database Policies**: All tables have RLS policies that check `user_id` against current user context
-
-**Usage Pattern:**
-
-```typescript
-// API endpoints use authenticated handlers
-export default createAuthenticatedHandler(async (event, userDb, user) => {
-  // userDb automatically filters by current user via RLS
-  const entities = await userDb.getEntities()
-})
-```
-
-**Security:** Users can only access their own data - RLS policies enforce isolation at the database level.
-
-## Assistant Attribution Implementation
-
-**Status:** ✅ Complete and production-ready
-
-**Architecture:**
-
-memrok uses a simplified string-based approach for tracking which AI assistant or client created each memory:
-
-- **No Assistant Registration**: Clients self-identify without requiring database registration
-- **String Fields**: Assistant information stored as simple text fields:
-  - `createdByAssistantName` (e.g., "Claude Desktop", "Cursor", "VS Code")
-  - `createdByAssistantType` (e.g., "claude", "cursor", "vscode")
-- **Flexible Attribution**: Any MCP client can identify itself however it wants
-- **No FK Constraints**: Simplified database operations without foreign key overhead
-
-**Assistant Types Supported:**
-
-- `claude` - Claude Desktop, Claude via API
-- `cursor` - Cursor editor
-- `vscode` - VS Code with MCP extensions
-- `continue` - Continue.dev extension
-- `zed` - Zed editor
-- `vim` - Vim/Neovim with MCP plugins
-- `web` - Custom web applications using HTTP MCP
-- `cli` - Command-line tools
-- `api` - Direct API integrations
-
-**Future Enhancement:** Auto-detection logic can be added to automatically identify clients based on process environment, transport method, or client headers.
-
-## MCP Server Implementation
-
-**Status:** ✅ Complete and production-ready
-
-**Architecture:**
-
-- **Core Server** (`server/api/mcp/server.ts`): Uses `@modelcontextprotocol/sdk` with 5 memory tools
-- **Stdio Endpoint** (`server/api/mcp/stdio-server.ts`): For Claude Desktop and direct AI assistant connections
-- **HTTP Endpoint** (`server/api/mcp/index.post.ts`): For web-based integrations with session management
-- **Configuration** (`server/api/mcp/config.get.ts`): Auto-generates client configurations
-
-**Available Tools:**
-
-1. `create_entity` - Create knowledge graph entities (person, place, concept, etc.)
-2. `create_relation` - Link entities with typed relationships
-3. `create_observation` - Record facts/observations about entities with metadata
-4. `search_memories` - Search through stored memories by query
-5. `get_entity_relations` - Retrieve entity relationships
-
-**Usage:**
-
-- Run MCP server: `bun run mcp:server`
-- Test functionality: `bun run test:mcp`
-- Get client configs: `/api/mcp/config` endpoint (integrated into web UI)
-
-## Unified Memory Store Implementation
-
-**Status:** ✅ Complete and production-ready
-
-**Architecture:**
-
-- **Single Store Pattern**: Uses Vue 3 Composition API with `defineStore(() => { ... })`
-- **TypeScript Integration**: Fully typed with dedicated API response interfaces
-- **Unified State Management**: All entities, observations, and relations in one store
-- **Business Rule Validation**: Components self-govern using store-based validation
-
-**Store Features:**
-
-- **Entity Management**: CRUD operations, type management, entity filtering
-- **Observation Management**: CRUD operations, entity relationships, content filtering
-- **Relation Management**: CRUD operations, predicate management, strength filtering
-- **Business Rules**: `canCreateObservations` (≥1 entity), `canCreateRelations` (≥2 entities)
-- **Bulk Operations**: Efficient memory erasure without cross-store coordination
-
-**Usage Pattern:**
-
-```typescript
-// In components - unified store access
-const memoryStore = useMemoryStore()
-await memoryStore.initialize() // Fetches all data (entities, observations, relations)
-
-// Business rules built-in
-const canCreateObservations = computed(() => memoryStore.canCreateObservations)
-const canCreateRelations = computed(() => memoryStore.canCreateRelations)
-
-// Direct entity access
-const entities = computed(() => memoryStore.entities)
-const observations = computed(() => memoryStore.observations)
-const relations = computed(() => memoryStore.relations)
-
-// Efficient bulk operations
-await memoryStore.eraseAllMemories() // No cross-store coordination needed
-```
-
-**Key Features:**
-
-- **Single Source of Truth**: All memory data in one unified store
-- **Reactive Updates**: UI automatically updates when data changes
-- **Type Safety**: Full TypeScript support with proper API response types
-- **Simplified State**: No cross-store coordination or readonly proxy issues
-- **Business Rules**: Built-in validation for creation permissions
-- **Error Handling**: Centralized error management with user feedback
-- **Performance**: Efficient bulk operations and simplified reactivity
+**✅ Complete Systems:**
+- **RLS (Row Level Security)**: Multi-tenant data isolation via PostgreSQL policies (`rls-context.ts`, `auth-middleware.ts`)
+- **Assistant Attribution**: String-based tracking without FK constraints (supports claude, cursor, vscode, etc.)
+- **MCP Server**: 5 memory tools with stdio/HTTP transports (`server/api/mcp/`)
+- **Memory Store**: Unified Pinia store with business rule validation (`app/stores/memory.ts`)
 
 ## GitOps Workflow
 
@@ -288,17 +170,53 @@ await memoryStore.eraseAllMemories() // No cross-store coordination needed
 
 ## Using Advisory Agents
 
-This project uses specialized advisory agents to provide expert guidance while you (Claude) remain the primary implementer:
+This project uses specialized advisory agents to provide expert guidance while you (Claude) remain the primary implementer. **You MUST proactively consult these agents BEFORE beginning implementation work.**
 
-- **security-auditor**: Security guidance and vulnerability analysis
-- **database-architect**: Database design and optimization advice
-- **api-architect**: REST API design patterns and best practices
-- **frontend-architect**: Vue/Nuxt patterns and component guidance
-- **deployment-architect**: Infrastructure and deployment strategies
-- **mcp-specialist**: Model Context Protocol expertise
-- **test-architect**: Testing strategy and test design guidance
+### Agent Consultation Matrix
 
-**Usage:** Consult agents for expert advice, then implement solutions with user oversight and visibility.
+| Task Type | Primary Agent | Secondary Agent | When to Consult |
+|-----------|---------------|-----------------|-----------------|
+| **API Endpoints** | api-architect | security-auditor | Before implementing any new endpoints, modifying existing routes, or adding server-side functionality |
+| **Vue Components** | frontend-architect | test-architect | Before creating components, modifying Pinia stores, or changing UI patterns |
+| **Database Changes** | database-architect | security-auditor | Before schema changes, adding tables/columns, or writing complex queries |
+| **Security Features** | security-auditor | api-architect | Before implementing authentication, data access, or privacy-sensitive features |
+| **MCP Tools** | mcp-specialist | security-auditor | Before adding MCP tools, modifying server configs, or changing AI assistant integrations |
+| **Infrastructure** | deployment-architect | security-auditor | Before Docker changes, adding containers, or modifying deployment configs |
+| **Testing Strategy** | test-architect | All relevant agents | Before implementing features, when adding test coverage, or setting up testing infrastructure |
+
+### Mandatory Consultation Triggers
+
+**ALWAYS consult agents before:**
+
+1. **New Feature Implementation** → Consult relevant agent(s) based on feature type
+2. **Security-Sensitive Work** → security-auditor + domain-specific agent
+3. **Infrastructure Changes** → deployment-architect + security-auditor  
+4. **Database Modifications** → database-architect + security-auditor
+5. **API Development** → api-architect + security-auditor
+6. **UI/UX Development** → frontend-architect + test-architect
+7. **MCP Integration** → mcp-specialist + security-auditor
+
+### Agent Expertise Summary
+
+- **security-auditor**: RLS, authentication, data protection, GDPR compliance, container security
+- **database-architect**: Knowledge graph schema, RLS policies, Drizzle ORM, query optimization
+- **api-architect**: REST patterns, memrok endpoints, RLS integration, assistant attribution
+- **frontend-architect**: Vue 3/Nuxt 4, Pinia stores, Nuxt UI Pro, component architecture
+- **deployment-architect**: GitOps workflow, Docker/submodule setup, Traefik configuration
+- **mcp-specialist**: memrok's 5 MCP tools, protocol compliance, client integration
+- **test-architect**: MCP testing, RLS validation, Vue component testing, integration strategies
+
+**Usage:** Consult agents for expert advice BEFORE implementation, then implement solutions with user oversight and visibility.
+
+## Development Workflow
+
+**Mandatory Process:**
+1. **Assess** → Use Agent Consultation Matrix to identify required agents
+2. **Consult** → Use Task tool with primary + secondary agents before coding
+3. **Implement** → Follow agent recommendations and memrok patterns
+4. **Validate** → Run `bun run lint`, `bun run typecheck`, `bun run test:mcp`
+
+**Quality Gates:** All required agents consulted → Recommendations incorporated → Validation passes
 
 ## Future Implementation Notes
 
@@ -317,7 +235,17 @@ When implementing remaining features:
 # Important Instruction Reminders
 
 Do what has been asked; nothing more, nothing less.
-ALWAYS make use of available sub-agents.
+**MANDATORY:** ALWAYS consult appropriate sub-agents BEFORE beginning any implementation work - use the Agent Consultation Matrix above.
 NEVER create files unless they're absolutely necessary for achieving your goal.
 ALWAYS prefer editing an existing file to creating a new one.
 NEVER proactively create documentation files (\*.md) or README files. Only create documentation files if explicitly requested by the User.
+
+## Agent Usage Checklist
+
+Before starting any implementation:
+
+1. ✅ Identify task type from Agent Consultation Matrix
+2. ✅ Consult primary agent for architectural guidance
+3. ✅ Consult secondary agent if specified
+4. ✅ Review agent recommendations and integrate feedback
+5. ✅ Proceed with implementation incorporating agent guidance
