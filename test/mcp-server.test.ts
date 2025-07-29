@@ -74,8 +74,8 @@ async function testMCPTools() {
   ]
 
   let currentTest = 0
-  let entityId = null
-  const results = []
+  let entityId: string | null = null
+  const results: Array<{test: string, success: boolean, response?: any, error?: any}> = []
 
   server.stdout.on('data', (data) => {
     const responses = data.toString().trim().split('\n').filter(line => {
@@ -128,7 +128,7 @@ async function testMCPTools() {
           
           // Replace placeholder with actual entity ID if needed
           if (nextTest.request.params.arguments?.entityId === 'ENTITY_ID_PLACEHOLDER') {
-            nextTest.request.params.arguments.entityId = entityId
+            nextTest.request.params.arguments.entityId = entityId!
           }
           
           server.stdin.write(JSON.stringify(nextTest.request) + '\n')

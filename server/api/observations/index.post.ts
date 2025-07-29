@@ -1,87 +1,46 @@
-import { eq } from 'drizzle-orm'
-import { db, schema } from '../../utils/db'
+import { createAuthenticatedHandler } from "../../utils/auth-middleware"
 
-export default defineEventHandler(async (event) => {
-  try {
-    const body = await readBody(event)
-    
-    // Validate required fields
-    if (!body.entityId || !body.content) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'entityId and content are required'
-      })
-    }
+export default createAuthenticatedHandler(async (event, userDb, _user) => {
+  const body = await readBody(event)
 
-    // Validate that either createdByUser or createdByAssistant is provided
-    if (!body.createdByUser && !body.createdByAssistant) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Either createdByUser or createdByAssistant must be provided'
-      })
-    }
-
-    // Check that entity exists
-    const [entity] = await db
-      .select()
-      .from(schema.entities)
-      .where(eq(schema.entities.id, body.entityId))
-
-    if (!entity) {
-      throw createError({
-        statusCode: 404,
-        statusMessage: 'Entity not found'
-      })
-    }
-
-    // Parse observedAt date if provided, otherwise use current time
-    let observedAt = new Date()
-    if (body.observedAt) {
-      observedAt = new Date(body.observedAt)
-      if (isNaN(observedAt.getTime())) {
-        throw createError({
-          statusCode: 400,
-          statusMessage: 'Invalid observedAt date format'
-        })
-      }
-    }
-
-    // Create observation
-    const [observation] = await db
-      .insert(schema.observations)
-      .values({
-        entityId: body.entityId,
-        content: body.content,
-        observedAt: observedAt,
-        source: body.source || null,
-        metadata: body.metadata || null,
-        createdByUser: body.createdByUser || null,
-        createdByAssistant: body.createdByAssistant || null,
-      })
-      .returning()
-
-    return {
-      observation: {
-        ...observation,
-        entity: {
-          id: entity.id,
-          name: entity.name,
-          type: entity.type
-        }
-      },
-      message: 'Observation created successfully'
-    }
-  } catch (error) {
-    // Handle known errors
-    if (error.statusCode) {
-      throw error
-    }
-    
-    // Handle database errors
+  // Validate required fields
+  if (!body.entityId || !body.content) {
     throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to create observation',
-      data: error
+      statusCode: 400,
+      statusMessage: "entityId and content are required",
     })
+  }
+
+  // Check that entity exists using RLS-aware database
+  const entity = await userDb.getEntity(body.entityId)
+
+  if (!entity) {
+    throw createError({
+      statusCode: 404,
+      statusMessage: "Entity not found",
+    })
+  }
+
+  // Create observation using RLS-aware database
+  const observation = await userDb.createObservation({
+    entityId: body.entityId,
+    content: body.content,
+    source: body.source || undefined,
+    metadata: body.metadata || undefined,
+    createdByUser: body.createdByUser || undefined,
+    createdByAssistantName: body.createdByAssistantName || undefined,
+    createdByAssistantType: body.createdByAssistantType || undefined,
+  })
+
+  return {
+    observation: {
+      ...observation,
+      entity: {
+        id: entity.id,
+        name: entity.name,
+        type: entity.type,
+      },
+    },
+    message: "Observation created successfully",
   }
 })

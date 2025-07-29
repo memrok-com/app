@@ -1,9 +1,11 @@
-import { sql, gte } from 'drizzle-orm'
-import { db, schema } from '../../utils/db'
+import { sql, gte } from "drizzle-orm"
+import { createAuthenticatedHandler } from "../../utils/auth-middleware"
+import { schema } from "../../utils/db"
 
-export default defineEventHandler(async (event) => {
-  try {
-    // Get observation statistics
+export default createAuthenticatedHandler(async (event, userDb, _user) => {
+  // Get observation statistics using RLS-aware database
+  const stats = await userDb.execute(async (db) => {
+    // Get total observation count
     const [totalCount] = await db
       .select({ count: sql`count(*)` })
       .from(schema.observations)
@@ -12,10 +14,13 @@ export default defineEventHandler(async (event) => {
     const entityTypeStats = await db
       .select({
         entityType: schema.entities.type,
-        count: sql`count(*)`.as('count')
+        count: sql`count(*)`.as("count"),
       })
       .from(schema.observations)
-      .leftJoin(schema.entities, sql`${schema.observations.entityId} = ${schema.entities.id}`)
+      .leftJoin(
+        schema.entities,
+        sql`${schema.observations.entityId} = ${schema.entities.id}`
+      )
       .groupBy(schema.entities.type)
       .orderBy(sql`count(*) DESC`)
 
@@ -26,21 +31,21 @@ export default defineEventHandler(async (event) => {
     const [recentCount] = await db
       .select({ count: sql`count(*)` })
       .from(schema.observations)
-      .where(gte(schema.observations.observedAt, sevenDaysAgo))
+      .where(gte(schema.observations.createdAt, sevenDaysAgo))
 
     return {
-      total: parseInt(totalCount.count as string),
-      recentActivity: parseInt(recentCount.count as string),
-      byEntityType: entityTypeStats.map(stat => ({
-        entityType: stat.entityType || 'unknown',
-        count: parseInt(stat.count as string)
-      }))
+      totalCount,
+      entityTypeStats,
+      recentCount,
     }
-  } catch (error) {
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to fetch observation statistics',
-      data: error
-    })
+  })
+
+  return {
+    total: parseInt(stats.totalCount?.count as string) || 0,
+    recentActivity: parseInt(stats.recentCount?.count as string) || 0,
+    byEntityType: stats.entityTypeStats.map((stat) => ({
+      entityType: stat.entityType || "unknown",
+      count: parseInt(stat.count as string),
+    })),
   }
 })

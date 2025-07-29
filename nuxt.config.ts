@@ -1,39 +1,46 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  compatibilityDate: '2025-05-15',
-  css: [
-    '~/assets/css/main.css',
-  ],
+  compatibilityDate: "2025-05-15",
+  css: ["~/assets/css/main.css"],
   devtools: {
     enabled: true,
+  },
+  fonts: {
+    defaults: {
+      weights: ["200 700"],
+    },
   },
   i18n: {
     bundle: {
       optimizeTranslationDirective: false,
     },
-    locales: ['en'],
-    vueI18n: '~/i18n/i18n.config.ts'
+    locales: ["en"],
   },
   modules: [
-    '@nuxt/fonts',
-    '@nuxt/icon',
-    '@nuxt/image',
-    '@nuxt/ui-pro',
-    '@nuxtjs/i18n',
-    'nuxt-oidc-auth',
+    "@formkit/auto-animate/nuxt",
+    "@nuxt/eslint",
+    "@nuxt/fonts",
+    "@nuxt/icon",
+    "@nuxt/image",
+    "@nuxt/ui-pro",
+    "@nuxtjs/i18n",
+    "@pinia/nuxt",
+    "nuxt-oidc-auth",
   ],
   oidc: {
-    defaultProvider: 'zitadel',
+    defaultProvider: "zitadel",
     providers: {
       zitadel: {
         audience: process.env.NUXT_OIDC_CLIENT_ID,
         clientId: process.env.NUXT_OIDC_CLIENT_ID,
-        clientSecret: '', // PKCE flow
+        clientSecret: "", // PKCE flow
         baseUrl: process.env.NUXT_OIDC_ISSUER,
         redirectUri: process.env.NUXT_OIDC_REDIRECT_URI,
         logoutRedirectUri: process.env.NUXT_OIDC_POST_LOGOUT_REDIRECT_URI,
-        authenticationScheme: 'none', // PKCE flow
-        scope: ['openid', 'profile', 'email'],
+        authenticationScheme: "none", // PKCE flow
+        scope: ["openid", "profile", "email"],
+        // Enable access to tokens on server-side
+        exposeAccessToken: true,
       },
     },
     session: {
@@ -43,14 +50,14 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       MEMROK_VERSION: process.env.MEMROK_VERSION,
-      MEMROK_AUTH_CONFIGURED: !!(process.env.NUXT_OIDC_CLIENT_ID),
+      MEMROK_AUTH_CONFIGURED: !!process.env.NUXT_OIDC_CLIENT_ID,
       MEMROK_AUTH_DOMAIN: process.env.MEMROK_AUTH_DOMAIN,
       authDomain: process.env.MEMROK_AUTH_DOMAIN,
     },
   },
   vite: {
     server: {
-      allowedHosts: [process.env.MEMROK_APP_DOMAIN || 'app.dev.memrok.com'],
+      allowedHosts: [process.env.MEMROK_APP_DOMAIN || "app.dev.memrok.com"],
     },
   },
 })

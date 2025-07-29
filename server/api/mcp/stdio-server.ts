@@ -1,10 +1,10 @@
 #!/usr/bin/env bun
-import { MemrokMCPServer } from './server'
-import { config } from 'dotenv'
-import { resolve } from 'path'
+import { MemrokMCPServer } from "./server"
+import { config } from "dotenv"
+import { resolve } from "path"
 
 // Load environment variables
-config({ path: resolve(process.cwd(), '.env') })
+config({ path: resolve(process.cwd(), ".env") })
 
 // Parse command line arguments for context
 const args = process.argv.slice(2)
@@ -12,10 +12,10 @@ let assistantId: string | undefined
 let userId: string | undefined
 
 for (let i = 0; i < args.length; i++) {
-  if (args[i] === '--assistant-id' && i + 1 < args.length) {
+  if (args[i] === "--assistant-id" && i + 1 < args.length) {
     assistantId = args[i + 1]
     i++
-  } else if (args[i] === '--user-id' && i + 1 < args.length) {
+  } else if (args[i] === "--user-id" && i + 1 < args.length) {
     userId = args[i + 1]
     i++
   }

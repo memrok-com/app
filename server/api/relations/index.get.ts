@@ -1,109 +1,126 @@
-import { eq, and, or, ilike, desc, sql, inArray } from 'drizzle-orm'
-import { db, schema } from '../../utils/db'
+import { createAuthenticatedHandler } from "../../utils/auth-middleware"
 
-export default defineEventHandler(async (event) => {
-  try {
-    const query = getQuery(event)
-    const { 
-      limit = '50', 
-      offset = '0', 
-      subjectId,
-      objectId,
-      predicate,
-      search,
-      minStrength,
-      maxStrength,
-      createdByUser,
-      createdByAssistant 
-    } = query
+export default createAuthenticatedHandler(async (event, userDb, _user) => {
+  const query = getQuery(event)
+  const {
+    limit = 50,
+    offset = 0,
+    subjectId,
+    objectId,
+    predicate,
+    search,
+    minStrength,
+    maxStrength,
+    createdByAssistantName,
+    sortBy = "createdAt",
+    sortOrder = "desc",
+  } = query
 
-    // Build the where conditions
-    const conditions = []
-    
-    if (subjectId) {
-      conditions.push(eq(schema.relations.subjectId, subjectId as string))
-    }
-    
-    if (objectId) {
-      conditions.push(eq(schema.relations.objectId, objectId as string))
-    }
-    
-    if (predicate) {
-      conditions.push(ilike(schema.relations.predicate, `%${predicate}%`))
-    }
-    
-    if (search) {
-      conditions.push(
-        or(
-          ilike(schema.relations.predicate, `%${search}%`),
-          ilike(schema.relations.metadata, `%${search}%`)
-        )
-      )
-    }
-    
-    if (minStrength) {
-      conditions.push(sql`${schema.relations.strength} >= ${parseFloat(minStrength as string)}`)
-    }
-    
-    if (maxStrength) {
-      conditions.push(sql`${schema.relations.strength} <= ${parseFloat(maxStrength as string)}`)
-    }
-    
-    if (createdByUser) {
-      conditions.push(eq(schema.relations.createdByUser, createdByUser as string))
-    }
-    
-    if (createdByAssistant) {
-      conditions.push(eq(schema.relations.createdByAssistant, createdByAssistant as string))
-    }
+  // Build filters for the user-scoped database
+  const filters: {
+    limit: number
+    offset: number
+    subjectId?: string
+    objectId?: string
+    predicate?: string
+    search?: string
+    createdByAssistantName?: string
+    sortBy: string
+    sortOrder: string
+  } = {
+    limit: parseInt(limit as string),
+    offset: parseInt(offset as string),
+    sortBy: sortBy as string,
+    sortOrder: sortOrder as string,
+  }
 
-    // Execute query to get relations
-    const relations = await db
-      .select()
-      .from(schema.relations)
-      .where(conditions.length > 0 ? and(...conditions) : undefined)
-      .orderBy(desc(schema.relations.createdAt))
-      .limit(parseInt(limit as string))
-      .offset(parseInt(offset as string))
+  if (subjectId) {
+    filters.subjectId = subjectId as string
+  }
 
-    // Get entity details for each relation
-    const entityIds = [...new Set([...relations.map(r => r.subjectId), ...relations.map(r => r.objectId)])]
-    const entities = entityIds.length > 0 ? await db
-      .select({
-        id: schema.entities.id,
-        name: schema.entities.name,
-        type: schema.entities.type
-      })
-      .from(schema.entities)
-      .where(inArray(schema.entities.id, entityIds))
-    : []
+  if (objectId) {
+    filters.objectId = objectId as string
+  }
 
-    // Combine results
-    const enrichedRelations = relations.map(relation => ({
-      ...relation,
-      subjectEntity: entities.find(e => e.id === relation.subjectId) || null,
-      objectEntity: entities.find(e => e.id === relation.objectId) || null
-    }))
+  if (predicate) {
+    filters.predicate = predicate as string
+  }
 
-    // Get total count for pagination
-    const totalResult = await db
-      .select({ count: sql`count(*)` })
-      .from(schema.relations)
-      .where(conditions.length > 0 ? and(...conditions) : undefined)
+  if (createdByAssistantName) {
+    filters.createdByAssistantName = createdByAssistantName as string
+  }
 
-    return {
-      relations: enrichedRelations,
-      pagination: {
-        limit: parseInt(limit as string),
-        offset: parseInt(offset as string),
-        total: parseInt(totalResult[0].count as string)
+  // Get relations using user-scoped database - RLS ensures only user's relations are accessible
+  let relations = await userDb.getRelations(filters)
+
+  // Apply additional filters in memory that aren't supported by UserScopedDatabase yet
+  if (search) {
+    const searchLower = (search as string).toLowerCase()
+    relations = relations.filter(
+      (relation) =>
+        relation.predicate.toLowerCase().includes(searchLower) ||
+        (relation.metadata &&
+          JSON.stringify(relation.metadata).toLowerCase().includes(searchLower))
+    )
+  }
+
+  if (minStrength !== undefined) {
+    const min = parseFloat(minStrength as string)
+    relations = relations.filter((relation) => (relation.strength || 0) >= min)
+  }
+
+  if (maxStrength !== undefined) {
+    const max = parseFloat(maxStrength as string)
+    relations = relations.filter((relation) => (relation.strength || 0) <= max)
+  }
+
+  // Get entity details for each relation (only user's entities will be accessible due to RLS)
+  const entityIds = [
+    ...new Set([
+      ...relations.map((r) => r.subjectId),
+      ...relations.map((r) => r.objectId),
+    ]),
+  ]
+  const entityDetails: Record<string, { id: string; name: string; type: string }> = {}
+
+  // Fetch entities in batches
+  for (const entityId of entityIds) {
+    const entity = await userDb.getEntity(entityId)
+    if (entity) {
+      entityDetails[entityId] = {
+        id: entity.id,
+        name: entity.name,
+        type: entity.type,
       }
     }
-  } catch (error) {
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to fetch relations',
-      data: error
-    })
+  }
+
+  // Combine results
+  const enrichedRelations = relations.map((relation) => ({
+    ...relation,
+    subjectEntity: entityDetails[relation.subjectId] || null,
+    objectEntity: entityDetails[relation.objectId] || null,
+  }))
+
+  // Apply pagination if search/strength filters were applied
+  let finalRelations = enrichedRelations
+  let total = enrichedRelations.length
+
+  if (search || minStrength !== undefined || maxStrength !== undefined) {
+    // If additional filters were applied, handle pagination manually
+    total = enrichedRelations.length
+    finalRelations = enrichedRelations.slice(
+      filters.offset,
+      filters.offset + filters.limit
+    )
+  }
+
+  return {
+    relations: finalRelations,
+    pagination: {
+      limit: filters.limit,
+      offset: filters.offset,
+      total,
+    },
   }
 })

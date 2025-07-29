@@ -1,98 +1,115 @@
-import { eq, and, or, ilike, desc, sql, inArray, gte, lte } from 'drizzle-orm'
-import { db, schema } from '../../utils/db'
+import { createAuthenticatedHandler } from "../../utils/auth-middleware"
 
-export default defineEventHandler(async (event) => {
-  try {
-    const query = getQuery(event)
-    const { 
-      limit = '50', 
-      offset = '0', 
-      entityId,
-      search,
-      fromDate,
-      toDate,
-      createdByUser,
-      createdByAssistant 
-    } = query
+export default createAuthenticatedHandler(async (event, userDb, _user) => {
+  const query = getQuery(event)
+  const {
+    limit = "50",
+    offset = "0",
+    entityId,
+    search,
+    fromDate,
+    toDate,
+    createdByAssistantName,
+    sortBy = "createdAt",
+    sortOrder = "desc",
+  } = query
 
-    // Build the where conditions
-    const conditions = []
-    
-    if (entityId) {
-      conditions.push(eq(schema.observations.entityId, entityId as string))
-    }
-    
-    if (search) {
-      conditions.push(
-        or(
-          ilike(schema.observations.content, `%${search}%`),
-          sql`${schema.observations.metadata}::text ILIKE ${`%${search}%`}`
-        )
-      )
-    }
-    
-    if (fromDate) {
-      conditions.push(gte(schema.observations.observedAt, new Date(fromDate as string)))
-    }
-    
-    if (toDate) {
-      conditions.push(lte(schema.observations.observedAt, new Date(toDate as string)))
-    }
-    
-    if (createdByUser) {
-      conditions.push(eq(schema.observations.createdByUser, createdByUser as string))
-    }
-    
-    if (createdByAssistant) {
-      conditions.push(eq(schema.observations.createdByAssistant, createdByAssistant as string))
-    }
+  // Build filters object for user-scoped database
+  const filters: {
+    limit: number
+    offset: number
+    entityId?: string
+    search?: string
+    createdByAssistantName?: string
+    sortBy: string
+    sortOrder: string
+  } = {
+    limit: parseInt(limit as string),
+    offset: parseInt(offset as string),
+    sortBy: sortBy as string,
+    sortOrder: sortOrder as string,
+  }
 
-    // Execute query to get observations
-    const observations = await db
-      .select()
-      .from(schema.observations)
-      .where(conditions.length > 0 ? and(...conditions) : undefined)
-      .orderBy(desc(schema.observations.observedAt))
-      .limit(parseInt(limit as string))
-      .offset(parseInt(offset as string))
+  if (entityId) {
+    filters.entityId = entityId as string
+  }
 
-    // Get entity details for each observation
-    const entityIds = [...new Set(observations.map(o => o.entityId))]
-    const entities = entityIds.length > 0 ? await db
-      .select({
-        id: schema.entities.id,
-        name: schema.entities.name,
-        type: schema.entities.type
+  if (createdByAssistantName) {
+    filters.createdByAssistantName = createdByAssistantName as string
+  }
+
+  // Get observations using RLS-aware database
+  const observations = await userDb.getObservations(filters)
+
+  // Apply additional filters that aren't directly supported by UserScopedDatabase
+  let filteredObservations = observations
+
+  if (search) {
+    const searchLower = (search as string).toLowerCase()
+    filteredObservations = observations.filter(
+      (observation) =>
+        observation.content.toLowerCase().includes(searchLower) ||
+        (observation.metadata &&
+          JSON.stringify(observation.metadata)
+            .toLowerCase()
+            .includes(searchLower))
+    )
+  }
+
+  if (fromDate) {
+    const fromDateTime = new Date(fromDate as string)
+    filteredObservations = filteredObservations.filter(
+      (observation) => observation.createdAt >= fromDateTime
+    )
+  }
+
+  if (toDate) {
+    const toDateTime = new Date(toDate as string)
+    filteredObservations = filteredObservations.filter(
+      (observation) => observation.createdAt <= toDateTime
+    )
+  }
+
+  // Get entity details for each observation using RLS-aware database
+  const entityIds = [...new Set(filteredObservations.map((o) => o.entityId))]
+  const entityDetailsMap = new Map()
+
+  for (const entityId of entityIds) {
+    const entity = await userDb.getEntity(entityId)
+    if (entity) {
+      entityDetailsMap.set(entityId, {
+        id: entity.id,
+        name: entity.name,
+        type: entity.type,
       })
-      .from(schema.entities)
-      .where(inArray(schema.entities.id, entityIds))
-    : []
-
-    // Combine results
-    const enrichedObservations = observations.map(observation => ({
-      ...observation,
-      entity: entities.find(e => e.id === observation.entityId) || null
-    }))
-
-    // Get total count for pagination
-    const totalResult = await db
-      .select({ count: sql`count(*)` })
-      .from(schema.observations)
-      .where(conditions.length > 0 ? and(...conditions) : undefined)
-
-    return {
-      observations: enrichedObservations,
-      pagination: {
-        limit: parseInt(limit as string),
-        offset: parseInt(offset as string),
-        total: parseInt(totalResult[0].count as string)
-      }
     }
-  } catch (error) {
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to fetch observations',
-      data: error
-    })
+  }
+
+  // Combine results
+  const enrichedObservations = filteredObservations.map((observation) => ({
+    ...observation,
+    entity: entityDetailsMap.get(observation.entityId) || null,
+  }))
+
+  // Apply pagination to filtered results if additional filters were used
+  let finalObservations = enrichedObservations
+  let total = enrichedObservations.length
+
+  if (search || fromDate || toDate) {
+    // If additional filters were applied, handle pagination manually
+    total = enrichedObservations.length
+    finalObservations = enrichedObservations.slice(
+      filters.offset,
+      filters.offset + filters.limit
+    )
+  }
+
+  return {
+    observations: finalObservations,
+    pagination: {
+      limit: filters.limit,
+      offset: filters.offset,
+      total,
+    },
   }
 })

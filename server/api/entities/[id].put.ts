@@ -1,71 +1,77 @@
-import { eq } from 'drizzle-orm'
-import { db, schema } from '../../utils/db'
+import { createAuthenticatedHandler } from "../../utils/auth-middleware"
 
-export default defineEventHandler(async (event) => {
-  try {
-    const id = getRouterParam(event, 'id')
-    const body = await readBody(event)
-    
-    if (!id) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Entity ID is required'
-      })
-    }
+export default createAuthenticatedHandler(async (event, userDb, _user) => {
+  const id = getRouterParam(event, "id")
+  const body = await readBody(event)
 
-    // Validate that either updatedByUser or updatedByAssistant is provided
-    if (!body.updatedByUser && !body.updatedByAssistant) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Either updatedByUser or updatedByAssistant must be provided'
-      })
-    }
-
-    // Check if entity exists
-    const [existingEntity] = await db
-      .select()
-      .from(schema.entities)
-      .where(eq(schema.entities.id, id))
-
-    if (!existingEntity) {
-      throw createError({
-        statusCode: 404,
-        statusMessage: 'Entity not found'
-      })
-    }
-
-    // Build update object with only provided fields
-    const updateData: any = {
-      updatedByUser: body.updatedByUser || null,
-      updatedByAssistant: body.updatedByAssistant || null,
-      updatedAt: new Date()
-    }
-
-    if (body.name !== undefined) updateData.name = body.name
-    if (body.type !== undefined) updateData.type = body.type
-    if (body.metadata !== undefined) updateData.metadata = body.metadata
-
-    // Update entity
-    const [updatedEntity] = await db
-      .update(schema.entities)
-      .set(updateData)
-      .where(eq(schema.entities.id, id))
-      .returning()
-
-    return {
-      entity: updatedEntity,
-      message: 'Entity updated successfully'
-    }
-  } catch (error) {
-    // Handle known errors
-    if (error.statusCode) {
-      throw error
-    }
-    
+  if (!id) {
     throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to update entity',
-      data: error
+      statusCode: 400,
+      statusMessage: "Entity ID is required",
     })
+  }
+
+  // Check if entity exists (RLS ensures only user's entities are accessible)
+  const existingEntity = await userDb.getEntity(id)
+
+  if (!existingEntity) {
+    throw createError({
+      statusCode: 404,
+      statusMessage: "Entity not found",
+    })
+  }
+
+  // Build update data with only provided fields
+  const updateData: {
+    type?: string
+    name?: string
+    metadata?: Record<string, unknown>
+    updatedByUser?: string
+    updatedByAssistantName?: string
+    updatedByAssistantType?: string
+  } = {}
+
+  if (body.name !== undefined) updateData.name = body.name
+  if (body.type !== undefined) updateData.type = body.type
+  if (body.metadata !== undefined) updateData.metadata = body.metadata
+  if (body.updatedByUser !== undefined)
+    updateData.updatedByUser = body.updatedByUser
+  if (body.updatedByAssistantName !== undefined)
+    updateData.updatedByAssistantName = body.updatedByAssistantName
+  if (body.updatedByAssistantType !== undefined)
+    updateData.updatedByAssistantType = body.updatedByAssistantType
+
+  // Update entity using user-scoped database
+  const baseEntity = await userDb.updateEntity(id, updateData)
+
+  if (!baseEntity) {
+    throw createError({
+      statusCode: 404,
+      statusMessage: "Entity not found or update failed",
+    })
+  }
+
+  // Get current counts for the updated entity
+  const [relationsResult, observationsResult] = await Promise.all([
+    userDb.getRelationsCount(id),
+    userDb.getObservationsCount(id)
+  ])
+
+  // Return entity with current counts
+  const entity = {
+    ...baseEntity,
+    relationsCount: relationsResult || 0,
+    observationsCount: observationsResult || 0,
+    createdByAssistantInfo: baseEntity.createdByAssistantName
+      ? {
+          name: baseEntity.createdByAssistantName,
+          type: baseEntity.createdByAssistantType,
+        }
+      : null,
+  }
+
+  return {
+    entity,
+    message: "Entity updated successfully",
   }
 })
