@@ -136,7 +136,7 @@ export class UserScopedDatabase {
   }) {
     return await this.execute(async (db) => {
       // Get entities with all fields (no joins needed)
-      let query = db
+      const query = db
         .select({
           id: schema.entities.id,
           userId: schema.entities.userId,

@@ -9,7 +9,7 @@ export const createSecureError = (
   originalError?: unknown
 ): Error => {
   // Log detailed error information server-side only (if available)
-  if (process.server && originalError) {
+  if (import.meta.server && originalError) {
     console.error(`Store operation failed: ${operation}`, originalError)
   }
 

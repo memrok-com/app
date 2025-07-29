@@ -49,7 +49,31 @@ memrok is a self-hosted, privacy-first memory service for AI assistants. It impl
 
 ## Development Commands
 
-See [CONTRIBUTING.md](/CONTRIBUTING.md)
+### Core Commands
+- `bun run dev` - Start development server with SSL certificates
+- `bun run build` - Build for production
+- `bun run preview` - Preview production build
+
+### Code Quality
+- `bun run lint` - Run ESLint on all files
+- `bun run lint:fix` - Fix ESLint issues automatically
+- `bun run typecheck` - Run TypeScript type checking
+- `bun run check` - Run both lint and typecheck
+
+### Database
+- `bun run db:generate` - Generate database migrations
+- `bun run db:migrate` - Apply database migrations
+- `bun run db:studio` - Open Drizzle Studio
+
+### Infrastructure
+- `bun run setup` - Complete development environment setup
+- `bun run infra:start` - Start Docker infrastructure
+- `bun run infra:stop` - Stop Docker infrastructure
+
+### Testing
+- `bun run test:mcp` - Test MCP server functionality
+
+See [CONTRIBUTING.md](/CONTRIBUTING.md) for detailed setup instructions.
 
 ## Project Structure
 

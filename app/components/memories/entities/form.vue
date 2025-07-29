@@ -11,9 +11,9 @@
       required
     >
       <UInput
+        v-model="state.name"
         autofocus
         :placeholder="t('fields.name.placeholder')"
-        v-model="state.name"
       />
     </UFormField>
 
@@ -23,11 +23,11 @@
       required
     >
       <UInputMenu
+        v-model="state.type"
         create-item
         :items="typeItems"
         :placeholder="t('fields.type.placeholder')"
         searchable
-        v-model="state.type"
         @create="onCreateType"
       >
         <template #empty>
@@ -42,9 +42,9 @@
       name="metadata"
     >
       <UTextarea
+        v-model="state.metadata"
         :placeholder="t('fields.metadata.placeholder')"
         :rows="4"
-        v-model="state.metadata"
       />
     </UFormField>
 

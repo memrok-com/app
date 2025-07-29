@@ -57,8 +57,8 @@
         <Memories />
 
         <UPageCard
-          :ui="{ container: 'p-0 sm:p-0' }"
           v-if="memoryStore.statistics.totalEntities"
+          :ui="{ container: 'p-0 sm:p-0' }"
         >
           <UPageAccordion
             :items="[

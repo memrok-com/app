@@ -32,9 +32,9 @@
           required
         >
           <UInput
+            v-model="state.confirmation"
             autofocus
             :placeholder="t('form.fields.confirmation.placeholder')"
-            v-model="state.confirmation"
           />
         </UFormField>
 

@@ -1,6 +1,6 @@
 import { sql } from "drizzle-orm"
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js"
-import * as schema from "./schema"
+import type * as schema from "./schema"
 
 /**
  * Database utilities for Row Level Security (RLS) user context management

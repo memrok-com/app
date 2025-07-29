@@ -8,6 +8,10 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "typecheck": "vue-tsc --noEmit",
+    "check": "bun run lint && bun run typecheck",
     "setup": "bun run certs && bun run infra:start && bun run db:generate && bun run db:migrate && bun run infra:provision",
     "certs": "bun run deployment/scripts/generate-certs.ts",
     "infra:start": "docker compose --project-name memrok --env-file .env -f deployment/docker-compose.yml -f deployment/docker-compose.dev.yml down && docker compose --project-name memrok --env-file .env -f deployment/docker-compose.yml -f deployment/docker-compose.dev.yml up -d",
@@ -44,7 +48,10 @@
   },
   "devDependencies": {
     "@iconify-json/ph": "^1.2.2",
+    "@nuxt/eslint": "^1.7.1",
     "@types/dompurify": "^3.2.0",
-    "drizzle-kit": "^0.31.4"
+    "drizzle-kit": "^0.31.4",
+    "typescript": "^5.8.3",
+    "vue-tsc": "^3.0.4"
   }
 }

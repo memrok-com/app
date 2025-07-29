@@ -54,8 +54,7 @@
 </template>
 
 <script setup lang="ts">
-import type { NavigationMenuItem } from "#ui/types"
-import type { DropdownMenuItem } from "#ui/types"
+import type { NavigationMenuItem, DropdownMenuItem  } from "#ui/types"
 
 const { locale, t } = useI18n({ useScope: "local" })
 const config = useRuntimeConfig()

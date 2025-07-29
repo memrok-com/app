@@ -11,10 +11,10 @@
       required
     >
       <UInputMenu
+        v-model="selectedSubject"
         :items="entityOptions"
         :placeholder="t('fields.subject.placeholder')"
         searchable
-        v-model="selectedSubject"
       >
         <template #empty>
           <Empty :message="t('fields.subject.empty')" />
@@ -28,11 +28,11 @@
       required
     >
       <UInputMenu
+        v-model="state.predicate"
         create-item
         :items="predicateItems"
         :placeholder="t('fields.predicate.placeholder')"
         searchable
-        v-model="state.predicate"
         @create="onCreatePredicate"
       >
         <template #empty>
@@ -47,10 +47,10 @@
       required
     >
       <UInputMenu
+        v-model="selectedObject"
         :items="entityOptions"
         :placeholder="t('fields.object.placeholder')"
         searchable
-        v-model="selectedObject"
       >
         <template #empty>
           <Empty :message="t('fields.object.empty')" />
@@ -64,11 +64,11 @@
       name="strength"
     >
       <USlider
+        v-model="state.strength"
         :min="0"
         :max="1"
         :step="0.1"
         tooltip
-        v-model="state.strength"
       />
     </UFormField>
 
@@ -78,9 +78,9 @@
       name="metadata"
     >
       <UTextarea
+        v-model="state.metadata"
         :placeholder="t('fields.metadata.placeholder')"
         :rows="4"
-        v-model="state.metadata"
       />
     </UFormField>
 
