@@ -31,6 +31,7 @@
         <i18n-t keypath="fields.predicate.help">
           <template #work>
             <UBadge
+              class="!rounded-md"
               color="neutral"
               :label="t('fields.predicate.helpExamples.work')"
               variant="soft"
@@ -38,6 +39,7 @@
           </template>
           <template #love>
             <UBadge
+              class="!rounded-md"
               color="neutral"
               :label="t('fields.predicate.helpExamples.love')"
               variant="soft"
@@ -45,6 +47,7 @@
           </template>
           <template #travel>
             <UBadge
+              class="!rounded-md"
               color="neutral"
               :label="t('fields.predicate.helpExamples.travel')"
               variant="soft"
@@ -141,10 +144,12 @@ import { z } from "zod"
 import type { RelationData } from "~/types/relations"
 
 interface Props {
+  subjectId?: string
   relation?: RelationData | undefined
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  subjectId: undefined,
   relation: undefined,
 })
 
@@ -183,7 +188,7 @@ const schema = z
 
 // Form state
 const state = reactive({
-  subjectId: props.relation?.subjectId || "",
+  subjectId: props.relation?.subjectId || props.subjectId || "",
   predicate: props.relation?.predicate || "",
   objectId: props.relation?.objectId || "",
   strength: props.relation?.strength ?? 0.5,

@@ -33,11 +33,26 @@
           color="neutral"
           :entity="row.original"
           :show-title="false"
-          variant="ghost"
+          variant="subtle"
+        />
+        <MemoriesObservationsModal
+          color="neutral"
+          :entity-id="row.original.id"
+          icon="i-ph-eyes-fill"
+          :show-title="false"
+          variant="subtle"
+        />
+        <MemoriesRelationsModal
+          color="neutral"
+          :subject-id="row.original.id"
+          icon="i-ph-vector-three"
+          :show-title="false"
+          variant="subtle"
         />
         <MemoriesDeleteSingle
-          type="entity"
           :id="row.original.id"
+          type="entity"
+          variant="subtle"
         />
       </UButtonGroup>
     </template>

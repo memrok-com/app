@@ -20,7 +20,7 @@
       :loading="isDeleting"
       :size="size"
       square
-      :variant="isConfirmingDelete ? 'solid' : 'ghost'"
+      :variant="isConfirmingDelete ? 'solid' : variant"
       @click="handleDeleteClick"
     />
   </UTooltip>
@@ -33,10 +33,12 @@ interface Props {
   id: string
   size?: ButtonProps["size"]
   type: "entity" | "observation" | "relation"
+  variant?: ButtonProps["variant"]
 }
 
 const props = withDefaults(defineProps<Props>(), {
   size: "md",
+  variant: "ghost",
 })
 
 const { t } = useI18n({ useScope: "local" })

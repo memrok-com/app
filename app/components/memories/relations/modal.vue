@@ -10,8 +10,8 @@
       <UButton
         :block="block"
         :color="color"
-        :disabled="!relation && statistics.totalEntities < 1"
-        :icon="relation ? 'i-ph-pencil-simple-fill' : 'i-ph-plus'"
+        :disabled="!relation && statistics.totalEntities < 2"
+        :icon="icon || (relation ? 'i-ph-pencil-simple-fill' : 'i-ph-plus')"
         :label="
           showTitle ? t(relation ? 'update.title' : 'insert.title') : undefined
         "
@@ -24,6 +24,7 @@
     <template #body="{ close }">
       <MemoriesRelationsForm
         :relation="relation"
+        :subject-id="subjectId"
         @close="close"
       />
     </template>
@@ -38,6 +39,8 @@ withDefaults(
   defineProps<{
     block?: ButtonProps["block"]
     color?: ButtonProps["color"]
+    icon?: string
+    subjectId?: string
     relation?: RelationData | undefined
     showTitle?: boolean
     size?: ButtonProps["size"]
@@ -46,6 +49,8 @@ withDefaults(
   {
     block: true,
     color: "primary",
+    icon: undefined,
+    subjectId: undefined,
     relation: undefined,
     showTitle: true,
     size: "md",
@@ -63,7 +68,6 @@ en:
   insert:
     title: Insert Relation
     description: Add a new relation to your memories.
-    tooltip: Insert two entities first
   update:
     title: Update Relation
     description: Modify this relation in your memories.

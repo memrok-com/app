@@ -381,6 +381,14 @@ export const useMemoryStore = defineStore("memory", () => {
         })
       })
 
+      // Find relations to remove before removing them (need the data to update counts)
+      const relationsToRemove = relations.value.filter(
+        (r) => r.subjectId === id || r.objectId === id
+      )
+
+      // Update relation counts on connected entities before removing relations
+      updateRelationCountsForRemovedRelations(relationsToRemove)
+
       // Remove from local store
       entities.value = entities.value.filter((e) => e.id !== id)
 
@@ -748,6 +756,21 @@ export const useMemoryStore = defineStore("memory", () => {
     } finally {
       loading.value.relations.deleting.delete(id)
     }
+  }
+
+  // Helper function to update relation counts when relations are removed
+  const updateRelationCountsForRemovedRelations = (relationsToRemove: RelationData[]): void => {
+    relationsToRemove.forEach(relation => {
+      const subjectEntity = entities.value.find(e => e.id === relation.subjectId)
+      const objectEntity = entities.value.find(e => e.id === relation.objectId)
+      
+      if (subjectEntity) {
+        subjectEntity.relationsCount -= 1
+      }
+      if (objectEntity && objectEntity.id !== subjectEntity?.id) {
+        objectEntity.relationsCount -= 1
+      }
+    })
   }
 
   // Enhanced bulk operations

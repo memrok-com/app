@@ -26,16 +26,19 @@
       />
     </template>
     <template #actions-cell="{ row }">
-      <MemoriesRelationsModal
-        color="neutral"
-        :relation="row.original"
-        :show-title="false"
-        variant="ghost"
-      />
-      <MemoriesDeleteSingle
-        type="relation"
-        :id="row.original.id"
-      />
+      <UButtonGroup>
+        <MemoriesRelationsModal
+          color="neutral"
+          :relation="row.original"
+          :show-title="false"
+          variant="subtle"
+        />
+        <MemoriesDeleteSingle
+          :id="row.original.id"
+          type="relation"
+          variant="subtle"
+        />
+      </UButtonGroup>
     </template>
   </UTable>
 </template>
