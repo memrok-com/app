@@ -1,4 +1,4 @@
-![memrok logo](assets/logo/2025-memrok-logo.svg)
+![memrok logo](app/assets/logo/2025-memrok-logo.svg)
 
 # memrok
 
@@ -17,6 +17,7 @@ memrok is a self-hosted memory system that:
 ## ✨ Key Features
 
 ### 🧠 Memory Management
+
 - **Knowledge Graph Structure** - Entities, relations, and observations like the official MCP memory server
 - **Emotional Context** - Track emotional state when memories are created (happy, sad, frustrated, excited)
 - **Smart Memory Creation** - AI assistants decide what to memorize and structure it appropriately
@@ -25,11 +26,13 @@ memrok is a self-hosted memory system that:
 - **Automatic Deduplication** - Prevent duplicate memories across sessions
 
 ### 🔌 Integrations
+
 - **MCP Server** - Standard Model Context Protocol implementation
 - **Web Interface** - Modern UI for memory management
 - **REST API** - Programmatic access
 
 ### 🚀 Self-Hosting Made Easy
+
 - Single `docker-compose up` deployment
 - Production-ready with Let's Encrypt SSL
 - Modern OIDC authentication via Zitadel
@@ -67,28 +70,31 @@ memrok is a self-hosted memory system that:
 ### Memory Structure (Based on MCP Memory Server)
 
 **Entities**: People, places, concepts, projects
+
 ```json
 {
   "name": "project_alpha",
   "entityType": "project",
   "observations": [
     "deadline is March 2025",
-    "budget is $50k", 
+    "budget is $50k",
     "client seems stressed about timeline"
   ]
 }
 ```
 
 **Relations**: Connections between entities
+
 ```json
 {
-  "from": "john_smith", 
+  "from": "john_smith",
   "to": "project_alpha",
   "relationType": "works_on"
 }
 ```
 
 **Observations**: Facts with emotional context
+
 ```json
 {
   "entityName": "john_smith",
@@ -105,7 +111,7 @@ memrok is a self-hosted memory system that:
 memrok is designed with complete transparency about data flow:
 
 1. **Data Storage**: All memories stored locally on your infrastructure
-2. **Data Processing**: Embedding generation and search happen locally  
+2. **Data Processing**: Embedding generation and search happen locally
 3. **Memory Structure**: Knowledge graph with entities, relations, and emotional observations
 4. **Category-based Sharing**: Control which AI assistants can access which memory categories
 5. **No External Dependencies**: Core functionality works entirely offline
@@ -123,6 +129,7 @@ Example: Configure LM Studio to access all categories, but Claude Desktop only "
 ## 📋 MVP Roadmap
 
 ### Core Features
+
 - [ ] Knowledge graph memory structure (entities, relations, observations)
 - [ ] Emotional context tracking in observations
 - [ ] MCP server with memory tools (create_entities, add_observations, search_memories)
@@ -133,8 +140,9 @@ Example: Configure LM Studio to access all categories, but Claude Desktop only "
 - [ ] Client configuration generator
 
 ### Memory Tools (MCP)
+
 - `create_entities` - Create people, places, concepts
-- `create_relations` - Connect entities with relationships  
+- `create_relations` - Connect entities with relationships
 - `add_observations` - Store facts with emotional context
 - `search_memories` - Semantic search across knowledge graph
 - `open_memories` - Retrieve specific entity clusters
