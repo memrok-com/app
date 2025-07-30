@@ -7,7 +7,7 @@
       orientation="horizontal"
       :ui="{
         title: 'text-balance',
-        description: 'text-balance text-primary',
+        description: 'text-balance text-inherit',
         body: 'hidden md:visible',
       }"
     >
@@ -18,7 +18,7 @@
             ui: { icon: 'text-warning', root: 'bg-inherit size-fit' },
           }"
           :name="t('greeting', { name: user?.userInfo?.given_name })"
-          size="3xl"
+          size="2xl"
         />
       </template>
       <MemrokLogogram class="hidden lg:block max-h-64 xl:max-h-96" />
@@ -66,7 +66,7 @@
             <template #0-description>
               <UButton
                 :label="t('hero.links.assistants')"
-                to="/assistants"
+                :to="`/${locale}/assistants/`"
                 icon="i-ph-head-circuit-fill"
                 size="xl"
               />
@@ -76,44 +76,45 @@
               <UButton
                 icon="i-ph-memory-fill"
                 :label="t('hero.links.memories')"
-                to="/memories"
+                :to="`/${locale}/memories/`"
                 size="xl"
                 variant="outline"
               />
             </template>
-          </UTimeline> </UPageSection
-      ></UPageGrid>
+          </UTimeline>
+        </UPageSection>
+      </UPageGrid>
     </UContainer>
   </UPage>
 </template>
 
 <script setup lang="ts">
-import type { TimelineItem } from "@nuxt/ui"
-const { t } = useI18n({ useScope: "local" })
-const { user } = useOidcAuth()
+import type { TimelineItem } from '@nuxt/ui';
+const { locale, t } = useI18n({ useScope: 'local' });
+const { user } = useOidcAuth();
 
 useHead({
-  title: t("title"),
-})
+  title: t('title'),
+});
 
-const activityItems = ref<TimelineItem[]>([])
+const activityItems = ref<TimelineItem[]>([]);
 
 const startItems = ref<TimelineItem[]>([
   {
-    date: t("gettingStarted.step", { n: 1 }),
-    icon: "i-ph-head-circuit-fill",
-    title: t("gettingStarted.steps.0.title"),
-    description: "description",
-    slot: "0",
+    date: t('gettingStarted.step', { n: 1 }),
+    icon: 'i-ph-head-circuit-fill',
+    title: t('gettingStarted.steps.0.title'),
+    description: 'description',
+    slot: '0',
   },
   {
-    date: t("gettingStarted.step", { n: 2 }),
-    icon: "i-ph-memory-fill",
-    title: t("gettingStarted.steps.1.title"),
-    description: "description",
-    slot: "1",
+    date: t('gettingStarted.step', { n: 2 }),
+    icon: 'i-ph-memory-fill',
+    title: t('gettingStarted.steps.1.title'),
+    description: 'description',
+    slot: '1',
   },
-])
+]);
 </script>
 
 <i18n lang="yaml">
