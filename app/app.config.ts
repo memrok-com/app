@@ -22,6 +22,7 @@ export default defineAppConfig({
       close: "i-ph-x",
       dark: "i-ph-moon-fill",
       external: "i-ph-arrow-line-up-right-bold",
+      menu: "i-ph-list",
       light: "i-ph-sun-fill",
     },
     input: {
@@ -49,6 +50,18 @@ export default defineAppConfig({
     pageAccordion: {
       slots: {
         trigger: "cursor-pointer",
+      },
+    },
+    pageHero: {
+      slots: {
+        title: "text-balance",
+        description: "text-balance",
+      },
+    },
+    pageSection: {
+      slots: {
+        title: "text-balance",
+        description: "text-balance",
       },
     },
   },

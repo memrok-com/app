@@ -1,4 +1,5 @@
 <template>
+  <NuxtLoadingIndicator />
   <UApp :locale="locales[locale]">
     <NuxtRouteAnnouncer />
     <NuxtLayout />

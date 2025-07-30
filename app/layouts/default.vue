@@ -1,6 +1,5 @@
 <template>
-  <UMain>
-    <NuxtLoadingIndicator color="indigo-500 dark:indigo-400" />
+  <div>
     <UHeader>
       <template #left>
         <ULink :to="`/${locale}/`">
@@ -51,9 +50,23 @@
           </template>
         </UDropdownMenu>
       </template>
+      <template #body>
+        <UNavigationMenu
+          :items="items"
+          highlight
+          orientation="vertical"
+        />
+      </template>
     </UHeader>
-    <NuxtPage />
-  </UMain>
+    <UMain>
+      <NuxtPage />
+    </UMain>
+    <UFooter>
+      <USeparator>
+        <MemrokLogogram class="max-h-4" />
+      </USeparator>
+    </UFooter>
+  </div>
 </template>
 
 <script setup lang="ts">

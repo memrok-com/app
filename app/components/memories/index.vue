@@ -45,7 +45,7 @@
         <MemoriesRelationsModal
           color="neutral"
           :subject-id="row.original.id"
-          icon="i-ph-vector-three"
+          icon="i-ph-line-segment"
           :show-title="false"
           variant="subtle"
         />

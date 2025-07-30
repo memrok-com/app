@@ -39,7 +39,7 @@
           </UPageCard>
 
           <UPageCard
-            icon="i-ph-vector-three-fill"
+            icon="i-ph-line-segment-fill"
             :title="t('relations.title')"
             :description="t('relations.description')"
             spotlight
