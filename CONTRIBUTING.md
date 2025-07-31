@@ -24,6 +24,17 @@ bun run setup  # Automated setup: generates certs, starts infrastructure, sets u
 bun run dev    # Start development server
 ```
 
+### Windows Docker Desktop Known Issue
+
+**Issue**: Docker Desktop on Windows doesn't properly respect PostgreSQL health check timing during initial setup, causing `bun run setup` to fail on the first run.
+
+**Workaround**: Run the setup command twice:
+
+```bash
+bun run setup  # May fail during infra:start step due to timing issue
+bun run setup  # Should succeed on second run (PostgreSQL volume exists)
+```
+
 **Access URLs:**
 
 - https://app.dev.memrok.com - memrok app

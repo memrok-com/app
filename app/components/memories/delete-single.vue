@@ -220,38 +220,38 @@ const recreateItem = async (originalItem: Record<string, unknown>) => {
   switch (props.type) {
     case "entity":
       await memoryStore.createEntity({
-        name: originalItem.name,
-        type: originalItem.type,
-        metadata: originalItem.metadata || undefined,
+        name: originalItem.name as string,
+        type: originalItem.type as string,
+        metadata: originalItem.metadata as Record<string, unknown> | undefined,
         createdByAssistantName:
-          originalItem.createdByAssistantName || undefined,
+          originalItem.createdByAssistantName as string | undefined,
         createdByAssistantType:
-          originalItem.createdByAssistantType || undefined,
+          originalItem.createdByAssistantType as string | undefined,
       })
       break
     case "observation":
       await memoryStore.createObservation({
-        entityId: originalItem.entityId,
-        content: originalItem.content,
-        source: originalItem.source || undefined,
-        metadata: originalItem.metadata || undefined,
+        entityId: originalItem.entityId as string,
+        content: originalItem.content as string,
+        source: originalItem.source as string | undefined,
+        metadata: originalItem.metadata as Record<string, unknown> | undefined,
         createdByAssistantName:
-          originalItem.createdByAssistantName || undefined,
+          originalItem.createdByAssistantName as string | undefined,
         createdByAssistantType:
-          originalItem.createdByAssistantType || undefined,
+          originalItem.createdByAssistantType as string | undefined,
       })
       break
     case "relation":
       await memoryStore.createRelation({
-        subjectId: originalItem.subjectId,
-        predicate: originalItem.predicate,
-        objectId: originalItem.objectId,
-        strength: originalItem.strength || undefined,
-        metadata: originalItem.metadata || undefined,
+        subjectId: originalItem.subjectId as string,
+        predicate: originalItem.predicate as string,
+        objectId: originalItem.objectId as string,
+        strength: originalItem.strength as number | undefined,
+        metadata: originalItem.metadata as Record<string, unknown> | undefined,
         createdByAssistantName:
-          originalItem.createdByAssistantName || undefined,
+          originalItem.createdByAssistantName as string | undefined,
         createdByAssistantType:
-          originalItem.createdByAssistantType || undefined,
+          originalItem.createdByAssistantType as string | undefined,
       })
       break
   }

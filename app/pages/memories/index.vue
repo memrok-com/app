@@ -9,11 +9,18 @@
       <UPageBody v-auto-animate>
         <UPageGrid>
           <UPageCard
-            icon="i-ph-squares-four-fill"
             :title="t('entities.title')"
             :description="t('entities.description')"
             spotlight
           >
+            <template #leading>
+              <UIcon
+                class="text-primary"
+                name="i-ph-squares-four-fill"
+                size="32"
+              />
+            </template>
+
             <MemoriesEntitiesModal size="lg" />
 
             <template #footer>
@@ -24,11 +31,18 @@
           </UPageCard>
 
           <UPageCard
-            icon="i-ph-eyes-fill"
             :title="t('observations.title')"
             :description="t('observations.description')"
             spotlight
           >
+            <template #leading>
+              <UIcon
+                class="text-primary"
+                name="i-ph-eyes-fill"
+                size="32"
+              />
+            </template>
+
             <MemoriesObservationsModal size="lg" />
 
             <template #footer>
@@ -39,11 +53,18 @@
           </UPageCard>
 
           <UPageCard
-            icon="i-ph-vector-three-fill"
             :title="t('relations.title')"
             :description="t('relations.description')"
             spotlight
           >
+            <template #leading>
+              <UIcon
+                class="text-primary"
+                name="i-ph-line-segment-fill"
+                size="32"
+              />
+            </template>
+
             <MemoriesRelationsModal size="lg" />
 
             <template #footer>
@@ -77,7 +98,7 @@
                 class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
               >
                 <div class="text-sm">
-                  {{ t("danger.erase") }}
+                  {{ t('danger.erase') }}
                 </div>
 
                 <MemoriesDeleteAll />
@@ -91,19 +112,19 @@
 </template>
 
 <script setup lang="ts">
-const { t, n } = useI18n({ useScope: "local" })
-const memoryStore = useMemoryStore()
-const { statistics } = storeToRefs(memoryStore)
+const { t, n } = useI18n({ useScope: 'local' });
+const memoryStore = useMemoryStore();
+const { statistics } = storeToRefs(memoryStore);
 
 try {
-  await memoryStore.initialize()
+  await memoryStore.initialize();
 } catch (error) {
-  console.error("Failed to initialize memory store:", error)
+  console.error('Failed to initialize memory store:', error);
 }
 
 useHead({
-  title: t("title"),
-})
+  title: t('title'),
+});
 </script>
 
 <i18n lang="yaml">

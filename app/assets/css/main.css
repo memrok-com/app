@@ -1,13 +1,22 @@
-@import "tailwindcss";
-@import "@nuxt/ui-pro";
+@import 'tailwindcss';
+@import '@nuxt/ui-pro';
 
 @theme static {
-  --font-display: "DM Serif Display", "serif";
-  --font-mono: "DM Mono", "mono";
-  --font-sans: "DM Sans", "sans-serif";
-  --font-serif: "DM Serif Text", "serif";
+  --font-display: 'DM Serif Display', 'serif';
+  --font-mono: 'DM Mono', 'mono';
+  --font-sans: 'DM Sans', 'sans-serif';
+  --font-serif: 'DM Serif Text', 'serif';
 }
 
 body {
   @apply selection:bg-primary-200 selection:text-primary-900;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  @apply font-[900];
 }
