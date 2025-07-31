@@ -45,7 +45,7 @@
         <MemoriesRelationsModal
           color="neutral"
           :subject-id="row.original.id"
-          icon="i-ph-line-segment"
+          icon="i-ph-line-segment-fill"
           :show-title="false"
           variant="subtle"
         />
@@ -70,14 +70,14 @@
 </template>
 
 <script setup lang="ts">
-import { h, resolveComponent } from "vue"
-import { format } from "@formkit/tempo"
-import type { TableColumn } from "@nuxt/ui"
-import type { CellContext } from "@tanstack/vue-table"
-import type { EntityWithCounts } from "~/types/entities"
+import { h, resolveComponent } from 'vue'
+import { format } from '@formkit/tempo'
+import type { TableColumn } from '@nuxt/ui'
+import type { CellContext } from '@tanstack/vue-table'
+import type { EntityWithCounts } from '~/types/entities'
 
-const UButton = resolveComponent("UButton")
-const { t, n } = useI18n({ useScope: "local" })
+const UButton = resolveComponent('UButton')
+const { t, n } = useI18n({ useScope: 'local' })
 const memoryStore = useMemoryStore()
 
 // Use storeToRefs to ensure proper reactivity with Pinia store
@@ -85,44 +85,44 @@ const { entities } = storeToRefs(memoryStore)
 
 const columns: TableColumn<EntityWithCounts>[] = [
   {
-    id: "expand",
+    id: 'expand',
     cell: ({ row }) =>
       h(UButton, {
-        color: "neutral",
-        variant: "ghost",
-        icon: "i-ph-caret-down",
+        color: 'neutral',
+        variant: 'ghost',
+        icon: 'i-ph-caret-down',
         square: true,
-        "aria-label": "Expand",
+        'aria-label': 'Expand',
         ui: {
           leadingIcon: [
-            "transition-transform",
-            row.getIsExpanded() ? "duration-200 rotate-180" : "",
+            'transition-transform',
+            row.getIsExpanded() ? 'duration-200 rotate-180' : '',
           ],
         },
         onClick: () => row.toggleExpanded(),
       }),
   },
   {
-    accessorKey: "name",
-    header: t("columns.name"),
+    accessorKey: 'name',
+    header: t('columns.name'),
     meta: {
       class: {
-        th: "w-full",
-        td: "font-bold w-full",
+        th: 'w-full',
+        td: 'font-bold w-full',
       },
     },
   },
   {
-    accessorKey: "type",
-    header: t("columns.type"),
+    accessorKey: 'type',
+    header: t('columns.type'),
   },
   {
-    accessorKey: "observationsCount",
-    header: t("columns.observations"),
+    accessorKey: 'observationsCount',
+    header: t('columns.observations'),
     meta: {
       class: {
-        td: "font-mono text-end",
-        th: "text-end",
+        td: 'font-mono text-end',
+        th: 'text-end',
       },
     },
     cell: ({ row }: CellContext<EntityWithCounts, unknown>) => {
@@ -130,12 +130,12 @@ const columns: TableColumn<EntityWithCounts>[] = [
     },
   },
   {
-    accessorKey: "relationsCount",
-    header: t("columns.relations"),
+    accessorKey: 'relationsCount',
+    header: t('columns.relations'),
     meta: {
       class: {
-        td: "font-mono text-end",
-        th: "text-end",
+        td: 'font-mono text-end',
+        th: 'text-end',
       },
     },
     cell: ({ row }: CellContext<EntityWithCounts, unknown>) => {
@@ -143,21 +143,21 @@ const columns: TableColumn<EntityWithCounts>[] = [
     },
   },
   {
-    accessorKey: "creator",
-    header: t("columns.creator"),
+    accessorKey: 'creator',
+    header: t('columns.creator'),
   },
   {
-    accessorKey: "createdAt",
-    header: t("columns.created"),
+    accessorKey: 'createdAt',
+    header: t('columns.created'),
     cell: ({ row }: CellContext<EntityWithCounts, unknown>) => {
       return format(new Date(row.original.createdAt), {
-        date: "medium",
-        time: "short",
+        date: 'medium',
+        time: 'short',
       })
     },
   },
   {
-    id: "actions",
+    id: 'actions',
   },
 ]
 </script>

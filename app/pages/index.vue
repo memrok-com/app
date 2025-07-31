@@ -38,14 +38,34 @@
               size="32"
             />
           </template>
+
+          <UTimeline
+            v-if="!initialized"
+            class="mx-auto"
+            :items="[{ date: '1' }, { date: '1' }, { date: '1' }]"
+            :ui="{
+              wrapper: 'space-y-1.5',
+              indicator: 'animate-pulse',
+              separator: 'animate-pulse',
+            }"
+          >
+            <template #date>
+              <USkeleton class="rounded h-[20px] w-[150px]" />
+            </template>
+            <template #title>
+              <USkeleton class="rounded h-[20px] w-[250px]" />
+            </template>
+            <template #description>
+              <USkeleton class="rounded h-[20px] w-[200px]" />
+            </template>
+          </UTimeline>
+
           <EmptyState
-            v-if="
-              !memoryStore.loading.initializing && activityItems.length === 0
-            "
+            v-else-if="activityItems.length === 0"
             :message="t('recentActivity.empty')"
           />
           <UTimeline
-            v-else-if="!memoryStore.loading.initializing"
+            v-else
             class="mx-auto"
             color="neutral"
             :items="activityItems"
@@ -104,8 +124,7 @@ import type { Activity } from '~/stores/memory'
 const { locale, t } = useI18n({ useScope: 'local' })
 const { user } = useOidcAuth()
 const memoryStore = useMemoryStore()
-const { recentActivities } = storeToRefs(memoryStore)
-
+const { initialized, recentActivities } = storeToRefs(memoryStore)
 useHead({
   title: t('title'),
 })
@@ -165,7 +184,7 @@ const activityItems = computed<TimelineItem[]>(() => {
         title = t('recentActivity.observation', {
           entity: activity.entityName || t('recentActivity.unknownEntity'),
         })
-        description = t('recentActivity.updatedBy', {
+        description = t('recentActivity.createdBy', {
           creator:
             activity.creatorType === 'user'
               ? t('recentActivity.you')
@@ -179,7 +198,7 @@ const activityItems = computed<TimelineItem[]>(() => {
           predicate: activity.predicate,
           to: activity.relatedEntityName || t('recentActivity.unknownEntity'),
         })
-        description = t('recentActivity.updatedBy', {
+        description = t('recentActivity.createdBy', {
           creator:
             activity.creatorType === 'user'
               ? t('recentActivity.you')

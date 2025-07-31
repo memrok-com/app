@@ -94,6 +94,7 @@ export const useMemoryStore = defineStore('memory', () => {
   const observations = ref<ObservationData[]>([])
   const relations = ref<RelationData[]>([])
   const errors = ref<string[]>([])
+  const initialized = ref(false)
 
   // Enhanced loading states
   const loading = ref<LoadingStates>({
@@ -213,6 +214,7 @@ export const useMemoryStore = defineStore('memory', () => {
         fetchObservations(),
         fetchRelations(),
       ])
+      initialized.value = true
     } catch (err) {
       const message = getUserFriendlyErrorMessage('Initialization', err)
       addError(message)
@@ -938,6 +940,7 @@ export const useMemoryStore = defineStore('memory', () => {
     relations: computed(() => relations.value),
     errors: computed(() => errors.value),
     loading: computed(() => loading.value),
+    initialized: computed(() => initialized.value),
 
     // Computed
     canCreateObservations,
