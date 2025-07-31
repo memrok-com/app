@@ -1,11 +1,11 @@
-import { defineStore } from "pinia"
-import { ref, computed } from "vue"
-import type { EntityWithCounts, EntitiesApiResponse } from "../types/entities"
+import { defineStore } from 'pinia'
+import { ref, computed } from 'vue'
+import type { EntityWithCounts, EntitiesApiResponse } from '../types/entities'
 import type {
   ObservationData,
   ObservationsApiResponse,
-} from "../types/observations"
-import type { RelationData, RelationsApiResponse } from "../types/relations"
+} from '../types/observations'
+import type { RelationData, RelationsApiResponse } from '../types/relations'
 import {
   validateEntityName,
   validateEntityType,
@@ -14,11 +14,27 @@ import {
   validateAssistantName,
   sanitizeMetadata,
   validateStrength,
-} from "../utils/validation"
-import {
-  getUserFriendlyErrorMessage,
-  withRetry,
-} from "../utils/security"
+} from '../utils/validation'
+import { getUserFriendlyErrorMessage, withRetry } from '../utils/security'
+
+// Export activity types for component usage
+export type ActivityType =
+  | 'entity_created'
+  | 'entity_updated'
+  | 'observation_created'
+  | 'relation_created'
+
+export interface Activity {
+  timestamp: Date
+  type: ActivityType
+  entityId: string
+  entityName?: string
+  entityType?: string
+  predicate?: string
+  relatedEntityName?: string
+  creator?: string
+  creatorType?: string
+}
 
 // Enhanced loading states interface
 interface LoadingStates {
@@ -72,7 +88,7 @@ interface CreateRelationInput {
   createdByAssistantType?: string
 }
 
-export const useMemoryStore = defineStore("memory", () => {
+export const useMemoryStore = defineStore('memory', () => {
   // State
   const entities = ref<EntityWithCounts[]>([])
   const observations = ref<ObservationData[]>([])
@@ -198,7 +214,7 @@ export const useMemoryStore = defineStore("memory", () => {
         fetchRelations(),
       ])
     } catch (err) {
-      const message = getUserFriendlyErrorMessage("Initialization", err)
+      const message = getUserFriendlyErrorMessage('Initialization', err)
       addError(message)
       throw new Error(message)
     } finally {
@@ -215,13 +231,13 @@ export const useMemoryStore = defineStore("memory", () => {
     try {
       const api = useApi()
       const response = await withRetry(async () => {
-        return await api<EntitiesApiResponse>("/api/entities", {
+        return await api<EntitiesApiResponse>('/api/entities', {
           query: { limit: 1000 },
         })
       })
       entities.value = response.entities
     } catch (err) {
-      const message = getUserFriendlyErrorMessage("Fetch entities", err)
+      const message = getUserFriendlyErrorMessage('Fetch entities', err)
       addError(message)
       throw new Error(message)
     } finally {
@@ -233,7 +249,7 @@ export const useMemoryStore = defineStore("memory", () => {
     entityData: CreateEntityInput
   ): Promise<EntityWithCounts> => {
     if (loading.value.entities.creating) {
-      throw new Error("Entity creation already in progress")
+      throw new Error('Entity creation already in progress')
     }
 
     // Input validation and sanitization
@@ -254,10 +270,13 @@ export const useMemoryStore = defineStore("memory", () => {
     // Create optimistic entity for immediate UI feedback
     const optimisticEntity: EntityWithCounts = {
       id: `temp-${Date.now()}`,
-      userId: "current-user",
+      userId: 'current-user',
       type: validatedData.type,
       name: validatedData.name,
-      metadata: validatedData.metadata || null,
+      metadata: (validatedData.metadata || null) as Record<
+        string,
+        unknown
+      > | null,
       createdByUser: null,
       createdByAssistantName: validatedData.createdByAssistantName || null,
       createdByAssistantType: validatedData.createdByAssistantType || null,
@@ -282,8 +301,8 @@ export const useMemoryStore = defineStore("memory", () => {
     try {
       const api = useApi()
       const response = await withRetry(async () => {
-        return await api<{ entity: EntityWithCounts }>("/api/entities", {
-          method: "POST",
+        return await api<{ entity: EntityWithCounts }>('/api/entities', {
+          method: 'POST',
           body: validatedData,
         })
       })
@@ -302,7 +321,7 @@ export const useMemoryStore = defineStore("memory", () => {
       entities.value = entities.value.filter(
         (e) => e.id !== optimisticEntity.id
       )
-      const message = getUserFriendlyErrorMessage("Create entity", err)
+      const message = getUserFriendlyErrorMessage('Create entity', err)
       addError(message)
       throw new Error(message)
     } finally {
@@ -319,11 +338,15 @@ export const useMemoryStore = defineStore("memory", () => {
     }
   ): Promise<EntityWithCounts> => {
     if (loading.value.entities.updating.has(id)) {
-      throw new Error("Entity update already in progress")
+      throw new Error('Entity update already in progress')
     }
 
     // Input validation and sanitization
-    const validatedUpdates: Partial<{ name: string; type: string; metadata: Record<string, unknown> | null }> = {}
+    const validatedUpdates: Partial<{
+      name: string
+      type: string
+      metadata: Record<string, unknown> | null
+    }> = {}
     if (updates.name !== undefined) {
       validatedUpdates.name = validateEntityName(updates.name)
     }
@@ -332,7 +355,7 @@ export const useMemoryStore = defineStore("memory", () => {
     }
     if (updates.metadata !== undefined) {
       validatedUpdates.metadata = updates.metadata
-        ? sanitizeMetadata(updates.metadata) as Record<string, unknown>
+        ? (sanitizeMetadata(updates.metadata) as Record<string, unknown>)
         : null
     }
 
@@ -341,13 +364,10 @@ export const useMemoryStore = defineStore("memory", () => {
     try {
       const api = useApi()
       const response = await withRetry(async () => {
-        return await api<{ entity: EntityWithCounts }>(
-          `/api/entities/${id}`,
-          {
-            method: "PUT",
-            body: validatedUpdates,
-          }
-        )
+        return await api<{ entity: EntityWithCounts }>(`/api/entities/${id}`, {
+          method: 'PUT',
+          body: validatedUpdates,
+        })
       })
 
       // Update in local store
@@ -358,7 +378,7 @@ export const useMemoryStore = defineStore("memory", () => {
 
       return response.entity
     } catch (err) {
-      const message = getUserFriendlyErrorMessage("Update entity", err)
+      const message = getUserFriendlyErrorMessage('Update entity', err)
       addError(message)
       throw new Error(message)
     } finally {
@@ -368,7 +388,7 @@ export const useMemoryStore = defineStore("memory", () => {
 
   const deleteEntity = async (id: string): Promise<void> => {
     if (loading.value.entities.deleting.has(id)) {
-      throw new Error("Entity deletion already in progress")
+      throw new Error('Entity deletion already in progress')
     }
 
     loading.value.entities.deleting.add(id)
@@ -377,7 +397,7 @@ export const useMemoryStore = defineStore("memory", () => {
       const api = useApi()
       await withRetry(async () => {
         return await api(`/api/entities/${id}`, {
-          method: "DELETE",
+          method: 'DELETE',
         })
       })
 
@@ -397,9 +417,8 @@ export const useMemoryStore = defineStore("memory", () => {
       relations.value = relations.value.filter(
         (r) => r.subjectId !== id && r.objectId !== id
       )
-
     } catch (err) {
-      const message = getUserFriendlyErrorMessage("Delete entity", err)
+      const message = getUserFriendlyErrorMessage('Delete entity', err)
       addError(message)
       throw new Error(message)
     } finally {
@@ -416,13 +435,13 @@ export const useMemoryStore = defineStore("memory", () => {
     try {
       const api = useApi()
       const response = await withRetry(async () => {
-        return await api<ObservationsApiResponse>("/api/observations", {
+        return await api<ObservationsApiResponse>('/api/observations', {
           query: { limit: 1000 },
         })
       })
       observations.value = response.observations
     } catch (err) {
-      const message = getUserFriendlyErrorMessage("Fetch observations", err)
+      const message = getUserFriendlyErrorMessage('Fetch observations', err)
       addError(message)
       throw new Error(message)
     } finally {
@@ -434,7 +453,7 @@ export const useMemoryStore = defineStore("memory", () => {
     observationData: CreateObservationInput
   ): Promise<ObservationData> => {
     if (loading.value.observations.creating) {
-      throw new Error("Observation creation already in progress")
+      throw new Error('Observation creation already in progress')
     }
 
     // Input validation and sanitization
@@ -457,9 +476,9 @@ export const useMemoryStore = defineStore("memory", () => {
       const api = useApi()
       const response = await withRetry(async () => {
         return await api<{ observation: ObservationData }>(
-          "/api/observations",
+          '/api/observations',
           {
-            method: "POST",
+            method: 'POST',
             body: validatedData,
           }
         )
@@ -467,16 +486,18 @@ export const useMemoryStore = defineStore("memory", () => {
 
       // Add to local store
       observations.value.push(response.observation)
-      
+
       // Update observation count for the related entity
-      const entity = entities.value.find(e => e.id === response.observation.entityId)
+      const entity = entities.value.find(
+        (e) => e.id === response.observation.entityId
+      )
       if (entity) {
         entity.observationsCount += 1
       }
-      
+
       return response.observation
     } catch (err) {
-      const message = getUserFriendlyErrorMessage("Create observation", err)
+      const message = getUserFriendlyErrorMessage('Create observation', err)
       addError(message)
       throw new Error(message)
     } finally {
@@ -493,11 +514,15 @@ export const useMemoryStore = defineStore("memory", () => {
     }
   ): Promise<ObservationData> => {
     if (loading.value.observations.updating.has(id)) {
-      throw new Error("Observation update already in progress")
+      throw new Error('Observation update already in progress')
     }
 
     // Input validation and sanitization
-    const validatedUpdates: Partial<{ content: string; source: string | null; metadata: Record<string, unknown> | null }> = {}
+    const validatedUpdates: Partial<{
+      content: string
+      source: string | null
+      metadata: Record<string, unknown> | null
+    }> = {}
     if (updates.content !== undefined) {
       validatedUpdates.content = validateObservationContent(updates.content)
     }
@@ -506,7 +531,7 @@ export const useMemoryStore = defineStore("memory", () => {
     }
     if (updates.metadata !== undefined) {
       validatedUpdates.metadata = updates.metadata
-        ? sanitizeMetadata(updates.metadata) as Record<string, unknown>
+        ? (sanitizeMetadata(updates.metadata) as Record<string, unknown>)
         : null
     }
 
@@ -518,7 +543,7 @@ export const useMemoryStore = defineStore("memory", () => {
         return await api<{ observation: ObservationData }>(
           `/api/observations/${id}`,
           {
-            method: "PUT",
+            method: 'PUT',
             body: validatedUpdates,
           }
         )
@@ -532,7 +557,7 @@ export const useMemoryStore = defineStore("memory", () => {
 
       return response.observation
     } catch (err) {
-      const message = getUserFriendlyErrorMessage("Update observation", err)
+      const message = getUserFriendlyErrorMessage('Update observation', err)
       addError(message)
       throw new Error(message)
     } finally {
@@ -542,11 +567,11 @@ export const useMemoryStore = defineStore("memory", () => {
 
   const deleteObservation = async (id: string): Promise<void> => {
     if (loading.value.observations.deleting.has(id)) {
-      throw new Error("Observation deletion already in progress")
+      throw new Error('Observation deletion already in progress')
     }
 
     // Find the observation before deleting to update counts
-    const observationToDelete = observations.value.find(o => o.id === id)
+    const observationToDelete = observations.value.find((o) => o.id === id)
 
     loading.value.observations.deleting.add(id)
 
@@ -554,13 +579,15 @@ export const useMemoryStore = defineStore("memory", () => {
       const api = useApi()
       await withRetry(async () => {
         return await api(`/api/observations/${id}`, {
-          method: "DELETE",
+          method: 'DELETE',
         })
       })
 
       // Update observation count for the related entity before removing the observation
       if (observationToDelete) {
-        const entity = entities.value.find(e => e.id === observationToDelete.entityId)
+        const entity = entities.value.find(
+          (e) => e.id === observationToDelete.entityId
+        )
         if (entity) {
           entity.observationsCount -= 1
         }
@@ -568,9 +595,8 @@ export const useMemoryStore = defineStore("memory", () => {
 
       // Remove from local store
       observations.value = observations.value.filter((o) => o.id !== id)
-
     } catch (err) {
-      const message = getUserFriendlyErrorMessage("Delete observation", err)
+      const message = getUserFriendlyErrorMessage('Delete observation', err)
       addError(message)
       throw new Error(message)
     } finally {
@@ -587,13 +613,13 @@ export const useMemoryStore = defineStore("memory", () => {
     try {
       const api = useApi()
       const response = await withRetry(async () => {
-        return await api<RelationsApiResponse>("/api/relations", {
+        return await api<RelationsApiResponse>('/api/relations', {
           query: { limit: 1000 },
         })
       })
       relations.value = response.relations
     } catch (err) {
-      const message = getUserFriendlyErrorMessage("Fetch relations", err)
+      const message = getUserFriendlyErrorMessage('Fetch relations', err)
       addError(message)
       throw new Error(message)
     } finally {
@@ -605,7 +631,7 @@ export const useMemoryStore = defineStore("memory", () => {
     relationData: CreateRelationInput
   ): Promise<RelationData> => {
     if (loading.value.relations.creating) {
-      throw new Error("Relation creation already in progress")
+      throw new Error('Relation creation already in progress')
     }
 
     // Input validation and sanitization
@@ -628,30 +654,33 @@ export const useMemoryStore = defineStore("memory", () => {
     try {
       const api = useApi()
       const response = await withRetry(async () => {
-        return await api<{ relation: RelationData }>("/api/relations", {
-          method: "POST",
+        return await api<{ relation: RelationData }>('/api/relations', {
+          method: 'POST',
           body: validatedData,
         })
       })
 
       // Add to local store
       relations.value.push(response.relation)
-      
+
       // Update relation counts for affected entities
-      const subjectEntity = entities.value.find(e => e.id === response.relation.subjectId)
-      const objectEntity = entities.value.find(e => e.id === response.relation.objectId)
-      
+      const subjectEntity = entities.value.find(
+        (e) => e.id === response.relation.subjectId
+      )
+      const objectEntity = entities.value.find(
+        (e) => e.id === response.relation.objectId
+      )
+
       if (subjectEntity) {
         subjectEntity.relationsCount += 1
       }
       if (objectEntity && objectEntity.id !== subjectEntity?.id) {
         objectEntity.relationsCount += 1
       }
-      
-      
+
       return response.relation
     } catch (err) {
-      const message = getUserFriendlyErrorMessage("Create relation", err)
+      const message = getUserFriendlyErrorMessage('Create relation', err)
       addError(message)
       throw new Error(message)
     } finally {
@@ -668,11 +697,15 @@ export const useMemoryStore = defineStore("memory", () => {
     }
   ): Promise<RelationData> => {
     if (loading.value.relations.updating.has(id)) {
-      throw new Error("Relation update already in progress")
+      throw new Error('Relation update already in progress')
     }
 
     // Input validation and sanitization
-    const validatedUpdates: Partial<{ predicate: string; strength: number | null; metadata: Record<string, unknown> | null }> = {}
+    const validatedUpdates: Partial<{
+      predicate: string
+      strength: number | null
+      metadata: Record<string, unknown> | null
+    }> = {}
     if (updates.predicate !== undefined) {
       validatedUpdates.predicate = validatePredicate(updates.predicate)
     }
@@ -681,7 +714,7 @@ export const useMemoryStore = defineStore("memory", () => {
     }
     if (updates.metadata !== undefined) {
       validatedUpdates.metadata = updates.metadata
-        ? sanitizeMetadata(updates.metadata) as Record<string, unknown>
+        ? (sanitizeMetadata(updates.metadata) as Record<string, unknown>)
         : null
     }
 
@@ -690,13 +723,10 @@ export const useMemoryStore = defineStore("memory", () => {
     try {
       const api = useApi()
       const response = await withRetry(async () => {
-        return await api<{ relation: RelationData }>(
-          `/api/relations/${id}`,
-          {
-            method: "PUT",
-            body: validatedUpdates,
-          }
-        )
+        return await api<{ relation: RelationData }>(`/api/relations/${id}`, {
+          method: 'PUT',
+          body: validatedUpdates,
+        })
       })
 
       // Update in local store
@@ -707,7 +737,7 @@ export const useMemoryStore = defineStore("memory", () => {
 
       return response.relation
     } catch (err) {
-      const message = getUserFriendlyErrorMessage("Update relation", err)
+      const message = getUserFriendlyErrorMessage('Update relation', err)
       addError(message)
       throw new Error(message)
     } finally {
@@ -717,27 +747,31 @@ export const useMemoryStore = defineStore("memory", () => {
 
   const deleteRelation = async (id: string): Promise<void> => {
     if (loading.value.relations.deleting.has(id)) {
-      throw new Error("Relation deletion already in progress")
+      throw new Error('Relation deletion already in progress')
     }
 
     // Find the relation before deleting to update counts
-    const relationToDelete = relations.value.find(r => r.id === id)
-    
+    const relationToDelete = relations.value.find((r) => r.id === id)
+
     loading.value.relations.deleting.add(id)
 
     try {
       const api = useApi()
       await withRetry(async () => {
         return await api(`/api/relations/${id}`, {
-          method: "DELETE",
+          method: 'DELETE',
         })
       })
 
       // Update relation counts for affected entities before removing the relation
       if (relationToDelete) {
-        const subjectEntity = entities.value.find(e => e.id === relationToDelete.subjectId)
-        const objectEntity = entities.value.find(e => e.id === relationToDelete.objectId)
-        
+        const subjectEntity = entities.value.find(
+          (e) => e.id === relationToDelete.subjectId
+        )
+        const objectEntity = entities.value.find(
+          (e) => e.id === relationToDelete.objectId
+        )
+
         if (subjectEntity) {
           subjectEntity.relationsCount -= 1
         }
@@ -748,9 +782,8 @@ export const useMemoryStore = defineStore("memory", () => {
 
       // Remove from local store
       relations.value = relations.value.filter((r) => r.id !== id)
-
     } catch (err) {
-      const message = getUserFriendlyErrorMessage("Delete relation", err)
+      const message = getUserFriendlyErrorMessage('Delete relation', err)
       addError(message)
       throw new Error(message)
     } finally {
@@ -759,11 +792,17 @@ export const useMemoryStore = defineStore("memory", () => {
   }
 
   // Helper function to update relation counts when relations are removed
-  const updateRelationCountsForRemovedRelations = (relationsToRemove: RelationData[]): void => {
-    relationsToRemove.forEach(relation => {
-      const subjectEntity = entities.value.find(e => e.id === relation.subjectId)
-      const objectEntity = entities.value.find(e => e.id === relation.objectId)
-      
+  const updateRelationCountsForRemovedRelations = (
+    relationsToRemove: RelationData[]
+  ): void => {
+    relationsToRemove.forEach((relation) => {
+      const subjectEntity = entities.value.find(
+        (e) => e.id === relation.subjectId
+      )
+      const objectEntity = entities.value.find(
+        (e) => e.id === relation.objectId
+      )
+
       if (subjectEntity) {
         subjectEntity.relationsCount -= 1
       }
@@ -776,7 +815,7 @@ export const useMemoryStore = defineStore("memory", () => {
   // Enhanced bulk operations
   const eraseAllMemories = async (): Promise<void> => {
     if (loading.value.bulkOperations) {
-      throw new Error("Bulk operation already in progress")
+      throw new Error('Bulk operation already in progress')
     }
 
     loading.value.bulkOperations = true
@@ -784,8 +823,8 @@ export const useMemoryStore = defineStore("memory", () => {
     try {
       const api = useApi()
       await withRetry(async () => {
-        return await api("/api/memories", {
-          method: "DELETE",
+        return await api('/api/memories', {
+          method: 'DELETE',
         })
       })
 
@@ -793,9 +832,8 @@ export const useMemoryStore = defineStore("memory", () => {
       entities.value = []
       observations.value = []
       relations.value = []
-
     } catch (err) {
-      const message = getUserFriendlyErrorMessage("Erase all memories", err)
+      const message = getUserFriendlyErrorMessage('Erase all memories', err)
       addError(message)
       throw new Error(message)
     } finally {
@@ -820,6 +858,78 @@ export const useMemoryStore = defineStore("memory", () => {
     return relationsByPredicate.value.get(predicate) || []
   }
 
+  // Recent activities computed property for the homepage - returns raw data
+  const recentActivities = computed<Activity[]>(() => {
+    const activities: Activity[] = []
+
+    // Add entity creation and update activities
+    entities.value.forEach((entity) => {
+      activities.push({
+        timestamp: new Date(entity.createdAt),
+        type: 'entity_created',
+        entityId: entity.id,
+        entityName: entity.name,
+        entityType: entity.type,
+        creator:
+          entity.createdByAssistantName || entity.createdByUser || 'User',
+        creatorType: entity.createdByAssistantType || 'user',
+      })
+
+      // Add update activity if entity was updated after creation
+      if (entity.updatedAt !== entity.createdAt) {
+        activities.push({
+          timestamp: new Date(entity.updatedAt),
+          type: 'entity_updated',
+          entityId: entity.id,
+          entityName: entity.name,
+          entityType: entity.type,
+          creator:
+            entity.updatedByAssistantName || entity.updatedByUser || 'User',
+          creatorType: entity.updatedByAssistantType || 'user',
+        })
+      }
+    })
+
+    // Add observation activities
+    observations.value.forEach((observation) => {
+      const entity = entitiesById.value.get(observation.entityId)
+      activities.push({
+        timestamp: new Date(observation.createdAt),
+        type: 'observation_created',
+        entityId: observation.entityId,
+        entityName: entity?.name,
+        entityType: entity?.type,
+        creator:
+          observation.createdByAssistantName ||
+          observation.createdByUser ||
+          'User',
+        creatorType: observation.createdByAssistantType || 'user',
+      })
+    })
+
+    // Add relation activities
+    relations.value.forEach((relation) => {
+      const subjectEntity = entitiesById.value.get(relation.subjectId)
+      const objectEntity = entitiesById.value.get(relation.objectId)
+      activities.push({
+        timestamp: new Date(relation.createdAt),
+        type: 'relation_created',
+        entityId: relation.subjectId,
+        entityName: subjectEntity?.name,
+        entityType: subjectEntity?.type,
+        predicate: relation.predicate,
+        relatedEntityName: objectEntity?.name,
+        creator:
+          relation.createdByAssistantName || relation.createdByUser || 'User',
+        creatorType: relation.createdByAssistantType || 'user',
+      })
+    })
+
+    // Sort by timestamp descending and take top 10
+    return activities
+      .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+      .slice(0, 5)
+  })
 
   return {
     // State - use computed to provide reactive but immutable access
@@ -833,6 +943,7 @@ export const useMemoryStore = defineStore("memory", () => {
     canCreateObservations,
     canCreateRelations,
     statistics,
+    recentActivities,
 
     // Loading state helpers
     isEntityLoading,
@@ -874,3 +985,7 @@ export const useMemoryStore = defineStore("memory", () => {
     getRelationsByPredicate,
   }
 })
+
+if (import.meta.hot) {
+  import.meta.hot.accept(acceptHMRUpdate(useMemoryStore, import.meta.hot))
+}

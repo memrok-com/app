@@ -27,6 +27,7 @@
     <UContainer>
       <UPageGrid class="sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-2">
         <UPageSection
+          v-auto-animate
           :title="t('recentActivity.title')"
           :description="t('recentActivity.description')"
         >
@@ -37,8 +38,15 @@
               size="32"
             />
           </template>
-          <EmptyState :message="t('recentActivity.empty')" />
+          <EmptyState
+            v-if="
+              !memoryStore.loading.initializing && activityItems.length === 0
+            "
+            :message="t('recentActivity.empty')"
+          />
           <UTimeline
+            v-else-if="!memoryStore.loading.initializing"
+            class="mx-auto"
             color="neutral"
             :items="activityItems"
           />
@@ -89,15 +97,108 @@
 </template>
 
 <script setup lang="ts">
-import type { TimelineItem } from '@nuxt/ui';
-const { locale, t } = useI18n({ useScope: 'local' });
-const { user } = useOidcAuth();
+import type { TimelineItem } from '@nuxt/ui'
+import { format } from '@formkit/tempo'
+import type { Activity } from '~/stores/memory'
+
+const { locale, t } = useI18n({ useScope: 'local' })
+const { user } = useOidcAuth()
+const memoryStore = useMemoryStore()
+const { recentActivities } = storeToRefs(memoryStore)
 
 useHead({
   title: t('title'),
-});
+})
 
-const activityItems = ref<TimelineItem[]>([]);
+// Initialize memory store when component mounts
+onMounted(async () => {
+  try {
+    await memoryStore.initialize()
+  } catch (error) {
+    console.error('Failed to load memory data:', error)
+  }
+})
+
+// Map activities to TimelineItems with i18n
+const activityItems = computed<TimelineItem[]>(() => {
+  const items = recentActivities.value.map((activity: Activity) => {
+    // Format date using tempo with locale
+    const date = format(new Date(activity.timestamp), {
+      date: 'medium',
+      time: 'short',
+    })
+
+    // Build localized title and description
+    let title = ''
+    let description = ''
+    let icon = ''
+
+    switch (activity.type) {
+      case 'entity_created':
+        icon = 'i-ph-squares-four-fill'
+        title = t('recentActivity.entity', {
+          type: activity.entityType,
+          name: activity.entityName,
+        })
+        description = t('recentActivity.createdBy', {
+          creator:
+            activity.creatorType === 'user'
+              ? t('recentActivity.you')
+              : activity.creator,
+        })
+        break
+      case 'entity_updated':
+        icon = 'i-ph-squares-four-fill'
+        title = t('recentActivity.entity', {
+          type: activity.entityType,
+          name: activity.entityName,
+        })
+        description = t('recentActivity.updatedBy', {
+          creator:
+            activity.creatorType === 'user'
+              ? t('recentActivity.you')
+              : activity.creator,
+        })
+        break
+      case 'observation_created':
+        icon = 'i-ph-eyes-fill'
+        title = t('recentActivity.observation', {
+          entity: activity.entityName || t('recentActivity.unknownEntity'),
+        })
+        description = t('recentActivity.updatedBy', {
+          creator:
+            activity.creatorType === 'user'
+              ? t('recentActivity.you')
+              : activity.creator,
+        })
+        break
+      case 'relation_created':
+        icon = 'i-ph-line-segment-fill'
+        title = t('recentActivity.relation', {
+          from: activity.entityName || t('recentActivity.unknownEntity'),
+          predicate: activity.predicate,
+          to: activity.relatedEntityName || t('recentActivity.unknownEntity'),
+        })
+        description = t('recentActivity.updatedBy', {
+          creator:
+            activity.creatorType === 'user'
+              ? t('recentActivity.you')
+              : activity.creator,
+        })
+        break
+    }
+
+    return {
+      date,
+      title,
+      description,
+      icon,
+      class:
+        activity.creatorType === 'user' ? 'text-neutral-500' : 'text-info-500',
+    }
+  })
+  return items
+})
 
 const startItems = ref<TimelineItem[]>([
   {
@@ -114,7 +215,7 @@ const startItems = ref<TimelineItem[]>([
     description: 'description',
     slot: '1',
   },
-]);
+])
 </script>
 
 <i18n lang="yaml">
@@ -130,6 +231,14 @@ en:
     title: Recent Activity
     description: Glance at recent changes to your AI memories.
     empty: No activities available
+    entity: '{name} ({type})'
+    observation: Observation for {entity}
+    relation: '{from} {predicate} {to}'
+    createdBy: Created by {creator}
+    updatedBy: Updated by {creator}
+    you: You
+    unknownEntity: entity
+    unknownCreator: unknown
   gettingStarted:
     title: Getting Started
     description: Connect assistants. Manage memories. It’s that simple.
