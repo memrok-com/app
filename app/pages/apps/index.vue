@@ -77,7 +77,8 @@ const { apps, tabsItems, mcpConfig } = useApps()
 
 const isCopied = ref(false)
 
-const formatConfigForDisplay = (config: any) => {
+const formatConfigForDisplay = (config: Record<string, unknown> | null) => {
+  if (!config) return '{}'
   return JSON.stringify(config, null, 2)
 }
 

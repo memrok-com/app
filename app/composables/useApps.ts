@@ -15,19 +15,29 @@ export const useApps = () => {
 
   const generateMcpConfig = (userId: string) => {
     const runtimeConfig = useRuntimeConfig()
-    const serverUrl = `https://${runtimeConfig.public.MEMROK_APP_DOMAIN}`
     const isProduction = process.env.NODE_ENV === 'production'
 
+    if (isProduction) {
+      return {
+        mcpServers: {
+          memrok: {
+            command: 'npx',
+            args: ['@memrok/mcp-server', '--user-id', userId],
+          },
+        },
+      }
+    }
+
+    // For development, use the project path from runtime config
+    const projectPath = runtimeConfig.public.MEMROK_PROJECT_PATH
+    const stdioPath = projectPath.replace(/\\/g, '/') + '/server/api/mcp/stdio-server.ts'
+    
     return {
       mcpServers: {
         memrok: {
-          command: isProduction ? 'npx' : 'bun',
-          args: isProduction
-            ? ['@memrok/mcp-server', '--user-id', userId]
-            : ['server/api/mcp/stdio-server.ts', '--user-id', userId],
-          env: {
-            MEMROK_API_URL: serverUrl,
-          },
+          command: 'bun',
+          args: [stdioPath, '--user-id', userId],
+          // DATABASE_URL must be set in your local environment, not in config
         },
       },
     }
