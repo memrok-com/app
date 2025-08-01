@@ -50,7 +50,7 @@ export class UserScopedDatabase {
   async createEntity(data: {
     type: string
     name: string
-    metadata?: any
+    metadata?: Record<string, unknown>
     createdByUser?: string
     createdByAssistantName?: string
     createdByAssistantType?: string
@@ -269,7 +269,7 @@ export class UserScopedDatabase {
     data: {
       type?: string
       name?: string
-      metadata?: any
+      metadata?: Record<string, unknown>
       updatedByUser?: string
       updatedByAssistantName?: string
       updatedByAssistantType?: string
@@ -308,7 +308,7 @@ export class UserScopedDatabase {
     predicate: string
     objectId: string
     strength?: number
-    metadata?: any
+    metadata?: Record<string, unknown>
     createdByUser?: string
     createdByAssistantName?: string
     createdByAssistantType?: string
@@ -408,7 +408,7 @@ export class UserScopedDatabase {
     data: {
       predicate?: string
       strength?: number
-      metadata?: any
+      metadata?: Record<string, unknown>
     }
   ) {
     return await this.execute(async (db) => {
@@ -443,7 +443,7 @@ export class UserScopedDatabase {
     entityId: string
     content: string
     source?: string
-    metadata?: any
+    metadata?: Record<string, unknown>
     createdByUser?: string
     createdByAssistantName?: string
     createdByAssistantType?: string
@@ -538,7 +538,7 @@ export class UserScopedDatabase {
     data: {
       content?: string
       source?: string
-      metadata?: any
+      metadata?: Record<string, unknown>
     }
   ) {
     return await this.execute(async (db) => {

@@ -93,16 +93,14 @@
           >
             <template #0-description>
               <UButton
-                :label="t('hero.links.assistants')"
-                :to="`/${locale}/assistants/`"
-                icon="i-ph-head-circuit-fill"
+                :label="t('hero.links.apps')"
+                :to="`/${locale}/apps/`"
                 size="xl"
               />
             </template>
 
             <template #1-description>
               <UButton
-                icon="i-ph-memory-fill"
                 :label="t('hero.links.memories')"
                 :to="`/${locale}/memories/`"
                 size="xl"
@@ -222,14 +220,14 @@ const activityItems = computed<TimelineItem[]>(() => {
 const startItems = ref<TimelineItem[]>([
   {
     date: t('gettingStarted.step', { n: 1 }),
-    icon: 'i-ph-head-circuit-fill',
+    icon: 'i-ph-number-one-bold',
     title: t('gettingStarted.steps.0.title'),
     description: 'description',
     slot: '0',
   },
   {
     date: t('gettingStarted.step', { n: 2 }),
-    icon: 'i-ph-memory-fill',
+    icon: 'i-ph-number-two-bold',
     title: t('gettingStarted.steps.1.title'),
     description: 'description',
     slot: '1',
@@ -244,7 +242,7 @@ en:
   description: Your data. On your infrastructure. Under your control.
   hero:
     links:
-      assistants: Connect Assistants
+      apps: Connect Apps
       memories: Manage Memories
   recentActivity:
     title: Recent Activity
@@ -260,11 +258,11 @@ en:
     unknownCreator: unknown
   gettingStarted:
     title: Getting Started
-    description: Connect assistants. Manage memories. It’s that simple.
+    description: Connect apps. Manage memories. It’s that simple.
     step: Step {n}
     steps:
       0:
-        title: Give your assistants access to memrok
+        title: Give your apps access to memrok.
       1:
-        title: Control what assistants know about you and your life
+        title: Control what assistants know about you and your life.
 </i18n>

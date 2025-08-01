@@ -48,18 +48,15 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     public: {
-      MEMROK_VERSION: process.env.MEMROK_VERSION,
+      MEMROK_APP_DOMAIN: process.env.MEMROK_APP_DOMAIN,
       MEMROK_AUTH_CONFIGURED: !!process.env.NUXT_OIDC_CLIENT_ID,
       MEMROK_AUTH_DOMAIN: process.env.MEMROK_AUTH_DOMAIN,
-      authDomain: process.env.MEMROK_AUTH_DOMAIN,
+      MEMROK_VERSION: process.env.MEMROK_VERSION,
     },
   },
   vite: {
     server: {
       allowedHosts: [process.env.MEMROK_APP_DOMAIN || 'app.dev.memrok.com'],
-    },
-    optimizeDeps: {
-      include: ['vue', '@vue/runtime-core', '@vue/runtime-dom', '@vue/shared'],
     },
   },
 })

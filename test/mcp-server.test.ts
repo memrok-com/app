@@ -75,7 +75,7 @@ async function testMCPTools() {
 
   let currentTest = 0
   let entityId: string | null = null
-  const results: Array<{test: string, success: boolean, response?: any, error?: any}> = []
+  const results: Array<{test: string, success: boolean, response?: unknown, error?: unknown}> = []
 
   server.stdout.on('data', (data) => {
     const responses = data.toString().trim().split('\n').filter(line => {
@@ -150,7 +150,7 @@ async function testMCPTools() {
           server.kill()
           process.exit(failed === 0 ? 0 : 1)
         }
-      } catch (error) {
+      } catch {
         console.error('Failed to parse response:', responseText)
       }
     }

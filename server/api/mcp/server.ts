@@ -2,29 +2,17 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { z } from "zod"
 import { createUserDb } from "../../utils/db"
+import { MemoryService, type CreatorContext } from "../../services/memory-service"
 import {
-  entities,
-  relations,
-  observations,
-  assistants,
-} from "../../database/schema"
-import { eq, and, or, like, sql, isNotNull } from "drizzle-orm"
+  MCPErrorCode,
+} from "../../utils/mcp-security"
+import {
+  toMCPError,
+  createMCPSuccessResponse,
+  createMCPErrorResponse,
+  MemrokMCPError,
+} from "../../utils/mcp-errors"
 
-// Helper to get current user/assistant context for RLS-aware operations
-function getCreatorContext(assistantName?: string, assistantType?: string, userId?: string) {
-  if (assistantName) {
-    return { 
-      createdByAssistantName: assistantName, 
-      createdByAssistantType: assistantType,
-      createdByUser: undefined 
-    }
-  }
-  return { 
-    createdByUser: userId || undefined, 
-    createdByAssistantName: undefined,
-    createdByAssistantType: undefined
-  }
-}
 
 export class MemrokMCPServer {
   public server: McpServer
@@ -41,6 +29,11 @@ export class MemrokMCPServer {
       {
         capabilities: {
           tools: {},
+          resources: {},
+          prompts: {},
+          experimental: {
+            samplingRequests: false,
+          },
         },
       }
     )
@@ -54,58 +47,84 @@ export class MemrokMCPServer {
     this.userId = userId
   }
 
-  private getUserDb() {
+  private getMemoryService(): MemoryService {
     if (!this.userId) {
-      throw new Error("User context is required for MCP operations")
+      throw new MemrokMCPError(
+        MCPErrorCode.CONTEXT_ERROR,
+        "User context is required for MCP operations"
+      )
     }
-    return createUserDb(this.userId)
+    const userDb = createUserDb(this.userId)
+    return new MemoryService(userDb)
+  }
+
+  private getCreatorContext(): CreatorContext {
+    return {
+      createdByUser: this.assistantName ? undefined : this.userId,
+      createdByAssistantName: this.assistantName,
+      createdByAssistantType: this.assistantType,
+    }
   }
 
   private setupTools() {
     // Create entity tool
     this.server.tool(
       "create_entity",
-      "Create a new entity in the knowledge graph",
+      "Create a new entity in the knowledge graph (max 200 chars name, 1000 chars description)",
       {
-        name: z.string().describe("Name of the entity"),
+        name: z.string().describe("Name of the entity (max 200 characters)"),
         type: z
           .string()
           .describe("Type of entity (person, place, event, concept, etc)"),
         description: z
           .string()
           .optional()
-          .describe("Description of the entity"),
+          .describe("Description of the entity (max 1000 characters)"),
+        metadata: z
+          .record(z.any())
+          .optional()
+          .describe("Additional metadata as key-value pairs"),
       },
-      async ({ name, type, description }) => {
-        const userDb = this.getUserDb()
-        const creator = getCreatorContext(this.assistantName, this.assistantType, this.userId)
+      async ({ name, type, description, metadata }) => {
+        try {
+          const memoryService = this.getMemoryService()
+          const creator = this.getCreatorContext()
 
-        const entity = await userDb.createEntity({
-          name,
-          type,
-          metadata: description ? { description } : undefined,
-          ...creator,
-        })
+          const entity = await memoryService.createEntity(
+            { name, type, description, metadata },
+            creator
+          )
 
-        return {
-          content: [
-            {
-              type: "text",
-              text: JSON.stringify(
-                {
-                  success: true,
-                  entity: {
-                    id: entity.id,
-                    name: entity.name,
-                    type: entity.type,
-                    description: entity.metadata?.description,
-                  },
-                },
-                null,
-                2
-              ),
+          const response = createMCPSuccessResponse({
+            entity: {
+              id: entity.id,
+              name: entity.name,
+              type: entity.type,
+              description: entity.description,
+              createdAt: entity.createdAt,
+              createdBy: entity.createdBy,
             },
-          ],
+          })
+
+          return {
+            content: [
+              {
+                type: "text",
+                text: JSON.stringify(response, null, 2),
+              },
+            ],
+          }
+        } catch (error) {
+          const mcpError = toMCPError(error)
+          const response = createMCPErrorResponse(mcpError)
+          return {
+            content: [
+              {
+                type: "text",
+                text: JSON.stringify(response, null, 2),
+              },
+            ],
+          }
         }
       }
     )
@@ -117,46 +136,70 @@ export class MemrokMCPServer {
       {
         subjectId: z
           .string()
+          .uuid()
           .describe("ID of the subject entity (source of the relation)"),
         objectId: z
           .string()
+          .uuid()
           .describe("ID of the object entity (target of the relation)"),
         predicate: z
           .string()
           .describe(
-            'The relationship type (e.g., "knows", "located_at", "part_of")'
+            'The relationship type (e.g., "knows", "located_at", "part_of") - max 100 chars'
           ),
+        strength: z
+          .number()
+          .min(0)
+          .max(1)
+          .optional()
+          .describe("Relationship strength (0.0 to 1.0)"),
+        metadata: z
+          .record(z.any())
+          .optional()
+          .describe("Additional metadata as key-value pairs"),
       },
-      async ({ subjectId, objectId, predicate }) => {
-        const userDb = this.getUserDb()
-        const creator = getCreatorContext(this.assistantName, this.assistantType, this.userId)
+      async ({ subjectId, objectId, predicate, strength, metadata }) => {
+        try {
+          const memoryService = this.getMemoryService()
+          const creator = this.getCreatorContext()
 
-        const relation = await userDb.createRelation({
-          subjectId,
-          objectId,
-          predicate,
-          ...creator,
-        })
+          const relation = await memoryService.createRelation(
+            { subjectId, objectId, predicate, strength, metadata },
+            creator
+          )
 
-        return {
-          content: [
-            {
-              type: "text",
-              text: JSON.stringify(
-                {
-                  success: true,
-                  relation: {
-                    id: relation.id,
-                    subjectId: relation.subjectId,
-                    objectId: relation.objectId,
-                    predicate: relation.predicate,
-                  },
-                },
-                null,
-                2
-              ),
+          const response = createMCPSuccessResponse({
+            relation: {
+              id: relation.id,
+              subjectId: relation.subjectId,
+              objectId: relation.objectId,
+              predicate: relation.predicate,
+              strength: relation.strength,
+              createdAt: relation.createdAt,
+              subjectEntity: relation.subjectEntity,
+              objectEntity: relation.objectEntity,
             },
-          ],
+          })
+
+          return {
+            content: [
+              {
+                type: "text",
+                text: JSON.stringify(response, null, 2),
+              },
+            ],
+          }
+        } catch (error) {
+          const mcpError = toMCPError(error)
+          const response = createMCPErrorResponse(mcpError)
+          return {
+            content: [
+              {
+                type: "text",
+                text: JSON.stringify(response, null, 2),
+              },
+            ],
+          }
         }
       }
     )
@@ -164,47 +207,65 @@ export class MemrokMCPServer {
     // Create observation tool
     this.server.tool(
       "create_observation",
-      "Record an observation or fact about an entity",
+      "Record an observation or fact about an entity (max 25,000 characters)",
       {
         entityId: z
           .string()
+          .uuid()
           .describe("ID of the entity this observation is about"),
-        content: z.string().describe("The observation or fact"),
+        content: z
+          .string()
+          .describe("The observation or fact (max 25,000 characters)"),
+        source: z
+          .string()
+          .optional()
+          .describe("Source of the observation (e.g., 'meeting', 'document', 'conversation')"),
         metadata: z
           .record(z.any())
           .optional()
           .describe("Additional metadata as key-value pairs"),
       },
-      async ({ entityId, content, metadata }) => {
-        const userDb = this.getUserDb()
-        const creator = getCreatorContext(this.assistantName, this.assistantType, this.userId)
+      async ({ entityId, content, source, metadata }) => {
+        try {
+          const memoryService = this.getMemoryService()
+          const creator = this.getCreatorContext()
 
-        const observation = await userDb.createObservation({
-          entityId,
-          content,
-          metadata,
-          ...creator,
-        })
+          const observation = await memoryService.createObservation(
+            { entityId, content, source, metadata },
+            creator
+          )
 
-        return {
-          content: [
-            {
-              type: "text",
-              text: JSON.stringify(
-                {
-                  success: true,
-                  observation: {
-                    id: observation.id,
-                    entityId: observation.entityId,
-                    content: observation.content,
-                    metadata: observation.metadata,
-                  },
-                },
-                null,
-                2
-              ),
+          const response = createMCPSuccessResponse({
+            observation: {
+              id: observation.id,
+              entityId: observation.entityId,
+              content: observation.content,
+              source: observation.source,
+              metadata: observation.metadata,
+              createdAt: observation.createdAt,
+              entity: observation.entity,
             },
-          ],
+          })
+
+          return {
+            content: [
+              {
+                type: "text",
+                text: JSON.stringify(response, null, 2),
+              },
+            ],
+          }
+        } catch (error) {
+          const mcpError = toMCPError(error)
+          const response = createMCPErrorResponse(mcpError)
+          return {
+            content: [
+              {
+                type: "text",
+                text: JSON.stringify(response, null, 2),
+              },
+            ],
+          }
         }
       }
     )
@@ -217,91 +278,72 @@ export class MemrokMCPServer {
         query: z.string().describe("Search query to find relevant memories"),
         entityTypes: z
           .array(z.string())
+          .max(10)
           .optional()
-          .describe("Filter by entity types"),
+          .describe("Filter by entity types (max 10 types)"),
         limit: z
           .number()
+          .int()
+          .min(1)
+          .max(100)
           .optional()
           .default(20)
-          .describe("Maximum number of results"),
+          .describe("Maximum number of results (1-100)"),
       },
       async ({ query, entityTypes, limit = 20 }) => {
-        const userDb = this.getUserDb()
+        try {
+          const memoryService = this.getMemoryService()
 
-        // Search entities using RLS-aware database
-        const entityFilters: any = { limit }
-        if (entityTypes?.length) {
-          // For now, we'll filter in memory since UserScopedDatabase doesn't support type filtering
-          entityFilters.limit = limit * 2 // Get more to account for filtering
-        }
+          const results = await memoryService.searchMemories({
+            query,
+            entityTypes,
+            limit,
+          })
 
-        const allEntities = await userDb.getEntities(entityFilters)
-
-        // Apply search and type filters
-        let foundEntities = allEntities.filter((entity) =>
-          entity.name.toLowerCase().includes(query.toLowerCase())
-        )
-
-        if (entityTypes?.length) {
-          foundEntities = foundEntities.filter((entity) =>
-            entityTypes.includes(entity.type)
-          )
-        }
-
-        foundEntities = foundEntities.slice(0, limit)
-
-        // Search observations using RLS-aware database
-        const allObservations = await userDb.getObservations({
-          limit: limit * 2,
-        })
-        const foundObservations = allObservations
-          .filter((obs) =>
-            obs.content.toLowerCase().includes(query.toLowerCase())
-          )
-          .slice(0, limit)
-
-        // Get entity details for observations
-        const observationsWithEntities = []
-        for (const obs of foundObservations) {
-          const entity = await userDb.getEntity(obs.entityId)
-          if (entity) {
-            observationsWithEntities.push({
-              observation: obs,
-              entity,
-            })
-          }
-        }
-
-        return {
-          content: [
-            {
-              type: "text",
-              text: JSON.stringify(
-                {
-                  success: true,
-                  results: {
-                    entities: foundEntities.map((e) => ({
-                      id: e.id,
-                      name: e.name,
-                      type: e.type,
-                      description: e.metadata?.description,
-                    })),
-                    observations: observationsWithEntities.map((o) => ({
-                      id: o.observation.id,
-                      content: o.observation.content,
-                      entity: {
-                        id: o.entity.id,
-                        name: o.entity.name,
-                        type: o.entity.type,
-                      },
-                    })),
-                  },
-                },
-                null,
-                2
-              ),
+          const response = createMCPSuccessResponse({
+            results: {
+              entities: results.entities.map((e) => ({
+                id: e.id,
+                name: e.name,
+                type: e.type,
+                description: e.description,
+                createdAt: e.createdAt,
+                createdBy: e.createdBy,
+              })),
+              observations: results.observations.map((o) => ({
+                id: o.id,
+                content: o.content,
+                source: o.source,
+                createdAt: o.createdAt,
+                entity: o.entity ? {
+                  id: o.entity.id,
+                  name: o.entity.name,
+                  type: o.entity.type,
+                } : undefined,
+              })),
+              totalCount: results.totalCount,
             },
-          ],
+          })
+
+          return {
+            content: [
+              {
+                type: "text",
+                text: JSON.stringify(response, null, 2),
+              },
+            ],
+          }
+        } catch (error) {
+          const mcpError = toMCPError(error)
+          const response = createMCPErrorResponse(mcpError)
+          return {
+            content: [
+              {
+                type: "text",
+                text: JSON.stringify(response, null, 2),
+              },
+            ],
+          }
         }
       }
     )
@@ -311,7 +353,10 @@ export class MemrokMCPServer {
       "get_entity_relations",
       "Get all relationships for a specific entity",
       {
-        entityId: z.string().describe("ID of the entity to get relations for"),
+        entityId: z
+          .string()
+          .uuid()
+          .describe("ID of the entity to get relations for"),
         direction: z
           .enum(["from", "to", "both"])
           .optional()
@@ -319,88 +364,244 @@ export class MemrokMCPServer {
           .describe("Direction of relations to retrieve"),
       },
       async ({ entityId, direction = "both" }) => {
-        const userDb = this.getUserDb()
+        try {
+          const memoryService = this.getMemoryService()
 
-        // Get relations using RLS-aware database
-        const filters: any = {}
-        if (direction === "from" || direction === "both") {
-          filters.subjectId = entityId
-        }
-        if (
-          direction === "to" ||
-          (direction === "both" && !filters.subjectId)
-        ) {
-          filters.objectId = entityId
-        }
+          const relations = await memoryService.getEntityRelations(
+            entityId,
+            direction
+          )
 
-        // If direction is 'both', we need to get relations in both directions
-        let allRelations = []
-
-        if (direction === "from" || direction === "both") {
-          const subjectRelations = await userDb.getRelations({
-            subjectId: entityId,
+          const response = createMCPSuccessResponse({
+            relations: relations.map((r) => ({
+              id: r.id,
+              predicate: r.predicate,
+              strength: r.strength,
+              createdAt: r.createdAt,
+              subjectEntity: r.subjectEntity ? {
+                id: r.subjectEntity.id,
+                name: r.subjectEntity.name,
+                type: r.subjectEntity.type,
+              } : undefined,
+              objectEntity: r.objectEntity ? {
+                id: r.objectEntity.id,
+                name: r.objectEntity.name,
+                type: r.objectEntity.type,
+              } : undefined,
+            })),
           })
-          allRelations.push(...subjectRelations)
-        }
 
-        if (direction === "to" || direction === "both") {
-          const objectRelations = await userDb.getRelations({
-            objectId: entityId,
-          })
-          allRelations.push(...objectRelations)
-        }
-
-        // Remove duplicates if direction is 'both'
-        if (direction === "both") {
-          const uniqueRelations = []
-          const seenIds = new Set()
-          for (const relation of allRelations) {
-            if (!seenIds.has(relation.id)) {
-              seenIds.add(relation.id)
-              uniqueRelations.push(relation)
-            }
+          return {
+            content: [
+              {
+                type: "text",
+                text: JSON.stringify(response, null, 2),
+              },
+            ],
           }
-          allRelations = uniqueRelations
+        } catch (error) {
+          const mcpError = toMCPError(error)
+          const response = createMCPErrorResponse(mcpError)
+          return {
+            content: [
+              {
+                type: "text",
+                text: JSON.stringify(response, null, 2),
+              },
+            ],
+          }
         }
+      }
+    )
 
-        // Get entity details for each relation
-        const relationsWithEntities = []
-        for (const relation of allRelations) {
-          const subjectEntity = await userDb.getEntity(relation.subjectId)
-          const objectEntity = await userDb.getEntity(relation.objectId)
-
-          if (subjectEntity && objectEntity) {
-            relationsWithEntities.push({
-              id: relation.id,
-              predicate: relation.predicate,
-              subjectEntity: {
-                id: subjectEntity.id,
-                name: subjectEntity.name,
-                type: subjectEntity.type,
-              },
-              objectEntity: {
-                id: objectEntity.id,
-                name: objectEntity.name,
-                type: objectEntity.type,
-              },
+    // Batch create entities tool
+    this.server.tool(
+      "batch_create_entities",
+      "Create multiple entities in a single operation (max 50 entities)",
+      {
+        entities: z
+          .array(
+            z.object({
+              name: z.string().describe("Name of the entity (max 200 characters)"),
+              type: z.string().describe("Type of entity"),
+              description: z
+                .string()
+                .optional()
+                .describe("Description of the entity (max 1000 characters)"),
+              metadata: z
+                .record(z.any())
+                .optional()
+                .describe("Additional metadata"),
             })
+          )
+          .min(1)
+          .max(50)
+          .describe("Array of entities to create (1-50 entities)"),
+      },
+      async ({ entities }) => {
+        try {
+          const memoryService = this.getMemoryService()
+          const creator = this.getCreatorContext()
+
+          const createdEntities = await memoryService.batchCreateEntities(
+            entities,
+            creator
+          )
+
+          const response = createMCPSuccessResponse({
+            entities: createdEntities.map((e) => ({
+              id: e.id,
+              name: e.name,
+              type: e.type,
+              description: e.description,
+              createdAt: e.createdAt,
+              createdBy: e.createdBy,
+            })),
+            count: createdEntities.length,
+          })
+
+          return {
+            content: [
+              {
+                type: "text",
+                text: JSON.stringify(response, null, 2),
+              },
+            ],
+          }
+        } catch (error) {
+          const mcpError = toMCPError(error)
+          const response = createMCPErrorResponse(mcpError)
+          return {
+            content: [
+              {
+                type: "text",
+                text: JSON.stringify(response, null, 2),
+              },
+            ],
           }
         }
+      }
+    )
 
-        return {
-          content: [
-            {
-              type: "text",
-              text: JSON.stringify(
-                {
-                  success: true,
-                  relations: relationsWithEntities,
-                },
-                null,
-                2
-              ),
+    // Forget memory tool (delete entity)
+    this.server.tool(
+      "forget_memory",
+      "Delete an entity and all its associated relations and observations",
+      {
+        entityId: z
+          .string()
+          .uuid()
+          .describe("ID of the entity to delete"),
+      },
+      async ({ entityId }) => {
+        try {
+          const memoryService = this.getMemoryService()
+
+          await memoryService.deleteEntity(entityId)
+
+          const response = createMCPSuccessResponse({
+            deleted: true,
+            entityId,
+            message: "Entity and all associated data deleted successfully",
+          })
+
+          return {
+            content: [
+              {
+                type: "text",
+                text: JSON.stringify(response, null, 2),
+              },
+            ],
+          }
+        } catch (error) {
+          const mcpError = toMCPError(error)
+          const response = createMCPErrorResponse(mcpError)
+          return {
+            content: [
+              {
+                type: "text",
+                text: JSON.stringify(response, null, 2),
+              },
+            ],
+          }
+        }
+      }
+    )
+
+    // Get entity details tool
+    this.server.tool(
+      "get_entity_details",
+      "Get detailed information about a specific entity including observations",
+      {
+        entityId: z
+          .string()
+          .uuid()
+          .describe("ID of the entity to get details for"),
+      },
+      async ({ entityId }) => {
+        try {
+          const memoryService = this.getMemoryService()
+
+          const entity = await memoryService.getEntity(entityId)
+          if (!entity) {
+            throw new MemrokMCPError(
+              MCPErrorCode.ENTITY_NOT_FOUND,
+              `Entity with ID ${entityId} not found`
+            )
+          }
+
+          const observations = await memoryService.getEntityObservations(entityId)
+          const relations = await memoryService.getEntityRelations(entityId)
+
+          const response = createMCPSuccessResponse({
+            entity: {
+              id: entity.id,
+              name: entity.name,
+              type: entity.type,
+              description: entity.description,
+              metadata: entity.metadata,
+              createdAt: entity.createdAt,
+              updatedAt: entity.updatedAt,
+              createdBy: entity.createdBy,
             },
-          ],
+            observations: observations.map((o) => ({
+              id: o.id,
+              content: o.content,
+              source: o.source,
+              createdAt: o.createdAt,
+            })),
+            relations: relations.map((r) => ({
+              id: r.id,
+              predicate: r.predicate,
+              strength: r.strength,
+              subjectEntity: r.subjectEntity,
+              objectEntity: r.objectEntity,
+            })),
+            counts: {
+              observations: observations.length,
+              relations: relations.length,
+            },
+          })
+
+          return {
+            content: [
+              {
+                type: "text",
+                text: JSON.stringify(response, null, 2),
+              },
+            ],
+          }
+        } catch (error) {
+          const mcpError = toMCPError(error)
+          const response = createMCPErrorResponse(mcpError)
+          return {
+            content: [
+              {
+                type: "text",
+                text: JSON.stringify(response, null, 2),
+              },
+            ],
+          }
         }
       }
     )
