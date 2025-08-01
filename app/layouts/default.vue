@@ -70,9 +70,9 @@
 </template>
 
 <script setup lang="ts">
-import type { NavigationMenuItem, DropdownMenuItem } from "#ui/types"
+import type { NavigationMenuItem, DropdownMenuItem } from '#ui/types'
 
-const { locale, t } = useI18n({ useScope: "local" })
+const { locale, t } = useI18n({ useScope: 'local' })
 const config = useRuntimeConfig()
 const { user, logout } = useOidcAuth()
 const version = config.public.MEMROK_VERSION
@@ -81,32 +81,30 @@ const route = useRoute()
 
 const isDark = computed({
   get() {
-    return colorMode.value === "dark"
+    return colorMode.value === 'dark'
   },
   set(_isDark) {
-    colorMode.preference = _isDark ? "dark" : "light"
+    colorMode.preference = _isDark ? 'dark' : 'light'
   },
 })
 
 const items = computed<NavigationMenuItem[][]>(() => [
   [
     {
-      icon: "i-ph-head-circuit-fill",
-      label: t("assistants"),
-      to: `/${locale.value}/assistants/`,
-      active: route.path.includes("/assistants"),
+      label: t('apps'),
+      to: `/${locale.value}/apps/`,
+      active: route.path.includes('/apps'),
     },
     {
-      icon: "i-ph-memory-fill",
-      label: t("memories"),
+      label: t('memories'),
       to: `/${locale.value}/memories/`,
-      active: route.path.includes("/memories"),
+      active: route.path.includes('/memories'),
     },
     {
-      icon: "i-ph-github-logo-fill",
-      label: t("github"),
-      target: "_blank",
-      to: "https://github.com/memrok-com/memrok",
+      icon: 'i-ph-github-logo-fill',
+      label: t('github'),
+      target: '_blank',
+      to: 'https://github.com/memrok-com/memrok',
     },
   ],
 ])
@@ -114,16 +112,16 @@ const items = computed<NavigationMenuItem[][]>(() => [
 const userMenuItems = computed<DropdownMenuItem[][]>(() => [
   [
     {
-      class: "font-normal",
-      slot: "loggedInAs",
-      type: "label",
+      class: 'font-normal',
+      slot: 'loggedInAs',
+      type: 'label',
     },
   ],
   [
     {
-      class: "cursor-pointer",
-      icon: isDark.value ? "i-ph-sun" : "i-ph-moon",
-      label: isDark.value ? t("lightMode") : t("darkMode"),
+      class: 'cursor-pointer',
+      icon: isDark.value ? 'i-ph-sun' : 'i-ph-moon',
+      label: isDark.value ? t('lightMode') : t('darkMode'),
       onSelect: () => {
         isDark.value = !isDark.value
       },
@@ -131,15 +129,15 @@ const userMenuItems = computed<DropdownMenuItem[][]>(() => [
   ],
   [
     {
-      icon: "i-ph-user",
-      label: t("account"),
-      target: "_blank",
+      icon: 'i-ph-user',
+      label: t('account'),
+      target: '_blank',
       to: `https://${config.public.MEMROK_AUTH_DOMAIN}/ui/console/users/me`,
     },
     {
-      class: "cursor-pointer",
-      icon: "i-ph-sign-out",
-      label: t("logout"),
+      class: 'cursor-pointer',
+      icon: 'i-ph-sign-out',
+      label: t('logout'),
       onSelect: () => {
         logout()
       },
@@ -150,7 +148,7 @@ const userMenuItems = computed<DropdownMenuItem[][]>(() => [
 
 <i18n lang="yaml">
 en:
-  assistants: Assistants
+  apps: Apps
   memories: Memories
   github: GitHub
   lightMode: Light Mode

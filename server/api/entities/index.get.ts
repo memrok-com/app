@@ -70,6 +70,7 @@ export default createAuthenticatedHandler(async (event, userDb, _user) => {
   const response: EntitiesApiResponse = {
     entities: finalEntities.map(entity => ({
       ...entity,
+      metadata: entity.metadata as Record<string, unknown> | null,
       createdAt: entity.createdAt.toISOString(),
       updatedAt: entity.updatedAt.toISOString(),
     })),

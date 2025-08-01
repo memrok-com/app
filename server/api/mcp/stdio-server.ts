@@ -22,8 +22,9 @@ for (let i = 0; i < args.length; i++) {
 }
 
 // Only start the server if this file is being run directly (not imported)
-if (import.meta.main) {
+// Use a more compatible check for direct execution
+if (typeof process !== 'undefined' && process.argv[1] && process.argv[1].includes('stdio-server')) {
   const server = new MemrokMCPServer()
-  server.setContext(assistantId, userId)
+  server.setContext(assistantId, undefined, userId)
   server.start().catch(console.error)
 }
