@@ -51,11 +51,11 @@ export default defineNuxtConfig({
       MEMROK_APP_DOMAIN: process.env.MEMROK_APP_DOMAIN,
       MEMROK_AUTH_CONFIGURED: !!process.env.NUXT_OIDC_CLIENT_ID,
       MEMROK_AUTH_DOMAIN: process.env.MEMROK_AUTH_DOMAIN,
+      MEMROK_PROJECT_PATH: process.cwd(),
       MEMROK_VERSION:
-        process.env.NODE_ENV === 'prod'
+        process.env.NODE_ENV === 'production'
           ? process.env.MEMROK_VERSION
           : process.env.NODE_ENV,
-      MEMROK_PROJECT_PATH: process.cwd(),
     },
   },
   vite: {

@@ -123,7 +123,7 @@ Currently implemented:
 - ✅ Database migration system with Drizzle Kit
 - ✅ **Complete MCP server implementation** with 5 memory tools
 - ✅ **Memory storage and retrieval APIs** (entities, relations, observations)
-- ✅ **MCP connectivity** via stdio (Claude Desktop) and HTTP endpoints
+- ✅ **MCP connectivity** via HTTP endpoints with mcp-remote proxy for AI clients
 - ✅ **Row Level Security (RLS)** implementation with user data isolation
 - ✅ **RLS-aware API endpoints** - all endpoints use user context, no manual filtering
 - ✅ **Complete Web UI** for memory management with reactive state management
@@ -157,9 +157,15 @@ Not yet implemented:
 **MCP Implementation:**
 
 - `server/api/mcp/server.ts`: Core MCP server with 5 memory tools
-- `server/api/mcp/stdio-server.ts`: Standalone MCP server executable
-- `server/api/mcp/config.get.ts`: Auto-generates MCP client configurations
+- `server/api/mcp/index.post.ts`: HTTP endpoint for MCP protocol
+- `app/composables/useApps.ts`: Client-side MCP config generation using mcp-remote proxy
 - `test/mcp-server.test.ts`: MCP server test suite
+
+**MCP Remote Connectivity:**
+- Uses `mcp-remote` proxy to bridge stdio-based MCP clients to HTTP server
+- Supports all MCP-compatible AI assistants (Claude Desktop, Cursor, VS Code, etc.)
+- Unified configuration works for both local development and remote deployments
+- No npm package publishing required - uses `npx mcp-remote` for on-demand execution
 
 **API Endpoints:**
 

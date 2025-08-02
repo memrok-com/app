@@ -72,11 +72,12 @@ bun run db:push                # Push schema directly (dev only)
 bun run db:studio              # Open Drizzle Studio GUI
 
 # MCP server (for AI assistant integration)
-bun run mcp:server             # Start MCP server via stdio (for Claude Desktop, etc.)
 bun run test:mcp               # Run comprehensive MCP server test suite
 
-# Note: The MCP server runs as a standalone process and uses dotenv to load .env variables
-# for database configuration. The "0 variables" message from Nuxt dev server is normal.
+# MCP Client Configuration:
+# memrok uses mcp-remote proxy to connect AI assistants to the HTTP MCP endpoint
+# The configuration is auto-generated in the Apps page when logged in
+# No local stdio server or npm packages needed - works remotely!
 
 # Production builds
 bun run build                  # Build for production
@@ -91,7 +92,8 @@ bun run preview                # Preview production build
 - **Framework**: Nitro (universal server framework)
 - **Database**: PostgreSQL with Drizzle ORM + Qdrant (vector, planned)
 - **Authentication**: Zitadel (OIDC)
-- **MCP Server**: Complete implementation with 5 memory tools (@modelcontextprotocol/sdk)
+- **MCP Server**: Complete HTTP implementation with 5 memory tools (@modelcontextprotocol/sdk)
+- **MCP Client Access**: Via mcp-remote proxy - works with any MCP client from anywhere
 
 **Frontend**
 
