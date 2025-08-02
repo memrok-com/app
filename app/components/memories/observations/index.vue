@@ -29,24 +29,27 @@
       />
     </template>
     <template #actions-cell="{ row }">
-      <MemoriesObservationsModal
-        color="neutral"
-        :observation="row.original"
-        :show-title="false"
-        variant="ghost"
-      />
-      <MemoriesDeleteSingle
-        :id="row.original.id"
-        type="observation"
-      />
+      <UButtonGroup>
+        <MemoriesObservationsModal
+          color="neutral"
+          :observation="row.original"
+          :show-title="false"
+          variant="subtle"
+        />
+        <MemoriesDeleteSingle
+          :id="row.original.id"
+          type="observation"
+          variant="subtle"
+        />
+      </UButtonGroup>
     </template>
   </UTable>
 </template>
 
 <script setup lang="ts">
-import { format } from "@formkit/tempo"
-import type { CellContext } from "@tanstack/vue-table"
-import type { ObservationData } from "~/types/observations"
+import { format } from '@formkit/tempo'
+import type { CellContext } from '@tanstack/vue-table'
+import type { ObservationData } from '~/types/observations'
 
 interface Props {
   entityId: string
@@ -54,7 +57,7 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const { t } = useI18n({ useScope: "local" })
+const { t } = useI18n({ useScope: 'local' })
 const memoryStore = useMemoryStore()
 
 // Get observations for the specific entity
@@ -64,31 +67,31 @@ const observations = computed(() =>
 
 const columns = [
   {
-    accessorKey: "content",
-    header: t("columns.content"),
+    accessorKey: 'content',
+    header: t('columns.content'),
     meta: {
       class: {
-        th: "w-full",
-        td: "font-bold w-full",
+        th: 'w-full',
+        td: 'max-w-sm truncate w-full',
       },
     },
   },
   {
-    accessorKey: "creator",
-    header: t("columns.creator"),
+    accessorKey: 'creator',
+    header: t('columns.creator'),
   },
   {
-    accessorKey: "createdAt",
-    header: t("columns.created"),
+    accessorKey: 'createdAt',
+    header: t('columns.created'),
     cell: ({ row }: CellContext<ObservationData, unknown>) => {
       return format(new Date(row.original.createdAt), {
-        date: "medium",
-        time: "short",
+        date: 'medium',
+        time: 'short',
       })
     },
   },
   {
-    id: "actions",
+    id: 'actions',
   },
 ]
 </script>

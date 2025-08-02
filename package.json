@@ -24,7 +24,6 @@
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "mcp:server": "bun run server/api/mcp/stdio-server.ts",
     "test:mcp": "bun run test/mcp-server.test.ts"
   },
   "dependencies": {

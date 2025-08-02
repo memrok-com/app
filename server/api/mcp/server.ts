@@ -610,7 +610,7 @@ export class MemrokMCPServer {
   async start() {
     const transport = new StdioServerTransport()
     await this.server.connect(transport)
-    console.log("MCP stdio server started")
+    // Server started - no console output needed as it clutters dev server logs
   }
 }
 

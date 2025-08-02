@@ -44,14 +44,22 @@
               </template>
 
               <div class="space-y-3">
-                <p class="text-sm text-stone-600">
+                <p>
                   {{ t('config.description') }}
                 </p>
 
+                <UAlert
+                  color="warning"
+                  icon="i-ph-warning-fill"
+                  :title="t('config.securityWarning.title')"
+                  :description="t('config.securityWarning.description')"
+                />
+
                 <div class="relative">
-                  <pre class="bg-elevated px-4 py-3 rounded text-sm">{{
-                    formatConfigForDisplay(mcpConfig)
-                  }}</pre>
+                  <pre
+                    class="bg-elevated px-4 py-3 overflow-auto rounded text-sm"
+                    >{{ formatConfigForDisplay(mcpConfig) }}</pre
+                  >
                   <UButton
                     class="absolute top-3 right-4"
                     :color="isCopied ? 'success' : 'neutral'"
@@ -77,7 +85,8 @@ const { apps, tabsItems, mcpConfig } = useApps()
 
 const isCopied = ref(false)
 
-const formatConfigForDisplay = (config: any) => {
+const formatConfigForDisplay = (config: Record<string, unknown> | null) => {
+  if (!config) return '{}'
   return JSON.stringify(config, null, 2)
 }
 
@@ -106,4 +115,7 @@ en:
     description: Copy this configuration and add it to your client’s settings.
     copy: Copy
     copied: Copied!
+    securityWarning:
+      title: Security Warning
+      description: This configuration contains your user ID. Never share it with others. We’re working on revokable API keys for better security.
 </i18n>

@@ -337,7 +337,16 @@ export class MemoryService {
   }): Promise<SearchResults> {
     // Validate input
     const validated = validateSearchInput.parse(params)
-    const searchQuery = `%${validated.query.toLowerCase()}%`
+    
+    // Handle wildcard searches - convert * to % for SQL LIKE, or use % for "all" searches
+    let searchQuery: string
+    if (validated.query === '*' || validated.query === '' || validated.query.toLowerCase() === 'all') {
+      // For wildcard/all searches, match everything
+      searchQuery = '%'
+    } else {
+      // For regular searches, wrap with wildcards
+      searchQuery = `%${validated.query.toLowerCase()}%`
+    }
 
     // Search entities with database filtering
     const entityResults = await this.userDb.execute(async (db) => {

@@ -1,10 +1,18 @@
 #!/usr/bin/env bun
-import { MemrokMCPServer } from "./server"
+// CRITICAL: Load environment variables FIRST, before any other imports
 import { config } from "dotenv"
-import { resolve } from "path"
+import { resolve, dirname } from "path"
+import { fileURLToPath } from "url"
+import { MemrokMCPServer } from "./server"
 
-// Load environment variables
-config({ path: resolve(process.cwd(), ".env") })
+// Suppress all console output to stdout to ensure clean MCP protocol communication
+console.log = (...args: unknown[]) => console.error(...args)
+
+// Load environment variables from the project root
+const __dirname = dirname(fileURLToPath(import.meta.url))
+const projectRoot = resolve(__dirname, '../../..')
+const envPath = resolve(projectRoot, '.env')
+config({ path: envPath, quiet: true })
 
 // Parse command line arguments for context
 const args = process.argv.slice(2)
@@ -21,10 +29,7 @@ for (let i = 0; i < args.length; i++) {
   }
 }
 
-// Only start the server if this file is being run directly (not imported)
-// Use a more compatible check for direct execution
-if (typeof process !== 'undefined' && process.argv[1] && process.argv[1].includes('stdio-server')) {
-  const server = new MemrokMCPServer()
-  server.setContext(assistantId, undefined, userId)
-  server.start().catch(console.error)
-}
+// Start the server
+const server = new MemrokMCPServer()
+server.setContext(assistantId, undefined, userId)
+server.start().catch(console.error)
