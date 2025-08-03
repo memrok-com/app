@@ -1,17 +1,7 @@
 <template>
-  <UTooltip
-    :text="
-      isConfirmingRevoke
-        ? t('confirmRevoke')
-        : t('revoke')
-    "
-  >
+  <UTooltip :text="isConfirmingRevoke ? t('confirmRevoke') : t('revoke')">
     <UButton
-      :aria-label="
-        isConfirmingRevoke
-          ? t('confirmRevoke')
-          : t('revoke')
-      "
+      :aria-label="isConfirmingRevoke ? t('confirmRevoke') : t('revoke')"
       :color="isConfirmingRevoke ? 'error' : 'neutral'"
       :disabled="isRevoking || !apiKey"
       :icon="
@@ -27,26 +17,26 @@
 </template>
 
 <script setup lang="ts">
-import type { ButtonProps } from "#ui/types"
+import type { ButtonProps } from '#ui/types'
 
 interface Props {
   keyId: string
-  size?: ButtonProps["size"]
-  variant?: ButtonProps["variant"]
+  size?: ButtonProps['size']
+  variant?: ButtonProps['variant']
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  size: "md",
-  variant: "ghost",
+  size: 'md',
+  variant: 'ghost',
 })
 
-const { t } = useI18n({ useScope: "local" })
+const { t } = useI18n({ useScope: 'local' })
 const store = useApiKeysStore()
 const toast = useToast()
 
 // Get the API key from store
 const apiKey = computed(() => {
-  return store.keys.find(k => k.id === props.keyId)
+  return store.keys.find((k) => k.id === props.keyId)
 })
 
 // Loading state for this specific key
@@ -70,14 +60,14 @@ const resetConfirmation = () => {
 // Handle keyboard events for escape key
 onMounted(() => {
   const handleKeydown = (event: KeyboardEvent) => {
-    if (event.key === "Escape" && isConfirmingRevoke.value) {
+    if (event.key === 'Escape' && isConfirmingRevoke.value) {
       resetConfirmation()
     }
   }
-  document.addEventListener("keydown", handleKeydown)
+  document.addEventListener('keydown', handleKeydown)
 
   onUnmounted(() => {
-    document.removeEventListener("keydown", handleKeydown)
+    document.removeEventListener('keydown', handleKeydown)
     resetConfirmation()
   })
 })
@@ -108,19 +98,19 @@ const handleRevoke = async () => {
 
     // Show success toast
     toast.add({
-      color: "success",
+      color: 'success',
       id: `revoke-api-key-${props.keyId}`,
-      icon: "i-ph-check-circle-fill",
+      icon: 'i-ph-check-circle-fill',
       title: t('revoked.title'),
       description: t('revoked.description', { name: displayName }),
       duration: 3000,
     })
   } catch {
     toast.add({
-      title: t("error.revoke"),
-      description: t("error.revokeDescription"),
-      icon: "i-ph-warning-fill",
-      color: "error",
+      title: t('error.revoke'),
+      description: t('error.revokeDescription'),
+      icon: 'i-ph-warning-fill',
+      color: 'error',
     })
   }
 }
@@ -132,7 +122,7 @@ en:
   confirmRevoke: Confirm revoking API key
   revoked:
     title: API Key Revoked
-    description: "'{name}' has been revoked successfully"
+    description: ‘{name}’ has been revoked successfully
   error:
     revoke: Revoke Failed
     revokeDescription: Failed to revoke API key
