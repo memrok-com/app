@@ -2,7 +2,7 @@ export interface App {
   id: string
   title: string
   icon: string
-  configType: 'mcp' | 'manual'
+  configType: 'mcp' | 'command' | 'manual'
   configuration?: {
     server?: {
       command: string[]

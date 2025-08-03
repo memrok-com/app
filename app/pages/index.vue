@@ -21,24 +21,18 @@
           size="2xl"
         />
       </template>
-      <MemrokLogogram class="hidden lg:block max-h-64 xl:max-h-96" />
+      <MemrokLogogram class="hidden lg:block max-h-48 xl:max-h-64" />
     </UPageHero>
 
     <UContainer>
       <UPageGrid class="sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-2">
         <UPageSection
           v-auto-animate
+          icon="i-ph-footprints-fill"
           :title="t('recentActivity.title')"
           :description="t('recentActivity.description')"
+          :ui="{ leadingIcon: 'text-info' }"
         >
-          <template #leading>
-            <UIcon
-              class="text-info"
-              name="i-ph-footprints-fill"
-              size="32"
-            />
-          </template>
-
           <UTimeline
             v-if="!initialized"
             class="mx-auto"
@@ -73,17 +67,11 @@
         </UPageSection>
 
         <UPageSection
+          icon="i-ph-rocket-launch-fill"
           :title="t('gettingStarted.title')"
           :description="t('gettingStarted.description')"
+          :ui="{ leadingIcon: 'text-success' }"
         >
-          <template #leading>
-            <UIcon
-              class="text-success"
-              name="i-ph-rocket-launch-fill"
-              size="32"
-            />
-          </template>
-
           <UTimeline
             class="mx-auto"
             color="neutral"
@@ -111,11 +99,19 @@
         </UPageSection>
       </UPageGrid>
     </UContainer>
+
+    <UPageSection
+      icon="i-ph-sparkle-fill"
+      :title="t('features.title')"
+      :description="t('features.description')"
+      :features="features"
+    />
   </UPage>
 </template>
 
 <script setup lang="ts">
 import type { TimelineItem } from '@nuxt/ui'
+import type { PageFeatureProps } from '@nuxt/ui-pro'
 import { format } from '@formkit/tempo'
 import type { Activity } from '~/stores/memory'
 
@@ -136,6 +132,24 @@ onMounted(async () => {
   }
 })
 
+const features = <PageFeatureProps[]>[
+  {
+    icon: 'i-ph-shield-check-fill',
+    title: t('features.1.title'),
+    description: t('features.1.description'),
+  },
+  {
+    icon: 'i-ph-head-circuit-fill',
+    title: t('features.2.title'),
+    description: t('features.2.description'),
+  },
+  {
+    icon: 'i-ph-graph-fill',
+    title: t('features.3.title'),
+    description: t('features.3.description'),
+  },
+]
+
 // Map activities to TimelineItems with i18n
 const activityItems = computed<TimelineItem[]>(() => {
   const items = recentActivities.value.map((activity: Activity) => {
@@ -152,7 +166,7 @@ const activityItems = computed<TimelineItem[]>(() => {
 
     switch (activity.type) {
       case 'entity_created':
-        icon = 'i-ph-squares-four-fill'
+        icon = 'i-ph-shapes-fill'
         title = t('recentActivity.entity', {
           type: activity.entityType,
           name: activity.entityName,
@@ -165,7 +179,7 @@ const activityItems = computed<TimelineItem[]>(() => {
         })
         break
       case 'entity_updated':
-        icon = 'i-ph-squares-four-fill'
+        icon = 'i-ph-shapes-fill'
         title = t('recentActivity.entity', {
           type: activity.entityType,
           name: activity.entityName,
@@ -238,7 +252,7 @@ const startItems = ref<TimelineItem[]>([
 <i18n lang="yaml">
 en:
   greeting: Hey, {name}!
-  title: Welcome to Your Secure AI Memory
+  title: Welcome to Your AI Memory
   description: Your data. On your infrastructure. Under your control.
   hero:
     links:
@@ -265,4 +279,16 @@ en:
         title: Give your apps access to memrok.
       1:
         title: Control what assistants know about you and your life.
+  features:
+    title: You’re Up and Running
+    description: AI conversations as persistent knowledge base—100% private, 100% local.
+    1:
+      title: 100% Local AI Memory
+      description: Your data never leaves your infrastructure. Local storage, local embeddings, zero external dependencies.
+    2:
+      title: Universal AI Compatibility
+      description: Works seamlessly with Claude, Cursor, VS Code, and any MCP-compatible assistant through a standardized protocol.
+    3:
+      title: Intelligent Knowledge Graph
+      description: Automatically organizes memories as entities, relations, and observations for rich contextual understanding.
 </i18n>

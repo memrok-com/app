@@ -607,6 +607,304 @@ export class MemrokMCPServer {
     )
   }
 
+  // Method to list all available tools
+  async listTools() {
+    const tools = []
+    
+    // Get tools from the MCP server instance
+    // The tools are registered during setupTools(), we need to extract them
+    // This is a simplified implementation - in a real scenario you'd want to
+    // maintain a registry of tools or use the server's internal tool list
+    
+    tools.push(
+      {
+        name: "create_entity",
+        description: "Create a new entity (person, place, concept, etc.) with optional metadata",
+        inputSchema: {
+          type: "object",
+          properties: {
+            name: { type: "string", description: "Name of the entity (max 200 characters)" },
+            type: { type: "string", description: "Type of entity" },
+            description: { type: "string", description: "Description of the entity (max 1000 characters)" },
+            metadata: { type: "object", description: "Additional metadata as key-value pairs" }
+          },
+          required: ["name", "type"]
+        }
+      },
+      {
+        name: "create_relation",
+        description: "Create a relation between two entities",
+        inputSchema: {
+          type: "object",
+          properties: {
+            subjectId: { type: "string", description: "ID of the subject entity" },
+            objectId: { type: "string", description: "ID of the object entity" },
+            predicate: { type: "string", description: "Type of relation" },
+            strength: { type: "number", description: "Strength of the relation (0.0-1.0)", minimum: 0, maximum: 1 },
+            metadata: { type: "object", description: "Additional metadata" }
+          },
+          required: ["subjectId", "objectId", "predicate"]
+        }
+      },
+      {
+        name: "create_observation",
+        description: "Add an observation to an entity",
+        inputSchema: {
+          type: "object",
+          properties: {
+            entityId: { type: "string", description: "ID of the entity to observe" },
+            content: { type: "string", description: "Observation content" },
+            source: { type: "string", description: "Source of the observation" },
+            metadata: { type: "object", description: "Additional metadata" }
+          },
+          required: ["entityId", "content"]
+        }
+      },
+      {
+        name: "search_memories",
+        description: "Search for entities by name or type",
+        inputSchema: {
+          type: "object",
+          properties: {
+            query: { type: "string", description: "Search query" },
+            entityTypes: { type: "array", items: { type: "string" }, description: "Filter by entity types" },
+            limit: { type: "number", description: "Maximum results to return", default: 20 }
+          },
+          required: ["query"]
+        }
+      },
+      {
+        name: "get_entity_relations",
+        description: "Get all relations for a specific entity",
+        inputSchema: {
+          type: "object",
+          properties: {
+            entityId: { type: "string", description: "ID of the entity" },
+            direction: { type: "string", enum: ["incoming", "outgoing", "both"], description: "Direction of relations", default: "both" }
+          },
+          required: ["entityId"]
+        }
+      },
+      {
+        name: "batch_create_entities",
+        description: "Create multiple entities in a single operation (max 50 entities)",
+        inputSchema: {
+          type: "object",
+          properties: {
+            entities: {
+              type: "array",
+              maxItems: 50,
+              items: {
+                type: "object",
+                properties: {
+                  name: { type: "string", description: "Name of the entity (max 200 characters)" },
+                  type: { type: "string", description: "Type of entity" },
+                  description: { type: "string", description: "Description of the entity (max 1000 characters)" },
+                  metadata: { type: "object", description: "Additional metadata" }
+                },
+                required: ["name", "type"]
+              }
+            }
+          },
+          required: ["entities"]
+        }
+      },
+      {
+        name: "get_entity_observations",
+        description: "Get all observations for a specific entity",
+        inputSchema: {
+          type: "object",
+          properties: {
+            entityId: { type: "string", description: "ID of the entity" }
+          },
+          required: ["entityId"]
+        }
+      },
+      {
+        name: "delete_entity",
+        description: "Delete an entity and all its relations and observations",
+        inputSchema: {
+          type: "object",
+          properties: {
+            entityId: { type: "string", description: "ID of the entity to delete" }
+          },
+          required: ["entityId"]
+        }
+      }
+    )
+    
+    return { tools }
+  }
+
+  // Method to call a specific tool
+  async callTool(name: string, args: any) {
+    try {
+      const memoryService = this.getMemoryService()
+      const creator = this.getCreatorContext()
+
+      switch (name) {
+        case "create_entity": {
+          const { name: entityName, type, description, metadata } = args
+          const entity = await memoryService.createEntity(
+            { name: entityName, type, description, metadata },
+            creator
+          )
+          const response = createMCPSuccessResponse({
+            entity: {
+              id: entity.id,
+              name: entity.name,
+              type: entity.type,
+              description: entity.description,
+              createdAt: entity.createdAt,
+              createdBy: entity.createdBy,
+            },
+          })
+          return { content: [{ type: "text", text: JSON.stringify(response, null, 2) }] }
+        }
+
+        case "create_relation": {
+          const { subjectId, objectId, predicate, strength, metadata } = args
+          const relation = await memoryService.createRelation(
+            { subjectId, objectId, predicate, strength, metadata },
+            creator
+          )
+          const response = createMCPSuccessResponse({
+            relation: {
+              id: relation.id,
+              subjectId: relation.subjectId,
+              objectId: relation.objectId,
+              predicate: relation.predicate,
+              strength: relation.strength,
+              createdAt: relation.createdAt,
+              subjectEntity: relation.subjectEntity,
+              objectEntity: relation.objectEntity,
+            },
+          })
+          return { content: [{ type: "text", text: JSON.stringify(response, null, 2) }] }
+        }
+
+        case "create_observation": {
+          const { entityId, content, source, metadata } = args
+          const observation = await memoryService.createObservation(
+            { entityId, content, source, metadata },
+            creator
+          )
+          const response = createMCPSuccessResponse({
+            observation: {
+              id: observation.id,
+              entityId: observation.entityId,
+              content: observation.content,
+              source: observation.source,
+              metadata: observation.metadata,
+              createdAt: observation.createdAt,
+              entity: observation.entity,
+            },
+          })
+          return { content: [{ type: "text", text: JSON.stringify(response, null, 2) }] }
+        }
+
+        case "search_memories": {
+          const { query, entityTypes, limit = 20 } = args
+          const results = await memoryService.searchMemories({ query, entityTypes, limit })
+          const response = createMCPSuccessResponse({
+            results: {
+              entities: results.entities.map((e) => ({
+                id: e.id,
+                name: e.name,
+                type: e.type,
+                description: e.description,
+                createdAt: e.createdAt,
+                createdBy: e.createdBy,
+              })),
+              observations: results.observations.map((o) => ({
+                id: o.id,
+                content: o.content,
+                source: o.source,
+                createdAt: o.createdAt,
+                entity: o.entity ? { id: o.entity.id, name: o.entity.name, type: o.entity.type } : undefined,
+              })),
+              totalCount: results.totalCount,
+            },
+          })
+          return { content: [{ type: "text", text: JSON.stringify(response, null, 2) }] }
+        }
+
+        case "get_entity_relations": {
+          const { entityId, direction = "both" } = args
+          const relations = await memoryService.getEntityRelations(entityId, direction)
+          const response = createMCPSuccessResponse({
+            relations: relations.map((r) => ({
+              id: r.id,
+              predicate: r.predicate,
+              strength: r.strength,
+              createdAt: r.createdAt,
+              subjectEntity: r.subjectEntity ? {
+                id: r.subjectEntity.id,
+                name: r.subjectEntity.name,
+                type: r.subjectEntity.type,
+              } : undefined,
+              objectEntity: r.objectEntity ? {
+                id: r.objectEntity.id,
+                name: r.objectEntity.name,
+                type: r.objectEntity.type,
+              } : undefined,
+            })),
+          })
+          return { content: [{ type: "text", text: JSON.stringify(response, null, 2) }] }
+        }
+
+        case "batch_create_entities": {
+          const { entities } = args
+          const createdEntities = await memoryService.batchCreateEntities(entities, creator)
+          const response = createMCPSuccessResponse({
+            entities: createdEntities.map((e) => ({
+              id: e.id,
+              name: e.name,
+              type: e.type,
+              description: e.description,
+              createdAt: e.createdAt,
+              createdBy: e.createdBy,
+            })),
+            count: createdEntities.length,
+          })
+          return { content: [{ type: "text", text: JSON.stringify(response, null, 2) }] }
+        }
+
+        case "get_entity_observations": {
+          const { entityId } = args
+          const observations = await memoryService.getEntityObservations(entityId)
+          const response = createMCPSuccessResponse({
+            observations: observations.map((o) => ({
+              id: o.id,
+              content: o.content,
+              source: o.source,
+              createdAt: o.createdAt,
+            })),
+          })
+          return { content: [{ type: "text", text: JSON.stringify(response, null, 2) }] }
+        }
+
+        case "delete_entity": {
+          const { entityId } = args
+          await memoryService.deleteEntity(entityId)
+          const response = createMCPSuccessResponse({
+            deleted: true,
+            entityId,
+            message: "Entity and all associated data deleted successfully",
+          })
+          return { content: [{ type: "text", text: JSON.stringify(response, null, 2) }] }
+        }
+
+        default:
+          throw new MemrokMCPError(MCPErrorCode.INVALID_REQUEST, `Unknown tool: ${name}`)
+      }
+    } catch (error) {
+      const mcpError = toMCPError(error)
+      const response = createMCPErrorResponse(mcpError)
+      return { content: [{ type: "text", text: JSON.stringify(response, null, 2) }] }
+    }
+  }
+
   async start() {
     const transport = new StdioServerTransport()
     await this.server.connect(transport)

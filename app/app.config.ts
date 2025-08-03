@@ -1,5 +1,10 @@
 export default defineAppConfig({
   ui: {
+    alert: {
+      slots: {
+        icon: '!h-[1.25em] !w-[1.25em]',
+      },
+    },
     button: {
       slots: {
         base: 'cursor-pointer',
@@ -62,6 +67,11 @@ export default defineAppConfig({
         trigger: 'cursor-pointer',
       },
     },
+    pageFeature: {
+      slots: {
+        leadingIcon: '!h-[1.25em] !w-[1.25em]',
+      },
+    },
     pageHero: {
       slots: {
         title: 'text-balance',
@@ -70,6 +80,7 @@ export default defineAppConfig({
     },
     pageSection: {
       slots: {
+        leadingIcon: '!h-[2.5em] !w-[2.5em]',
         title: 'text-balance',
         description: 'text-balance',
       },
