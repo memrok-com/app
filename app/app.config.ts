@@ -40,6 +40,11 @@ export default defineAppConfig({
         base: 'w-full',
       },
     },
+    table: {
+      slots: {
+        th: 'whitespace-nowrap',
+      },
+    },
     tabs: {
       slots: {
         trigger: 'cursor-pointer',
