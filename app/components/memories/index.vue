@@ -1,13 +1,14 @@
 <template>
-  <UTable
-    :columns="columns"
-    :data="entities"
-    sticky
-    :ui="{
-      separator: 'bg-(--ui-border-muted) dark:bg-(--ui-bg-muted)',
-      tr: 'data-[expanded=true]:bg-accented',
-    }"
-  >
+  <div class="space-y-4">
+    <UTable
+      :columns="columns"
+      :data="paginatedEntities"
+      sticky
+      :ui="{
+        separator: 'bg-(--ui-border-muted) dark:bg-(--ui-bg-muted)',
+        tr: 'data-[expanded=true]:bg-accented',
+      }"
+    >
     <template #empty>
       <EmptyState
         class="justify-center"
@@ -66,7 +67,45 @@
         </UCard>
       </div>
     </template>
-  </UTable>
+    </UTable>
+
+    <!-- Pagination Controls -->
+    <div
+      v-if="paginationInfo.totalItems > 0"
+      class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+    >
+      <!-- Pagination Info -->
+      <div class="flex items-center gap-3">
+        <p class="text-sm text-gray-500 dark:text-gray-400">
+          {{ t('pagination.showing', {
+            start: paginationInfo.startItem,
+            end: paginationInfo.endItem,
+            total: paginationInfo.totalItems
+          }) }}
+        </p>
+        
+        <!-- Items per page selector -->
+        <USelect
+          v-model="selectedItemsPerPage"
+          :items="[
+            { label: t('pagination.itemsPerPage', { count: 25 }), value: 25 },
+            { label: t('pagination.itemsPerPage', { count: 50 }), value: 50 },
+            { label: t('pagination.itemsPerPage', { count: 100 }), value: 100 }
+          ]"
+          size="xs"
+        />
+      </div>
+
+      <!-- Pagination Component -->
+      <UPagination
+        v-if="totalPages > 1"
+        v-model:page="currentPageModel"
+        :total="paginationInfo.totalItems"
+        :items-per-page="paginationInfo.itemsPerPage"
+        size="sm"
+      />
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -81,7 +120,26 @@ const { t, n } = useI18n({ useScope: 'local' })
 const memoryStore = useMemoryStore()
 
 // Use storeToRefs to ensure proper reactivity with Pinia store
-const { entities } = storeToRefs(memoryStore)
+const { 
+  paginatedEntities, 
+  paginationInfo, 
+  totalPages 
+} = storeToRefs(memoryStore)
+
+// Actions are not refs, so destructure directly from store
+const { setCurrentPage, setItemsPerPage } = memoryStore
+
+// Computed property to sync USelect with store
+const selectedItemsPerPage = computed({
+  get: () => paginationInfo.value.itemsPerPage,
+  set: (value: number) => setItemsPerPage(value)
+})
+
+// Computed property to sync UPagination with store
+const currentPageModel = computed({
+  get: () => paginationInfo.value.currentPage,
+  set: (value: number) => setCurrentPage(value)
+})
 
 const columns: TableColumn<EntityWithCounts>[] = [
   {
@@ -173,4 +231,7 @@ en:
     created: Created
     creator: Creator
     you: You
+  pagination:
+    showing: "Showing {start}-{end} of {total} entities"
+    itemsPerPage: "{count} per page"
 </i18n>
