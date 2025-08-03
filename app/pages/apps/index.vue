@@ -63,14 +63,14 @@
 
               <div class="relative">
                 <pre>{{ formatConfigTemplate(app.id) }}</pre>
-                <UButton
+                <CopyButton
                   class="absolute top-3 right-4"
-                  :color="isCopied ? 'success' : 'neutral'"
-                  :icon="isCopied ? 'i-ph-check' : 'i-ph-copy'"
-                  :label="isCopied ? t('config.copied') : t('config.copy')"
+                  :content="() => getMcpConfigTemplate(app.id)"
+                  :content-type="typeof getMcpConfigTemplate(app.id) === 'string' ? 'text' : 'json'"
+                  color="neutral"
+                  :label="t('config.copy')"
+                  :copied-label="t('config.copied')"
                   size="xs"
-                  variant="subtle"
-                  @click="copyToClipboard(app.id)"
                 />
               </div>
             </UPageSection>
@@ -104,8 +104,6 @@
 const { t } = useI18n({ useScope: 'local' })
 const { apps, getMcpConfigTemplate } = useApps()
 
-const isCopied = ref(false)
-
 // Add API Keys tab to the tabs
 const tabsItems = computed(() => [
   ...apps.value.map((app) => ({
@@ -122,22 +120,14 @@ const tabsItems = computed(() => [
 
 const formatConfigTemplate = (appId: string) => {
   const config = getMcpConfigTemplate(appId)
+  // For Claude Code, return the raw string command
+  if (typeof config === 'string') {
+    return config
+  }
+  // For other apps, return formatted JSON
   return JSON.stringify(config, null, 2)
 }
 
-const copyToClipboard = async (appId: string) => {
-  try {
-    const config = getMcpConfigTemplate(appId)
-    const configText = JSON.stringify(config, null, 2)
-    await navigator.clipboard.writeText(configText)
-    isCopied.value = true
-    setTimeout(() => {
-      isCopied.value = false
-    }, 3000)
-  } catch (err) {
-    console.error('Failed to copy:', err)
-  }
-}
 
 useHead({
   title: t('title'),

@@ -12,6 +12,7 @@
       :label="t('keyLabel')"
     >
       <UInput
+        v-model="formState.apiKeySecret"
         readonly
         class="font-mono"
       />
@@ -22,13 +23,11 @@
         color="neutral"
         :label="t('close')"
         @click="close"
-        variant="ghost"
       />
-      <UButton
-        :color="isCopied ? 'success' : 'primary'"
-        :icon="isCopied ? 'i-ph-check' : 'i-ph-copy'"
-        :label="isCopied ? t('copied') : t('copy')"
-        @click="copyToClipboard"
+      <CopyButton
+        :content="props.apiKeySecret"
+        :label="t('copy')"
+        :copied-label="t('copied')"
       />
     </div>
   </UForm>
@@ -52,23 +51,11 @@ const emit = defineEmits<{
   close: []
 }>()
 
-const isCopied = ref(false)
 
 const formState = reactive({
   apiKeySecret: computed(() => props.apiKeySecret),
 })
 
-async function copyToClipboard() {
-  try {
-    await navigator.clipboard.writeText(props.apiKeySecret)
-    isCopied.value = true
-    setTimeout(() => {
-      isCopied.value = false
-    }, 3000)
-  } catch (error) {
-    console.error('Failed to copy to clipboard:', error)
-  }
-}
 
 function close() {
   emit('close')
