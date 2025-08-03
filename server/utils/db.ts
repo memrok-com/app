@@ -69,3 +69,13 @@ export async function createUserDbWithContext(
 ): Promise<UserScopedDatabase> {
   return await UserScopedDatabase.createWithContext(db, userId)
 }
+
+/**
+ * Get the application database instance (no RLS context)
+ * Use this for system-level operations like API key validation
+ *
+ * @returns Application database instance
+ */
+export function useApplicationDb() {
+  return { db }
+}

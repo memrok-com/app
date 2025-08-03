@@ -17,7 +17,11 @@
           <template #default="{ item }">
             <UUser
               :avatar="{
-                src: `/logo-${item.slot}.svg`,
+                icon: item.slot === 'api-keys' ? 'i-ph-key-fill' : undefined,
+                src:
+                  item.slot === 'api-keys'
+                    ? undefined
+                    : `/logo-${item.slot}.svg`,
                 ui: { root: 'bg-inherit' },
               }"
               :name="item.label"
@@ -29,6 +33,7 @@
             />
           </template>
 
+          <!-- App-specific configuration tabs -->
           <template
             v-for="app in apps"
             :key="app.id"
@@ -43,22 +48,18 @@
                 />
               </template>
 
-              <div class="space-y-3">
-                <p>
-                  {{ t('config.description') }}
-                </p>
-
+              <div class="space-y-4">
                 <UAlert
-                  color="warning"
-                  icon="i-ph-warning-fill"
-                  :title="t('config.securityWarning.title')"
-                  :description="t('config.securityWarning.description')"
+                  color="info"
+                  icon="i-ph-info"
+                  :title="t('config.instructions.title')"
+                  :description="t('config.instructions.description')"
                 />
 
                 <div class="relative">
                   <pre
                     class="bg-elevated px-4 py-3 overflow-auto rounded text-sm"
-                    >{{ formatConfigForDisplay(mcpConfig) }}</pre
+                    >{{ formatConfigTemplate(app.id) }}</pre
                   >
                   <UButton
                     class="absolute top-3 right-4"
@@ -67,10 +68,29 @@
                     :label="isCopied ? t('config.copied') : t('config.copy')"
                     size="xs"
                     variant="subtle"
-                    @click="copyToClipboard(formatConfigForDisplay(mcpConfig))"
+                    @click="copyToClipboard(app.id)"
                   />
                 </div>
               </div>
+            </UPageSection>
+          </template>
+
+          <!-- API Keys tab -->
+          <template #api-keys>
+            <UPageSection :title="t('apiKeys.title')">
+              <template #leading>
+                <UAvatar
+                  icon="i-ph-key-fill"
+                  size="3xl"
+                  :ui="{ root: 'bg-inherit' }"
+                />
+              </template>
+
+              <template #links>
+                <ApiKeysModal />
+              </template>
+
+              <ApiKeysList />
             </UPageSection>
           </template>
         </UTabs>
@@ -81,18 +101,34 @@
 
 <script setup lang="ts">
 const { t } = useI18n({ useScope: 'local' })
-const { apps, tabsItems, mcpConfig } = useApps()
+const { apps, getMcpConfigTemplate } = useApps()
 
 const isCopied = ref(false)
 
-const formatConfigForDisplay = (config: Record<string, unknown> | null) => {
-  if (!config) return '{}'
+// Add API Keys tab to the tabs
+const tabsItems = computed(() => [
+  ...apps.value.map((app) => ({
+    key: app.id,
+    label: app.title,
+    slot: app.id,
+  })),
+  {
+    key: 'api-keys',
+    label: t('apiKeys.title'),
+    slot: 'api-keys',
+  },
+])
+
+const formatConfigTemplate = (appId: string) => {
+  const config = getMcpConfigTemplate(appId)
   return JSON.stringify(config, null, 2)
 }
 
-const copyToClipboard = async (text: string) => {
+const copyToClipboard = async (appId: string) => {
   try {
-    await navigator.clipboard.writeText(text)
+    const config = getMcpConfigTemplate(appId)
+    const configText = JSON.stringify(config, null, 2)
+    await navigator.clipboard.writeText(configText)
     isCopied.value = true
     setTimeout(() => {
       isCopied.value = false
@@ -111,11 +147,12 @@ useHead({
 en:
   title: Apps
   description: How your AI assistants can connect to memrok.
+  apiKeys:
+    title: API Keys
   config:
-    description: Copy this configuration and add it to your client’s settings.
+    instructions:
+      title: Setup Instructions
+      description: 'First create an API key in the API Keys tab, then replace "YOUR_API_KEY" in this configuration with your actual key.'
     copy: Copy
     copied: Copied!
-    securityWarning:
-      title: Security Warning
-      description: This configuration contains your user ID. Never share it with others. We’re working on revokable API keys for better security.
 </i18n>

@@ -4,6 +4,7 @@ import { randomUUID } from "crypto"
 import { rateLimitMiddleware, validateRequestSize } from "../../utils/rate-limiter"
 import { logAuditEvent } from "../../utils/mcp-security"
 import { toMCPError } from "../../utils/mcp-errors"
+import { extractUser } from "../../utils/auth-middleware"
 
 // Store active sessions
 const sessions = new Map<
@@ -24,10 +25,16 @@ export default defineEventHandler(async (event) => {
     if (!user) {
       throw createError({
         statusCode: 401,
-        statusMessage: "Authentication required"
+        statusMessage: "Authentication required. Use Bearer token or X-API-Key header."
       })
     }
+    
+    // Enhanced audit logging with auth method
     auditEntry.userId = user.id
+    auditEntry.authMethod = user.authMethod
+    if (user.apiKeyId) {
+      auditEntry.apiKeyId = user.apiKeyId
+    }
 
     // Apply rate limiting
     await rateLimitMiddleware(event, user.id, { type: "request" })
