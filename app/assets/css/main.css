@@ -31,5 +31,5 @@ code.prose {
 }
 
 pre.prose {
-  @apply bg-elevated px-4 py-3 overflow-auto;
+  @apply bg-elevated px-4 py-3 overflow-x-auto whitespace-pre max-w-none;
 }

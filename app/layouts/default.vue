@@ -61,11 +61,6 @@
     <UMain>
       <NuxtPage />
     </UMain>
-    <UFooter>
-      <USeparator>
-        <MemrokLogogram class="max-h-4" />
-      </USeparator>
-    </UFooter>
   </div>
 </template>
 

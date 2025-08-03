@@ -16,7 +16,7 @@
             <template #leading>
               <UIcon
                 class="text-primary"
-                name="i-ph-squares-four-fill"
+                name="i-ph-shapes-fill"
                 size="32"
               />
             </template>

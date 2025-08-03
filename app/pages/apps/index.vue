@@ -49,7 +49,7 @@
               </template>
               <UAlert
                 color="info"
-                icon="i-ph-info"
+                icon="i-ph-info-fill"
                 :title="t('config.instructions.title')"
               >
                 <template #description>
@@ -63,7 +63,7 @@
                 </template>
               </UAlert>
 
-              <div class="relative">
+              <div class="relative overflow-hidden">
                 <pre class="prose">{{ formatConfigTemplate(app.id) }}</pre>
                 <CopyButton
                   class="absolute top-3 right-4"
@@ -84,15 +84,10 @@
 
           <!-- API Keys tab -->
           <template #api-keys>
-            <UPageSection :title="t('apiKeys.title')">
-              <template #leading>
-                <UAvatar
-                  icon="i-ph-key-fill"
-                  size="3xl"
-                  :ui="{ root: 'bg-inherit' }"
-                />
-              </template>
-
+            <UPageSection
+              icon="i-ph-key-fill"
+              :title="t('apiKeys.title')"
+            >
               <template #links>
                 <ApiKeysModal />
               </template>
