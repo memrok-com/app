@@ -120,7 +120,7 @@
       variant="subtle"
     />
 
-    <div class="flex justify-end gap-x-4 gap-y-3 pt-4">
+    <div class="flex justify-end gap-x-4 gap-y-3">
       <UButton
         class="!rounded-md"
         color="neutral"
@@ -140,8 +140,8 @@
 </template>
 
 <script setup lang="ts">
-import { z } from "zod"
-import type { RelationData } from "~/types/relations"
+import { z } from 'zod'
+import type { RelationData } from '~/types/relations'
 
 interface Props {
   subjectId?: string
@@ -157,44 +157,44 @@ const emit = defineEmits<{
   close: []
 }>()
 
-const { t } = useI18n({ useScope: "local" })
+const { t } = useI18n({ useScope: 'local' })
 const toast = useToast()
 const memoryStore = useMemoryStore()
 
 // Form validation schema
 const schema = z
   .object({
-    subjectId: z.string().min(1, t("fields.subject.validation.required")),
-    predicate: z.string().min(1, t("fields.predicate.validation.required")),
-    objectId: z.string().min(1, t("fields.object.validation.required")),
+    subjectId: z.string().min(1, t('fields.subject.validation.required')),
+    predicate: z.string().min(1, t('fields.predicate.validation.required')),
+    objectId: z.string().min(1, t('fields.object.validation.required')),
     strength: z.number().min(0).max(1).optional(),
     metadata: z
       .string()
       .optional()
       .refine((val) => {
-        if (!val || val.trim() === "") return true
+        if (!val || val.trim() === '') return true
         try {
           JSON.parse(val)
           return true
         } catch {
           return false
         }
-      }, t("fields.metadata.validation.invalidJson")),
+      }, t('fields.metadata.validation.invalidJson')),
   })
   .refine((data) => data.subjectId !== data.objectId, {
-    message: t("validation.sameEntity"),
-    path: ["objectId"],
+    message: t('validation.sameEntity'),
+    path: ['objectId'],
   })
 
 // Form state
 const state = reactive({
-  subjectId: props.relation?.subjectId || props.subjectId || "",
-  predicate: props.relation?.predicate || "",
-  objectId: props.relation?.objectId || "",
+  subjectId: props.relation?.subjectId || props.subjectId || '',
+  predicate: props.relation?.predicate || '',
+  objectId: props.relation?.objectId || '',
   strength: props.relation?.strength ?? 0.5,
   metadata: props.relation?.metadata
     ? JSON.stringify(props.relation.metadata, null, 2)
-    : "",
+    : '',
 })
 
 // Loading state
@@ -206,7 +206,7 @@ const submitError = ref<string | null>(null)
 // Entity options for UInputMenu
 const entityOptions = computed(() => {
   return memoryStore.entities.map((entity) => ({
-    label: t("fields.entity.format", { name: entity.name, type: entity.type }),
+    label: t('fields.entity.format', { name: entity.name, type: entity.type }),
     value: entity.id,
   }))
 })
@@ -217,7 +217,7 @@ const selectedSubject = computed({
     const entity = memoryStore.entities.find((e) => e.id === state.subjectId)
     return entity
       ? {
-          label: t("fields.entity.format", {
+          label: t('fields.entity.format', {
             name: entity.name,
             type: entity.type,
           }),
@@ -226,7 +226,7 @@ const selectedSubject = computed({
       : undefined
   },
   set: (newValue) => {
-    state.subjectId = newValue?.value || ""
+    state.subjectId = newValue?.value || ''
   },
 })
 
@@ -235,7 +235,7 @@ const selectedObject = computed({
     const entity = memoryStore.entities.find((e) => e.id === state.objectId)
     return entity
       ? {
-          label: t("fields.entity.format", {
+          label: t('fields.entity.format', {
             name: entity.name,
             type: entity.type,
           }),
@@ -244,7 +244,7 @@ const selectedObject = computed({
       : undefined
   },
   set: (newValue) => {
-    state.objectId = newValue?.value || ""
+    state.objectId = newValue?.value || ''
   },
 })
 
@@ -282,7 +282,7 @@ const submit = async () => {
       try {
         parsedMetadata = JSON.parse(state.metadata)
       } catch {
-        throw new Error(t("fields.metadata.validation.invalidJson"))
+        throw new Error(t('fields.metadata.validation.invalidJson'))
       }
     }
 
@@ -301,25 +301,25 @@ const submit = async () => {
         metadata: relationData.metadata,
       })
       toast.add({
-        title: t("success.updated.title"),
-        description: t("success.updated.description"),
-        color: "success",
-        icon: "i-ph-check-circle-fill",
+        title: t('success.updated.title'),
+        description: t('success.updated.description'),
+        color: 'success',
+        icon: 'i-ph-check-circle-fill',
       })
     } else {
       await memoryStore.createRelation(relationData)
       toast.add({
-        title: t("success.inserted.title"),
-        description: t("success.inserted.description"),
-        color: "success",
-        icon: "i-ph-check-circle-fill",
+        title: t('success.inserted.title'),
+        description: t('success.inserted.description'),
+        color: 'success',
+        icon: 'i-ph-check-circle-fill',
       })
     }
 
-    emit("close")
+    emit('close')
   } catch (error) {
-    console.error("Relation form submission error:", error)
-    submitError.value = t(props.relation ? "error.update" : "error.insert")
+    console.error('Relation form submission error:', error)
+    submitError.value = t(props.relation ? 'error.update' : 'error.insert')
   } finally {
     isSubmitting.value = false
   }
@@ -338,7 +338,7 @@ en:
     predicate:
       label: Relation
       placeholder: Select or create relation type
-      help: "Examples: {work} {love} {travel}"
+      help: 'Examples: {work} {love} {travel}'
       helpExamples:
         work: works at
         love: is in love with
@@ -362,7 +362,7 @@ en:
       validation:
         invalidJson: Metadata must be valid JSON format
     entity:
-      format: "{name} ({type})"
+      format: '{name} ({type})'
   buttons:
     cancel: Cancel
     submit:

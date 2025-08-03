@@ -12,7 +12,7 @@
     "lint:fix": "eslint . --fix",
     "typecheck": "vue-tsc --noEmit",
     "check": "bun run lint && bun run typecheck",
-    "setup": "bun run certs && bun run infra:start && bun run db:generate && bun run db:migrate && bun run infra:provision",
+    "setup": "bun i && bun run certs && bun run infra:start && bun run db:generate && bun run db:migrate && bun run infra:provision",
     "certs": "bun run deployment/scripts/generate-certs.ts",
     "infra:start": "docker compose --project-name memrok --env-file .env -f deployment/docker-compose.yml -f deployment/docker-compose.dev.yml down && docker compose --project-name memrok --env-file .env -f deployment/docker-compose.yml -f deployment/docker-compose.dev.yml up -d",
     "infra:restart": "docker compose --project-name memrok --env-file .env -f deployment/docker-compose.yml -f deployment/docker-compose.dev.yml restart",

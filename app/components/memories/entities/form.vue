@@ -56,7 +56,7 @@
       variant="subtle"
     />
 
-    <div class="flex justify-end gap-x-4 gap-y-3 pt-4">
+    <div class="flex justify-end gap-x-4 gap-y-3">
       <UButton
         class="!rounded-md"
         color="neutral"
@@ -76,8 +76,8 @@
 </template>
 
 <script setup lang="ts">
-import { z } from "zod"
-import type { EntityWithCounts } from "~/types/entities"
+import { z } from 'zod'
+import type { EntityWithCounts } from '~/types/entities'
 
 interface Props {
   entity?: EntityWithCounts | undefined
@@ -92,34 +92,34 @@ const emit = defineEmits<{
 }>()
 
 const memoryStore = useMemoryStore()
-const { t } = useI18n({ useScope: "local" })
+const { t } = useI18n({ useScope: 'local' })
 const toast = useToast()
 
 // Form validation schema
 const schema = z.object({
-  name: z.string().min(1, t("fields.name.validation.required")),
-  type: z.string().min(1, t("fields.type.validation.required")),
+  name: z.string().min(1, t('fields.name.validation.required')),
+  type: z.string().min(1, t('fields.type.validation.required')),
   metadata: z
     .string()
     .optional()
     .refine((val) => {
-      if (!val || val.trim() === "") return true
+      if (!val || val.trim() === '') return true
       try {
         JSON.parse(val)
         return true
       } catch {
         return false
       }
-    }, t("fields.metadata.validation.invalidJson")),
+    }, t('fields.metadata.validation.invalidJson')),
 })
 
 // Form state
 const state = reactive({
-  name: props.entity?.name || "",
-  type: props.entity?.type || "",
+  name: props.entity?.name || '',
+  type: props.entity?.type || '',
   metadata: props.entity?.metadata
     ? JSON.stringify(props.entity.metadata, null, 2)
-    : "",
+    : '',
 })
 
 // Loading state
@@ -162,7 +162,7 @@ const submit = async () => {
       try {
         parsedMetadata = JSON.parse(state.metadata)
       } catch {
-        throw new Error(t("validation.metadata.invalidJson"))
+        throw new Error(t('validation.metadata.invalidJson'))
       }
     }
 
@@ -177,31 +177,31 @@ const submit = async () => {
     if (props.entity) {
       result = await memoryStore.updateEntity(props.entity.id, entityData)
       toast.add({
-        title: t("success.updated.title"),
-        description: t("success.updated.description", {
+        title: t('success.updated.title'),
+        description: t('success.updated.description', {
           name: result.name,
           type: result.type,
         }),
-        color: "success",
-        icon: "i-ph-check-circle-fill",
+        color: 'success',
+        icon: 'i-ph-check-circle-fill',
       })
     } else {
       result = await memoryStore.createEntity(entityData)
       toast.add({
-        title: t("success.inserted.title"),
-        description: t("success.inserted.description", {
+        title: t('success.inserted.title'),
+        description: t('success.inserted.description', {
           name: result.name,
           type: result.type,
         }),
-        color: "success",
-        icon: "i-ph-check-circle-fill",
+        color: 'success',
+        icon: 'i-ph-check-circle-fill',
       })
     }
 
-    emit("close")
+    emit('close')
   } catch (error) {
-    console.error("Entity form submission error:", error)
-    submitError.value = t(props.entity ? "error.update" : "error.insert")
+    console.error('Entity form submission error:', error)
+    submitError.value = t(props.entity ? 'error.update' : 'error.insert')
   } finally {
     isSubmitting.value = false
   }
@@ -236,10 +236,10 @@ en:
   success:
     inserted:
       title: Entity Inserted
-      description: "{name} ({type}) has been successfully inserted."
+      description: '{name} ({type}) has been successfully inserted.'
     updated:
       title: Entity Updated
-      description: "{name} ({type}) has been successfully updated."
+      description: '{name} ({type}) has been successfully updated.'
   error:
     insert: Failed to create entity. Please check your input and try again.
     update: Failed to update entity. Please check your input and try again.

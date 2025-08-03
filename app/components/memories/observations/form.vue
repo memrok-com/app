@@ -64,7 +64,7 @@
       variant="subtle"
     />
 
-    <div class="flex justify-end gap-x-4 gap-y-3 pt-4">
+    <div class="flex justify-end gap-x-4 gap-y-3">
       <UButton
         class="!rounded-md"
         color="neutral"
@@ -86,8 +86,8 @@
 </template>
 
 <script setup lang="ts">
-import { z } from "zod"
-import type { ObservationData } from "~/types/observations"
+import { z } from 'zod'
+import type { ObservationData } from '~/types/observations'
 
 interface Props {
   observation?: ObservationData | undefined
@@ -104,36 +104,36 @@ const emit = defineEmits<{
 }>()
 
 const memoryStore = useMemoryStore()
-const { t } = useI18n({ useScope: "local" })
+const { t } = useI18n({ useScope: 'local' })
 const toast = useToast()
 
 // Form validation schema
 const schema = z.object({
-  entityId: z.string().min(1, t("fields.entity.validation.required")),
-  content: z.string().min(1, t("fields.content.validation.required")),
+  entityId: z.string().min(1, t('fields.entity.validation.required')),
+  content: z.string().min(1, t('fields.content.validation.required')),
   source: z.string().optional(),
   metadata: z
     .string()
     .optional()
     .refine((val) => {
-      if (!val || val.trim() === "") return true
+      if (!val || val.trim() === '') return true
       try {
         JSON.parse(val)
         return true
       } catch {
         return false
       }
-    }, t("fields.metadata.validation.invalidJson")),
+    }, t('fields.metadata.validation.invalidJson')),
 })
 
 // Form state
 const state = reactive({
-  entityId: props.observation?.entityId || props.entityId || "",
-  content: props.observation?.content || "",
-  source: props.observation?.source || "",
+  entityId: props.observation?.entityId || props.entityId || '',
+  content: props.observation?.content || '',
+  source: props.observation?.source || '',
   metadata: props.observation?.metadata
     ? JSON.stringify(props.observation.metadata, null, 2)
-    : "",
+    : '',
 })
 
 // Selected entity for UInputMenu (needs object format)
@@ -142,7 +142,7 @@ const selectedEntity = computed({
     const entity = memoryStore.entities.find((e) => e.id === state.entityId)
     return entity
       ? {
-          label: t("fields.entity.format", {
+          label: t('fields.entity.format', {
             name: entity.name,
             type: entity.type,
           }),
@@ -151,7 +151,7 @@ const selectedEntity = computed({
       : undefined
   },
   set: (newValue) => {
-    state.entityId = newValue?.value || ""
+    state.entityId = newValue?.value || ''
   },
 })
 
@@ -164,7 +164,7 @@ const submitError = ref<string | null>(null)
 // Entity options for UInputMenu
 const entityOptions = computed(() => {
   return memoryStore.entities.map((entity) => ({
-    label: t("fields.entity.format", { name: entity.name, type: entity.type }),
+    label: t('fields.entity.format', { name: entity.name, type: entity.type }),
     value: entity.id,
   }))
 })
@@ -183,7 +183,7 @@ const submit = async () => {
       try {
         parsedMetadata = JSON.parse(state.metadata)
       } catch {
-        throw new Error(t("fields.metadata.validation.invalidJson"))
+        throw new Error(t('fields.metadata.validation.invalidJson'))
       }
     }
 
@@ -201,25 +201,25 @@ const submit = async () => {
         metadata: observationData.metadata,
       })
       toast.add({
-        title: t("success.updated.title"),
-        description: t("success.updated.description"),
-        color: "success",
-        icon: "i-ph-check-circle-fill",
+        title: t('success.updated.title'),
+        description: t('success.updated.description'),
+        color: 'success',
+        icon: 'i-ph-check-circle-fill',
       })
     } else {
       await memoryStore.createObservation(observationData)
       toast.add({
-        title: t("success.inserted.title"),
-        description: t("success.inserted.description"),
-        color: "success",
-        icon: "i-ph-check-circle-fill",
+        title: t('success.inserted.title'),
+        description: t('success.inserted.description'),
+        color: 'success',
+        icon: 'i-ph-check-circle-fill',
       })
     }
 
-    emit("close")
+    emit('close')
   } catch (error) {
-    console.error("Observation form submission error:", error)
-    submitError.value = t(props.observation ? "error.update" : "error.insert")
+    console.error('Observation form submission error:', error)
+    submitError.value = t(props.observation ? 'error.update' : 'error.insert')
   } finally {
     isSubmitting.value = false
   }
@@ -233,7 +233,7 @@ en:
       label: Entity
       placeholder: Select entity for this observation
       empty: No entities available. Create an entity first.
-      format: "{name} ({type})"
+      format: '{name} ({type})'
       validation:
         required: Entity is required
     content:

@@ -20,3 +20,16 @@ h5,
 h6 {
   @apply font-[900];
 }
+
+code,
+pre {
+  @apply rounded text-toned;
+}
+
+code {
+  @apply bg-accented px-1 py-0.5;
+}
+
+pre {
+  @apply bg-elevated px-4 py-3 overflow-auto;
+}

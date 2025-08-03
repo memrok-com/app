@@ -1,8 +1,5 @@
 <template>
-  <UModal
-    :title="t('title')"
-    :description="t('description')"
-  >
+  <UModal :title="t('title')">
     <UTooltip
       :disabled="showTitle"
       :text="t('title')"
@@ -49,5 +46,4 @@ const { t } = useI18n({ useScope: 'local' })
 <i18n lang="yaml">
 en:
   title: Create API Key
-  description: Generate a new API key for programmatic access to memrok.
 </i18n>

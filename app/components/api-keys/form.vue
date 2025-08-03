@@ -77,7 +77,7 @@
       variant="subtle"
     />
 
-    <div class="flex justify-end gap-x-4 gap-y-3 pt-4">
+    <div class="flex justify-end gap-x-4 gap-y-3">
       <UButton
         class="!rounded-md"
         color="neutral"
@@ -149,7 +149,6 @@ const minDate = computed(() => {
 const isSubmitting = ref(false)
 const submitError = ref<string | null>(null)
 const createdKey = ref<{ id: string; secret: string } | null>(null)
-
 
 // Form submission handler
 async function onSubmit() {

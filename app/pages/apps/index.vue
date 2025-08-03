@@ -47,30 +47,31 @@
                   :ui="{ root: 'bg-inherit' }"
                 />
               </template>
+              <UAlert
+                color="info"
+                icon="i-ph-info"
+                :title="t('config.instructions.title')"
+              >
+                <template #description>
+                  <i18n-t keypath="config.instructions.description">
+                    <template #key>
+                      <code>{{ t('config.instructions.key') }}</code>
+                    </template>
+                  </i18n-t>
+                </template>
+              </UAlert>
 
-              <div class="space-y-4">
-                <UAlert
-                  color="info"
-                  icon="i-ph-info"
-                  :title="t('config.instructions.title')"
-                  :description="t('config.instructions.description')"
+              <div class="relative">
+                <pre>{{ formatConfigTemplate(app.id) }}</pre>
+                <UButton
+                  class="absolute top-3 right-4"
+                  :color="isCopied ? 'success' : 'neutral'"
+                  :icon="isCopied ? 'i-ph-check' : 'i-ph-copy'"
+                  :label="isCopied ? t('config.copied') : t('config.copy')"
+                  size="xs"
+                  variant="subtle"
+                  @click="copyToClipboard(app.id)"
                 />
-
-                <div class="relative">
-                  <pre
-                    class="bg-elevated px-4 py-3 overflow-auto rounded text-sm"
-                    >{{ formatConfigTemplate(app.id) }}</pre
-                  >
-                  <UButton
-                    class="absolute top-3 right-4"
-                    :color="isCopied ? 'success' : 'neutral'"
-                    :icon="isCopied ? 'i-ph-check' : 'i-ph-copy'"
-                    :label="isCopied ? t('config.copied') : t('config.copy')"
-                    size="xs"
-                    variant="subtle"
-                    @click="copyToClipboard(app.id)"
-                  />
-                </div>
               </div>
             </UPageSection>
           </template>
@@ -90,7 +91,7 @@
                 <ApiKeysModal />
               </template>
 
-              <ApiKeysList />
+              <ApiKeys />
             </UPageSection>
           </template>
         </UTabs>
@@ -152,7 +153,8 @@ en:
   config:
     instructions:
       title: Setup Instructions
-      description: 'First create an API key in the API Keys tab, then replace "YOUR_API_KEY" in this configuration with your actual key.'
+      description: Create an API key, then replace {key} in this configuration with your actual key.
+      key: YOUR_API_KEY
     copy: Copy
     copied: Copied!
 </i18n>
