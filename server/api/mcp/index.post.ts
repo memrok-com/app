@@ -8,6 +8,25 @@ import { extractUser } from "../../utils/auth-middleware"
 // Store active MCP server instances by session
 const sessions = new Map<string, MemrokMCPServer>()
 
+// Environment-based logging configuration
+const isDevelopment = process.env.NODE_ENV === 'development'
+const DEBUG_LOGGING = isDevelopment
+
+// Logging helpers
+const logInfo = (message: string, ...args: unknown[]) => {
+  console.log(`[MCP] ${message}`, ...args)
+}
+
+const logDebug = (message: string, ...args: unknown[]) => {
+  if (DEBUG_LOGGING) {
+    console.log(`[MCP:DEBUG] ${message}`, ...args)
+  }
+}
+
+const logError = (message: string, error?: unknown) => {
+  console.error(`[MCP:ERROR] ${message}`, error)
+}
+
 // JSON-RPC 2.0 error responses
 const createErrorResponse = (id: unknown, code: number, message: string, data?: unknown) => ({
   jsonrpc: "2.0",
@@ -100,27 +119,27 @@ export default defineEventHandler(async (event) => {
     let mcpServer = sessions.get(sessionId)
     
     if (!mcpServer) {
-      console.log(`[MCP] Creating new server instance for session ${sessionId}`)
+      logInfo(`Creating new server instance for session ${sessionId}`)
       mcpServer = new MemrokMCPServer()
       sessions.set(sessionId, mcpServer)
       
       // Clean up old sessions periodically
       setTimeout(() => {
-        console.log(`[MCP] Cleaning up session ${sessionId}`)
+        logDebug(`Cleaning up session ${sessionId}`)
         sessions.delete(sessionId!)
       }, 24 * 60 * 60 * 1000) // 24 hours
     }
 
     // Set user context BEFORE handling requests
     mcpServer.setContext(assistantName, assistantType, user.id)
-    console.log(`[MCP] Set context - User: ${user.id}, Assistant: ${assistantName}, Method: ${requestData.method}`)
+    logDebug(`Set context - User: ${user.id}, Assistant: ${assistantName}, Method: ${requestData.method}`)
 
     // Handle different MCP methods
     let response: Record<string, unknown>
 
     switch (requestData.method) {
       case "initialize":
-        console.log("[MCP] Handling initialize request")
+        logDebug("Handling initialize request")
         response = createSuccessResponse(requestData.id, {
           protocolVersion: "2024-11-05",
           capabilities: {
@@ -136,56 +155,58 @@ export default defineEventHandler(async (event) => {
         break
 
       case "initialized":
-        console.log("[MCP] Handling initialized notification")
+        logDebug("Handling initialized notification")
         // This is a notification, no response needed
         setResponseStatus(event, 204)
         return ""
 
       case "tools/list":
-        console.log("[MCP] Handling tools/list request")
+        logDebug("Handling tools/list request")
         try {
           // Get tools from the MCP server
           const toolsResult = await mcpServer.listTools()
-          console.log(`[MCP] Found ${toolsResult.tools?.length || 0} tools`)
+          logDebug(`Found ${toolsResult.tools?.length || 0} tools`)
           
           response = createSuccessResponse(requestData.id, {
             tools: toolsResult.tools || []
           })
         } catch (error) {
-          console.error("[MCP] Error listing tools:", error)
+          logError("Error listing tools:", error)
           response = createErrorResponse(requestData.id, -32603, "Internal error listing tools", String(error))
         }
         break
 
-      case "tools/call":
-        console.log(`[MCP] Handling tools/call request for tool: ${(requestData.params as any)?.name}`)
-        auditEntry.toolName = (requestData.params as any)?.name
+      case "tools/call": {
+        const toolName = (requestData.params as Record<string, unknown>)?.name as string
+        logDebug(`Handling tools/call request for tool: ${toolName}`)
+        auditEntry.toolName = toolName
         
         try {
-          const toolResult = await mcpServer.callTool((requestData.params as any)?.name, (requestData.params as any)?.arguments || {})
-          console.log(`[MCP] Tool call successful: ${(requestData.params as any)?.name}`)
+          const toolResult = await mcpServer.callTool(toolName, (requestData.params as Record<string, unknown>)?.arguments as Record<string, unknown> || {})
+          logDebug(`Tool call successful: ${toolName}`)
           
           response = createSuccessResponse(requestData.id, {
             content: toolResult.content
           })
         } catch (error) {
-          console.error(`[MCP] Error calling tool ${(requestData.params as any)?.name}:`, error)
+          logError(`Error calling tool ${toolName}:`, error)
           response = createErrorResponse(requestData.id, -32603, "Internal error calling tool", String(error))
         }
         break
+      }
 
       case "resources/list":
-        console.log("[MCP] Handling resources/list request")
+        logDebug("Handling resources/list request")
         response = createSuccessResponse(requestData.id, { resources: [] })
         break
 
       case "prompts/list":
-        console.log("[MCP] Handling prompts/list request")  
+        logDebug("Handling prompts/list request")  
         response = createSuccessResponse(requestData.id, { prompts: [] })
         break
 
       default:
-        console.log(`[MCP] Unknown method: ${requestData.method}`)
+        logDebug(`Unknown method: ${requestData.method}`)
         response = createErrorResponse(requestData.id, -32601, `Method not found: ${requestData.method}`)
     }
 
@@ -204,7 +225,6 @@ export default defineEventHandler(async (event) => {
       duration: Date.now() - startTime,
     })
 
-    console.log(`[MCP] Returning response for ${requestData.method}:`, JSON.stringify(response, null, 2))
     return response
 
   } catch (error) {
@@ -222,8 +242,7 @@ export default defineEventHandler(async (event) => {
       duration: Date.now() - startTime,
     })
 
-    console.error("MCP request error:", error)
-    console.error("Converted MCP error:", mcpError)
+    logError("MCP request error:", error)
     
     // Ensure we have a valid error object
     if (!mcpError) {
