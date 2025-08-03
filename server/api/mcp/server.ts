@@ -737,14 +737,19 @@ export class MemrokMCPServer {
   }
 
   // Method to call a specific tool
-  async callTool(name: string, args: any) {
+  async callTool(name: string, args: Record<string, unknown>) {
     try {
       const memoryService = this.getMemoryService()
       const creator = this.getCreatorContext()
 
       switch (name) {
         case "create_entity": {
-          const { name: entityName, type, description, metadata } = args
+          const { name: entityName, type, description, metadata } = args as {
+            name: string
+            type: string
+            description?: string
+            metadata?: Record<string, unknown>
+          }
           const entity = await memoryService.createEntity(
             { name: entityName, type, description, metadata },
             creator
@@ -763,7 +768,13 @@ export class MemrokMCPServer {
         }
 
         case "create_relation": {
-          const { subjectId, objectId, predicate, strength, metadata } = args
+          const { subjectId, objectId, predicate, strength, metadata } = args as {
+            subjectId: string
+            objectId: string
+            predicate: string
+            strength?: number
+            metadata?: Record<string, unknown>
+          }
           const relation = await memoryService.createRelation(
             { subjectId, objectId, predicate, strength, metadata },
             creator
@@ -784,7 +795,12 @@ export class MemrokMCPServer {
         }
 
         case "create_observation": {
-          const { entityId, content, source, metadata } = args
+          const { entityId, content, source, metadata } = args as {
+            entityId: string
+            content: string
+            source?: string
+            metadata?: Record<string, unknown>
+          }
           const observation = await memoryService.createObservation(
             { entityId, content, source, metadata },
             creator
@@ -804,7 +820,11 @@ export class MemrokMCPServer {
         }
 
         case "search_memories": {
-          const { query, entityTypes, limit = 20 } = args
+          const { query, entityTypes, limit = 20 } = args as {
+            query: string
+            entityTypes?: string[]
+            limit?: number
+          }
           const results = await memoryService.searchMemories({ query, entityTypes, limit })
           const response = createMCPSuccessResponse({
             results: {
@@ -830,8 +850,13 @@ export class MemrokMCPServer {
         }
 
         case "get_entity_relations": {
-          const { entityId, direction = "both" } = args
-          const relations = await memoryService.getEntityRelations(entityId, direction)
+          const { entityId, direction = "both" } = args as {
+            entityId: string
+            direction?: "incoming" | "outgoing" | "both"
+          }
+          // Map MCP direction to MemoryService direction
+          const serviceDirection = direction === "incoming" ? "to" : direction === "outgoing" ? "from" : "both"
+          const relations = await memoryService.getEntityRelations(entityId, serviceDirection)
           const response = createMCPSuccessResponse({
             relations: relations.map((r) => ({
               id: r.id,
@@ -854,7 +879,14 @@ export class MemrokMCPServer {
         }
 
         case "batch_create_entities": {
-          const { entities } = args
+          const { entities } = args as {
+            entities: Array<{
+              name: string
+              type: string
+              description?: string
+              metadata?: Record<string, unknown>
+            }>
+          }
           const createdEntities = await memoryService.batchCreateEntities(entities, creator)
           const response = createMCPSuccessResponse({
             entities: createdEntities.map((e) => ({
@@ -871,7 +903,7 @@ export class MemrokMCPServer {
         }
 
         case "get_entity_observations": {
-          const { entityId } = args
+          const { entityId } = args as { entityId: string }
           const observations = await memoryService.getEntityObservations(entityId)
           const response = createMCPSuccessResponse({
             observations: observations.map((o) => ({
@@ -885,7 +917,7 @@ export class MemrokMCPServer {
         }
 
         case "delete_entity": {
-          const { entityId } = args
+          const { entityId } = args as { entityId: string }
           await memoryService.deleteEntity(entityId)
           const response = createMCPSuccessResponse({
             deleted: true,
@@ -896,7 +928,7 @@ export class MemrokMCPServer {
         }
 
         default:
-          throw new MemrokMCPError(MCPErrorCode.INVALID_REQUEST, `Unknown tool: ${name}`)
+          throw new MemrokMCPError(MCPErrorCode.INVALID_INPUT, `Unknown tool: ${name}`)
       }
     } catch (error) {
       const mcpError = toMCPError(error)

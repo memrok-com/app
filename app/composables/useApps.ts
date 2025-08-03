@@ -38,13 +38,18 @@ export const useApps = () => {
     // Get the app domain from environment or use default
     let appDomain = runtimeConfig.public.MEMROK_APP_DOMAIN || 'https://app.memrok.com'
     
+    // For development with mkcert certificates, use localhost to avoid SSL verification issues
+    if (appDomain.includes('dev.memrok.com')) {
+      appDomain = 'http://localhost:3000'
+    }
+    
     // Ensure domain has protocol
     if (!appDomain.startsWith('http://') && !appDomain.startsWith('https://')) {
       appDomain = `https://${appDomain}`
     }
     
     // Windows requires cmd /c npx for proper execution
-    const serverConfig = isWindows()
+    const mcpServerConfig = isWindows()
       ? {
           command: 'cmd',
           args: [
@@ -72,9 +77,12 @@ export const useApps = () => {
           ],
         }
     
+    // Use different server name for dev vs prod
+    const serverName = appDomain.includes('localhost') ? 'memrok-dev' : 'memrok'
+    
     return {
       mcpServers: {
-        memrok: serverConfig,
+        [serverName]: mcpServerConfig,
       },
     }
   }
@@ -86,42 +94,21 @@ export const useApps = () => {
     // Get the app domain from environment or use default
     let appDomain = runtimeConfig.public.MEMROK_APP_DOMAIN || 'https://app.memrok.com'
     
+    // For development with mkcert certificates, use localhost to avoid SSL verification issues
+    if (appDomain.includes('dev.memrok.com')) {
+      appDomain = 'http://localhost:3000'
+    }
+    
     // Ensure domain has protocol
     if (!appDomain.startsWith('http://') && !appDomain.startsWith('https://')) {
       appDomain = `https://${appDomain}`
     }
     
-    // Claude Code expects just the server config object, not the full mcpServers wrapper
-    const serverConfig = isWindows() 
-      ? {
-          command: 'cmd',
-          args: [
-            '/c',
-            'npx',
-            '-y',
-            'mcp-remote',
-            `${appDomain}/api/mcp`,
-            '--header',
-            `Authorization: Bearer ${apiKey}`,
-            '--header',
-            `X-Assistant-Name: ${assistantName}`,
-          ],
-        }
-      : {
-          command: 'npx',
-          args: [
-            '-y',
-            'mcp-remote',
-            `${appDomain}/api/mcp`,
-            '--header',
-            `Authorization: Bearer ${apiKey}`,
-            '--header',
-            `X-Assistant-Name: ${assistantName}`,
-          ],
-        }
+    // Use different server name for dev vs prod
+    const serverName = appDomain.includes('localhost') ? 'memrok-dev' : 'memrok'
     
-    // Use the simpler HTTP transport method like other tools
-    return `claude mcp add --transport http memrok "${appDomain}/api/mcp" --header "Authorization: Bearer ${apiKey}" --header "X-Assistant-Name: ${assistantName}"`
+    // Use the simpler HTTP transport method like other tools instead of mcp-remote
+    return `claude mcp add --transport http ${serverName} "${appDomain}/api/mcp" --header "Authorization: Bearer ${apiKey}" --header "X-Assistant-Name: ${assistantName}"`
   }
 
   // Get config template with placeholder for API key

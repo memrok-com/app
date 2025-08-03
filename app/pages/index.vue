@@ -132,7 +132,7 @@ onMounted(async () => {
   }
 })
 
-const features = <PageFeatureProps[]>[
+const features: PageFeatureProps[] = [
   {
     icon: 'i-ph-shield-check-fill',
     title: t('features.1.title'),

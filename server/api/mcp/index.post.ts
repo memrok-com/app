@@ -70,7 +70,7 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    let requestData: any
+    let requestData: Record<string, unknown>
     try {
       requestData = JSON.parse(body)
     } catch {
@@ -116,7 +116,7 @@ export default defineEventHandler(async (event) => {
     console.log(`[MCP] Set context - User: ${user.id}, Assistant: ${assistantName}, Method: ${requestData.method}`)
 
     // Handle different MCP methods
-    let response: any
+    let response: Record<string, unknown>
 
     switch (requestData.method) {
       case "initialize":
@@ -158,19 +158,18 @@ export default defineEventHandler(async (event) => {
         break
 
       case "tools/call":
-        console.log(`[MCP] Handling tools/call request for tool: ${requestData.params?.name}`)
-        auditEntry.toolName = requestData.params?.name
+        console.log(`[MCP] Handling tools/call request for tool: ${(requestData.params as any)?.name}`)
+        auditEntry.toolName = (requestData.params as any)?.name
         
         try {
-          const toolResult = await mcpServer.callTool(requestData.params?.name, requestData.params?.arguments || {})
-          console.log(`[MCP] Tool call successful: ${requestData.params?.name}`)
+          const toolResult = await mcpServer.callTool((requestData.params as any)?.name, (requestData.params as any)?.arguments || {})
+          console.log(`[MCP] Tool call successful: ${(requestData.params as any)?.name}`)
           
           response = createSuccessResponse(requestData.id, {
-            content: toolResult.content,
-            isError: toolResult.isError
+            content: toolResult.content
           })
         } catch (error) {
-          console.error(`[MCP] Error calling tool ${requestData.params?.name}:`, error)
+          console.error(`[MCP] Error calling tool ${(requestData.params as any)?.name}:`, error)
           response = createErrorResponse(requestData.id, -32603, "Internal error calling tool", String(error))
         }
         break
