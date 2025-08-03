@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import type { EntityWithCounts, EntitiesApiResponse } from '../types/entities'
 import type {
   ObservationData,
@@ -88,6 +88,16 @@ interface CreateRelationInput {
   createdByAssistantType?: string
 }
 
+// Pagination interface
+interface PaginationState {
+  currentPage: number
+  itemsPerPage: number
+  totalItems: number
+  totalPages: number
+  startItem: number
+  endItem: number
+}
+
 export const useMemoryStore = defineStore('memory', () => {
   // State
   const entities = ref<EntityWithCounts[]>([])
@@ -95,6 +105,10 @@ export const useMemoryStore = defineStore('memory', () => {
   const relations = ref<RelationData[]>([])
   const errors = ref<string[]>([])
   const initialized = ref(false)
+
+  // Pagination state
+  const currentPage = ref(1)
+  const itemsPerPage = ref(25)
 
   // Enhanced loading states
   const loading = ref<LoadingStates>({
@@ -160,6 +174,32 @@ export const useMemoryStore = defineStore('memory', () => {
   // Business rule validation computed properties
   const canCreateObservations = computed(() => entities.value.length >= 1)
   const canCreateRelations = computed(() => entities.value.length >= 2)
+
+  // Pagination computed properties
+  const totalPages = computed(() => 
+    Math.ceil(entities.value.length / itemsPerPage.value)
+  )
+
+  const paginatedEntities = computed(() => {
+    const start = (currentPage.value - 1) * itemsPerPage.value
+    const end = start + itemsPerPage.value
+    return entities.value.slice(start, end)
+  })
+
+  const paginationInfo = computed<PaginationState>(() => {
+    const totalItems = entities.value.length
+    const start = (currentPage.value - 1) * itemsPerPage.value
+    const end = Math.min(start + itemsPerPage.value, totalItems)
+    
+    return {
+      currentPage: currentPage.value,
+      itemsPerPage: itemsPerPage.value,
+      totalItems,
+      totalPages: totalPages.value,
+      startItem: totalItems > 0 ? start + 1 : 0,
+      endItem: end,
+    }
+  })
 
   // Enhanced statistics with memoization
   const statistics = computed(() => ({
@@ -860,6 +900,47 @@ export const useMemoryStore = defineStore('memory', () => {
     return relationsByPredicate.value.get(predicate) || []
   }
 
+  // Pagination actions
+  const setCurrentPage = (page: number): void => {
+    if (page >= 1 && page <= totalPages.value) {
+      currentPage.value = page
+    }
+  }
+
+  const setItemsPerPage = (items: number): void => {
+    const validItems = [25, 50, 100].includes(items) ? items : 25
+    itemsPerPage.value = validItems
+    
+    // Adjust current page if needed to stay within valid range
+    const newTotalPages = Math.ceil(entities.value.length / validItems)
+    if (currentPage.value > newTotalPages && newTotalPages > 0) {
+      currentPage.value = newTotalPages
+    }
+  }
+
+  const goToFirstPage = (): void => {
+    currentPage.value = 1
+  }
+
+  const goToLastPage = (): void => {
+    if (totalPages.value > 0) {
+      currentPage.value = totalPages.value
+    }
+  }
+
+  // Watch for entities changes to adjust current page if needed
+  watch(
+    () => entities.value.length,
+    (newLength) => {
+      const newTotalPages = Math.ceil(newLength / itemsPerPage.value)
+      if (currentPage.value > newTotalPages && newTotalPages > 0) {
+        currentPage.value = newTotalPages
+      } else if (newLength > 0 && currentPage.value === 0) {
+        currentPage.value = 1
+      }
+    }
+  )
+
   // Recent activities computed property for the homepage - returns raw data
   const recentActivities = computed<Activity[]>(() => {
     const activities: Activity[] = []
@@ -948,6 +1029,11 @@ export const useMemoryStore = defineStore('memory', () => {
     statistics,
     recentActivities,
 
+    // Pagination
+    paginatedEntities,
+    paginationInfo,
+    totalPages,
+
     // Loading state helpers
     isEntityLoading,
     isObservationLoading,
@@ -980,6 +1066,12 @@ export const useMemoryStore = defineStore('memory', () => {
 
     // Bulk operations
     eraseAllMemories,
+
+    // Pagination actions
+    setCurrentPage,
+    setItemsPerPage,
+    goToFirstPage,
+    goToLastPage,
 
     // Utility methods (optimized with O(1) lookups)
     getEntityById,
