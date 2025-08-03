@@ -21,15 +21,15 @@ h6 {
   @apply font-[900];
 }
 
-code,
-pre {
+code.prose,
+pre.prose {
   @apply rounded text-toned;
 }
 
-code {
+code.prose {
   @apply bg-accented px-1 py-0.5;
 }
 
-pre {
+pre.prose {
   @apply bg-elevated px-4 py-3 overflow-auto;
 }

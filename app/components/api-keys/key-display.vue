@@ -22,6 +22,7 @@
       <UButton
         color="neutral"
         :label="t('close')"
+        variant="ghost"
         @click="close"
       />
       <CopyButton
@@ -51,11 +52,9 @@ const emit = defineEmits<{
   close: []
 }>()
 
-
 const formState = reactive({
   apiKeySecret: computed(() => props.apiKeySecret),
 })
-
 
 function close() {
   emit('close')

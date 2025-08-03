@@ -112,19 +112,19 @@
 </template>
 
 <script setup lang="ts">
-const { t, n } = useI18n({ useScope: 'local' });
-const memoryStore = useMemoryStore();
-const { statistics } = storeToRefs(memoryStore);
+const { t, n } = useI18n({ useScope: 'local' })
+const memoryStore = useMemoryStore()
+const { statistics } = storeToRefs(memoryStore)
 
 try {
-  await memoryStore.initialize();
+  await memoryStore.initialize()
 } catch (error) {
-  console.error('Failed to initialize memory store:', error);
+  console.error('Failed to initialize memory store:', error)
 }
 
 useHead({
   title: t('title'),
-});
+})
 </script>
 
 <i18n lang="yaml">

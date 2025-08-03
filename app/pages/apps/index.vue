@@ -55,18 +55,24 @@
                 <template #description>
                   <i18n-t keypath="config.instructions.description">
                     <template #key>
-                      <code>{{ t('config.instructions.key') }}</code>
+                      <code class="prose">{{
+                        t('config.instructions.key')
+                      }}</code>
                     </template>
                   </i18n-t>
                 </template>
               </UAlert>
 
               <div class="relative">
-                <pre>{{ formatConfigTemplate(app.id) }}</pre>
+                <pre class="prose">{{ formatConfigTemplate(app.id) }}</pre>
                 <CopyButton
                   class="absolute top-3 right-4"
                   :content="() => getMcpConfigTemplate(app.id)"
-                  :content-type="typeof getMcpConfigTemplate(app.id) === 'string' ? 'text' : 'json'"
+                  :content-type="
+                    typeof getMcpConfigTemplate(app.id) === 'string'
+                      ? 'text'
+                      : 'json'
+                  "
                   color="neutral"
                   :label="t('config.copy')"
                   :copied-label="t('config.copied')"
@@ -127,7 +133,6 @@ const formatConfigTemplate = (appId: string) => {
   // For other apps, return formatted JSON
   return JSON.stringify(config, null, 2)
 }
-
 
 useHead({
   title: t('title'),
