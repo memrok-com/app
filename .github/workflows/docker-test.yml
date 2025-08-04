@@ -1,0 +1,98 @@
+name: Test Docker Build
+
+on:
+  pull_request:
+    paths:
+      - 'Dockerfile'
+      - '.dockerignore'
+      - 'package.json'
+      - 'bun.lock'
+      - '.github/workflows/docker-*.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  test-build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        platform: [linux/amd64, linux/arm64]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Extract PR info
+        id: pr
+        run: |
+          echo "version=pr-${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
+          echo "build_year=$(date +%Y)" >> $GITHUB_OUTPUT
+
+      - name: Build test image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: ${{ matrix.platform }}
+          push: false
+          tags: memrok:test-${{ matrix.platform }}
+          build-args: |
+            MEMROK_VERSION=${{ steps.pr.outputs.version }}
+            MEMROK_BUILD_YEAR=${{ steps.pr.outputs.build_year }}
+            NUXT_UI_PRO_LICENSE=${{ secrets.NUXT_UI_PRO_LICENSE }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Test container startup
+        run: |
+          # Run container and check if it starts successfully
+          docker run -d --name memrok-test \
+            -p 3000:3000 \
+            --health-cmd="curl -f http://localhost:3000/api/health || exit 1" \
+            --health-interval=5s \
+            --health-timeout=3s \
+            --health-retries=10 \
+            memrok:test-${{ matrix.platform }}
+          
+          # Wait for container to be healthy or timeout
+          timeout=60
+          while [ $timeout -gt 0 ]; do
+            if [ "$(docker inspect -f '{{.State.Health.Status}}' memrok-test)" = "healthy" ]; then
+              echo "Container is healthy!"
+              break
+            fi
+            sleep 1
+            ((timeout--))
+          done
+          
+          if [ $timeout -eq 0 ]; then
+            echo "Container failed to become healthy"
+            docker logs memrok-test
+            exit 1
+          fi
+
+      - name: Test health endpoint
+        run: |
+          response=$(curl -s http://localhost:3000/api/health)
+          echo "Health check response: $response"
+          
+          # Verify version in response
+          if echo "$response" | grep -q '"version":"${{ steps.pr.outputs.version }}"'; then
+            echo "Version check passed"
+          else
+            echo "Version check failed"
+            exit 1
+          fi
+
+      - name: Check container logs
+        if: always()
+        run: docker logs memrok-test
+
+      - name: Stop test container
+        if: always()
+        run: docker stop memrok-test || true

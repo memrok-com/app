@@ -24,6 +24,12 @@
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
+    "build:image": "cd deployment && docker compose --env-file ../.env -f docker-compose.yml -f docker-compose.build.yml build memrok",
+    "test:start": "cd deployment && docker compose --project-name memrok --env-file ../.env -f docker-compose.yml -f docker-compose.dev.yml -f docker-compose.test.yml up -d memrok",
+    "test:stop": "cd deployment && docker compose --project-name memrok --env-file ../.env -f docker-compose.yml -f docker-compose.dev.yml -f docker-compose.test.yml stop memrok && docker compose --project-name memrok --env-file ../.env -f docker-compose.yml -f docker-compose.dev.yml -f docker-compose.test.yml rm -f memrok",
+    "test:logs": "cd deployment && docker compose --project-name memrok --env-file ../.env -f docker-compose.yml -f docker-compose.dev.yml -f docker-compose.test.yml logs -f memrok",
+    "test:status": "cd deployment && docker compose --project-name memrok --env-file ../.env -f docker-compose.yml -f docker-compose.dev.yml -f docker-compose.test.yml ps memrok",
+    "test:image": "bun run build:image && bun run test:start",
     "test:mcp": "bun run test/mcp-server.test.ts"
   },
   "dependencies": {

@@ -84,6 +84,37 @@ bun run build                  # Build for production
 bun run preview                # Preview production build
 ```
 
+### Docker Container Testing
+
+Test the production Docker image locally within the development stack:
+
+```bash
+# Build the Docker image locally
+bun run build:image            # Build memrok/app:local from current code
+
+# Test the container (integrates with existing dev stack)
+bun run test:image             # Build image and start test container
+bun run test:start             # Start test container (requires pre-built image)
+bun run test:stop              # Stop and remove test container
+bun run test:logs              # View test container logs
+bun run test:status            # Check test container status
+```
+
+**Access URLs:**
+- https://app-test.dev.memrok.com - Test container (Docker image)
+- https://app.dev.memrok.com - Development server (local Nuxt)
+
+The test container integrates with your existing development infrastructure (shares Traefik, PostgreSQL, Zitadel) but runs on a separate domain to avoid conflicts. This allows you to:
+
+- Test the actual Docker image that will be deployed to production
+- Compare behavior between the development server and containerized app
+- Validate Docker builds before creating releases
+- Debug container-specific issues in a familiar environment
+
+**Environment Variables:**
+- `MEMROK_APP_TEST_DOMAIN`: Test container domain (defaults to app-test.dev.memrok.com)
+- `MEMROK_BUILD_YEAR`: Build year for container metadata (defaults to current year)
+
 ## Tech Stack
 
 **Backend**
