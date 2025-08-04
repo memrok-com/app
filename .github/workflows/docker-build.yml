@@ -16,7 +16,7 @@ env:
   IMAGE_NAME: memrok-com/app
 
 permissions:
-  contents: read
+  contents: write  # Required to update releases
   packages: write
   id-token: write  # For cosign signing
   security-events: write  # For vulnerability scanning
