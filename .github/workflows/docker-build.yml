@@ -1,0 +1,175 @@
+name: Build and Push Docker Image
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'  # Semantic versioning tags
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag (e.g., v1.0.0)'
+        required: true
+        type: string
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: memrok-com/app
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write  # For cosign signing
+  security-events: write  # For vulnerability scanning
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment: production
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
+      tags: ${{ steps.meta.outputs.tags }}
+      digest: ${{ steps.build.outputs.digest }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=tag
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=${{ inputs.version }},enable=${{ inputs.version != '' }}
+
+      - name: Set version and build year
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ inputs.version }}"
+          else
+            VERSION="${GITHUB_REF#refs/tags/}"
+          fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "build_year=$(date +%Y)" >> $GITHUB_OUTPUT
+
+      - name: Build and push Docker image
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            MEMROK_VERSION=${{ steps.version.outputs.version }}
+            MEMROK_BUILD_YEAR=${{ steps.version.outputs.build_year }}
+            NUXT_UI_PRO_LICENSE=${{ secrets.NUXT_UI_PRO_LICENSE }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          outputs: type=image,name=target,annotation-index.org.opencontainers.image.description=memrok self-hosted memory service
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3
+
+      - name: Sign container image
+        run: |
+          images=""
+          for tag in $(echo "${{ steps.meta.outputs.tags }}" | tr ',' '\n'); do
+            images+="${tag}@${{ steps.build.outputs.digest }} "
+          done
+          cosign sign --yes ${images}
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Upload Trivy scan results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: Create deployment metadata
+        run: |
+          cat > deployment-metadata.json <<EOF
+          {
+            "version": "${{ steps.version.outputs.version }}",
+            "build_year": "${{ steps.version.outputs.build_year }}",
+            "image": "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}",
+            "digest": "${{ steps.build.outputs.digest }}",
+            "tags": ${{ toJson(steps.meta.outputs.tags) }},
+            "build_date": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
+            "git_sha": "${{ github.sha }}",
+            "git_ref": "${{ github.ref }}"
+          }
+          EOF
+
+      - name: Upload deployment metadata
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-metadata
+          path: deployment-metadata.json
+          retention-days: 90
+
+      - name: Create release notes
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+        run: |
+          cat > release-notes.md <<EOF
+          ## Docker Image
+
+          - **Registry**: \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}\`
+          - **Version**: \`${{ steps.version.outputs.version }}\`
+          - **Digest**: \`${{ steps.build.outputs.digest }}\`
+          - **Platforms**: linux/amd64, linux/arm64
+
+          ### Pull Commands
+
+          \`\`\`bash
+          # Pull by version
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}
+
+          # Pull by digest (immutable)
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}
+          \`\`\`
+
+          ### Deployment
+
+          Update your \`docker-compose.prod.yml\` or deployment configuration with:
+
+          \`\`\`yaml
+          memrok:
+            image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}
+          \`\`\`
+
+          ### Security
+
+          - Image signed with cosign (keyless)
+          - Vulnerability scan completed
+          - Supply chain attestations included
+          EOF
+
+      - name: Update release
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          append_body: true
+          body_path: release-notes.md

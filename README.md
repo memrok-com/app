@@ -31,13 +31,14 @@ memrok is a self-hosted memory system that:
 - **Web Interface** - Modern UI for memory management
 - **REST API** - Programmatic access
 
-### 🚀 Self-Hosting Made Easy
+### 🚀 Production Features
 
-- Single `docker-compose up` deployment
-- Production-ready with Let's Encrypt SSL
+- Production-ready Docker images with multi-platform support
+- Built-in health checks and monitoring endpoints
 - Modern OIDC authentication via Zitadel
-- Works with any reverse proxy (nginx, Traefik, Caddy)
-- Configuration via environment variables
+- Row-level security for multi-tenant data isolation
+- Comprehensive MCP protocol implementation
+- GitOps-friendly deployment configuration
 
 ## 🏗️ Architecture
 
@@ -146,6 +147,56 @@ Example: Configure LM Studio to access all categories, but Claude Desktop only "
 - `add_observations` - Store facts with emotional context
 - `search_memories` - Semantic search across knowledge graph
 - `open_memories` - Retrieve specific entity clusters
+
+## 🔧 Development
+
+### Prerequisites
+
+- Node.js 20+ or Bun
+- Docker and Docker Compose
+- mkcert (for local SSL certificates)
+
+### Local Development Setup
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed development setup instructions.
+
+### Building Docker Images
+
+For development, you can build the Docker image locally:
+
+```bash
+docker build \
+  --build-arg MEMROK_VERSION=dev \
+  --build-arg MEMROK_BUILD_YEAR=$(date +%Y) \
+  --build-arg NUXT_UI_PRO_LICENSE=$NUXT_UI_PRO_LICENSE \
+  -t memrok/app:dev .
+```
+
+## 🔄 CI/CD (For Maintainers)
+
+### Release Process
+
+1. Ensure all changes are merged to main
+2. Create and push a release tag:
+   ```bash
+   git tag -a v1.0.0 -m "Release v1.0.0"
+   git push origin v1.0.0
+   ```
+
+3. GitHub Actions automatically:
+   - Builds multi-platform Docker images
+   - Pushes to GitHub Container Registry
+   - Signs images with cosign
+   - Scans for vulnerabilities
+   - Updates release notes
+
+### GitHub Actions Workflows
+
+- **docker-build.yml**: Production builds on release tags
+- **docker-test.yml**: PR validation for Docker changes
+- **security-scan.yml**: Continuous vulnerability scanning
+
+See [.github/workflows/README.md](.github/workflows/README.md) for workflow documentation.
 
 ## 🤝 Contributing
 

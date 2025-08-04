@@ -59,12 +59,12 @@ export default defineNuxtConfig({
       MEMROK_AUTH_DOMAIN: process.env.MEMROK_AUTH_DOMAIN,
       MEMROK_BUILD_YEAR:
         process.env.NODE_ENV === 'production'
-          ? process.env.MEMROK_BUILD_YEAR
+          ? process.env.MEMROK_BUILD_YEAR || new Date().getFullYear().toString()
           : new Date().getFullYear().toString(),
       MEMROK_PROJECT_PATH: process.cwd(),
       MEMROK_VERSION:
         process.env.NODE_ENV === 'production'
-          ? process.env.MEMROK_VERSION
+          ? process.env.MEMROK_VERSION || 'unknown'
           : process.env.NODE_ENV,
     },
   },
