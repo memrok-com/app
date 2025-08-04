@@ -83,7 +83,17 @@
         />
       </template>
 
-      <UNavigationMenu :items="footerNavigationMenuItems" />
+      <ClientOnly>
+        <UNavigationMenu
+          class="sm:hidden"
+          :items="footerNavigationMenuItems"
+          orientation="vertical"
+        />
+        <UNavigationMenu
+          class="hidden sm:block"
+          :items="footerNavigationMenuItems"
+        />
+      </ClientOnly>
 
       <template #right>
         <div class="text-muted text-sm">
@@ -168,6 +178,12 @@ const userMenuItems = computed<DropdownMenuItem[][]>(() => [
 const footerNavigationMenuItems = computed<NavigationMenuItem[][]>(() => [
   [
     {
+      icon: 'i-ph-users',
+      label: t('userManagement'),
+      target: '_blank',
+      to: `https://${config.public.MEMROK_AUTH_DOMAIN}`,
+    },
+    {
       icon: 'i-ph-diamonds-four-fill',
       label: 'www.memrok.com',
       target: '_blank',
@@ -193,5 +209,6 @@ en:
   account: Account
   logout: Logout
   selfHosted: Self-Hosted
+  userManagement: User Management
   copyright: © {year} memrok.com
 </i18n>

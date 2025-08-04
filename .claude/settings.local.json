@@ -4,6 +4,7 @@
     "allow": [
       "Bash(docker logs:*)",
       "Bash(gh issue view:*)",
+      "mcp__ide__getDiagnostics",
       "WebFetch(domain:ui.nuxt.com)"
     ],
     "deny": []
