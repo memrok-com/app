@@ -1,6 +1,7 @@
 import { z } from "zod"
 import type { H3Event } from "h3"
 import { getHeader } from "h3"
+import { consola } from "consola"
 
 // UUID validation schema
 export const uuidSchema = z.string().uuid()
@@ -187,13 +188,21 @@ export interface AuditLogEntry {
 
 export async function logAuditEvent(event: H3Event, entry: AuditLogEntry) {
   // In production, this would write to a proper audit log storage
-  // For now, we'll use console with structured logging
-  console.log(JSON.stringify({
+  // For now, we'll use structured logging with proper log levels
+  const logger = consola.withTag('audit')
+  const logData = {
     type: "audit",
     ...entry,
     requestId: event.context.requestId || "unknown",
     ip: getClientIP(event) || "unknown",
-  }))
+  }
+  
+  // Use info level for successful operations, warn for failures
+  if (entry.success) {
+    logger.info(JSON.stringify(logData))
+  } else {
+    logger.warn(JSON.stringify(logData))
+  }
 }
 
 // Helper to extract client IP safely

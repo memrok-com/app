@@ -7,6 +7,7 @@ import {
   MCPErrorCode 
 } from "../utils/mcp-security"
 import { MemrokMCPError } from "../utils/mcp-errors"
+import { consola } from "consola"
 
 // In-memory rate limiting store (in production, use Redis)
 interface RateLimitEntry {
@@ -93,7 +94,8 @@ export async function rateLimitMiddleware(
     )
     
     // Log security event
-    console.warn(JSON.stringify({
+    const logger = consola.withTag('security')
+    logger.warn(JSON.stringify({
       type: "security",
       event: "rate_limit_exceeded",
       userId,
@@ -122,7 +124,7 @@ export async function rateLimitMiddleware(
         (entry.windowStart + RATE_LIMIT_WINDOW_MS - now) / 1000
       )
       
-      console.warn(JSON.stringify({
+      consola.withTag('security').warn(JSON.stringify({
         type: "security",
         event: "batch_rate_limit_exceeded", 
         userId,

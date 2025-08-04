@@ -4,6 +4,7 @@ import { rateLimitMiddleware, validateRequestSize } from "../../utils/rate-limit
 import { logAuditEvent } from "../../utils/mcp-security"
 import { toMCPError } from "../../utils/mcp-errors"
 import { extractUser } from "../../utils/auth-middleware"
+import { consola } from "consola"
 
 // Store active MCP server instances by session
 const sessions = new Map<string, MemrokMCPServer>()
@@ -12,19 +13,17 @@ const sessions = new Map<string, MemrokMCPServer>()
 const isDevelopment = process.env.NODE_ENV === 'development'
 const DEBUG_LOGGING = isDevelopment
 
-// Logging helpers
-const logInfo = (message: string, ...args: unknown[]) => {
-  console.log(`[MCP] ${message}`, ...args)
-}
+// Logging helpers - use consola for proper log levels
+const logger = consola.withTag('mcp')
 
 const logDebug = (message: string, ...args: unknown[]) => {
   if (DEBUG_LOGGING) {
-    console.log(`[MCP:DEBUG] ${message}`, ...args)
+    logger.debug(message, ...args)
   }
 }
 
 const logError = (message: string, error?: unknown) => {
-  console.error(`[MCP:ERROR] ${message}`, error)
+  logger.error(message, error)
 }
 
 // JSON-RPC 2.0 error responses
@@ -119,7 +118,7 @@ export default defineEventHandler(async (event) => {
     let mcpServer = sessions.get(sessionId)
     
     if (!mcpServer) {
-      logInfo(`Creating new server instance for session ${sessionId}`)
+      logDebug(`Creating new server instance for session ${sessionId}`)
       mcpServer = new MemrokMCPServer()
       sessions.set(sessionId, mcpServer)
       

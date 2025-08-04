@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm"
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js"
 import type * as schema from "./schema"
+import { consola } from "consola"
 
 /**
  * Database utilities for Row Level Security (RLS) user context management
@@ -33,9 +34,10 @@ export async function setUserContext(
       sql.raw(`SET LOCAL app.current_user_id = '${userId.replace("'", "''")}'`)
     )
   } catch (error) {
-    console.error("Failed to set user context:", error)
-    console.error("User ID:", userId)
-    console.error("User ID type:", typeof userId)
+    const logger = consola.withTag('rls')
+    logger.error("Failed to set user context:", error)
+    logger.error("User ID:", userId)
+    logger.error("User ID type:", typeof userId)
     throw new Error(
       `Failed to set user context for user ${userId}: ${
         error instanceof Error ? error.message : "Unknown error"

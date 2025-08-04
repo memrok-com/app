@@ -18,6 +18,7 @@ import { getUserSession } from "nuxt-oidc-auth/runtime/server/utils/session.js"
 import { createUserDb, useApplicationDb, type UserScopedDatabase } from "./db"
 import { RLSContextError } from "../database/rls-context"
 import { findApiKeyByValue, isValidApiKeyFormat } from "./api-key-service"
+import { consola } from "consola"
 
 /**
  * User information extracted from authentication
@@ -367,7 +368,8 @@ export function createAuthenticatedHandler<T>(
       return await withAuth(handler)(event)
     } catch (error) {
       // Log error for debugging
-      console.error("API Error:", {
+      const logger = consola.withTag('api')
+      logger.error("API Error:", {
         url: getRequestURL(event),
         method: event.method,
         error: error instanceof Error ? error.message : error,
@@ -437,7 +439,8 @@ export function createKeyManagementHandler<T>(
       }
     } catch (error) {
       // Log error for debugging
-      console.error("Key Management API Error:", {
+      const logger = consola.withTag('api')
+      logger.error("Key Management API Error:", {
         url: getRequestURL(event),
         method: event.method,
         error: error instanceof Error ? error.message : error,

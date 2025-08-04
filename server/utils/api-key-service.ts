@@ -3,6 +3,7 @@ import * as argon2 from 'argon2'
 import type { DatabaseWithSchema } from '../database/rls-context'
 import { apiKeys } from '../database/schema'
 import { eq, and } from 'drizzle-orm'
+import { consola } from 'consola'
 
 /**
  * Generate a secure API key
@@ -222,7 +223,10 @@ export async function findApiKeyByValue(
         })
         .where(eq(apiKeys.id, candidate.id))
         .execute()
-        .catch(console.error)
+        .catch((error) => {
+          const logger = consola.withTag('api-key')
+          logger.error('Failed to update API key usage:', error)
+        })
 
       return {
         id: candidate.id,
