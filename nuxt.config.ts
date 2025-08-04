@@ -38,12 +38,18 @@ export default defineNuxtConfig({
         redirectUri: process.env.NUXT_OIDC_REDIRECT_URI,
         logoutRedirectUri: process.env.NUXT_OIDC_POST_LOGOUT_REDIRECT_URI,
         authenticationScheme: 'none', // PKCE flow
+        responseType: 'code',
         scope: ['openid', 'profile', 'email'],
         exposeAccessToken: true, // Enable access to tokens on server-side
       },
     },
     session: {
       automaticRefresh: true,
+      maxAge: 3600, // 1 hour session timeout
+      cookie: {
+        secure: true, // HTTPS only
+        sameSite: 'lax',
+      },
     },
   },
   runtimeConfig: {
