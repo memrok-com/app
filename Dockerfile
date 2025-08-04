@@ -2,7 +2,7 @@
 # Optimized for GitHub Actions builds and GitHub Container Registry
 
 # Build arguments for CI/CD
-ARG MEMROK_VERSION=development
+ARG MEMROK_VERSION=development-build
 ARG MEMROK_BUILD_YEAR=2025
 ARG NUXT_UI_PRO_LICENSE
 
@@ -24,7 +24,7 @@ RUN bun install
 FROM base AS build
 
 # Re-declare build args for this stage
-ARG MEMROK_VERSION=development
+ARG MEMROK_VERSION=development-build
 ARG MEMROK_BUILD_YEAR=2025
 ARG NUXT_UI_PRO_LICENSE
 
@@ -38,10 +38,11 @@ ENV NUXT_UI_PRO_LICENSE=${NUXT_UI_PRO_LICENSE}
 ENV NODE_ENV=production
 
 # Build the application
-# Note: NUXT_UI_PRO_LICENSE must be provided as build arg for production builds
+# Note: NUXT_UI_PRO_LICENSE is required for production builds
 RUN if [ -z "$NUXT_UI_PRO_LICENSE" ]; then \
-    echo "WARNING: NUXT_UI_PRO_LICENSE not provided - using fallback build"; \
-    mkdir -p .output/server && echo 'console.log("Fallback server for license demo")' > .output/server/index.mjs; \
+    echo "ERROR: NUXT_UI_PRO_LICENSE build argument is required for production builds"; \
+    echo "Please provide a valid Nuxt UI Pro license key as a build argument"; \
+    exit 1; \
   else \
     bun run build && bun run typecheck; \
   fi

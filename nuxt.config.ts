@@ -31,16 +31,19 @@ export default defineNuxtConfig({
     defaultProvider: 'zitadel',
     providers: {
       zitadel: {
-        audience: process.env.NUXT_OIDC_CLIENT_ID,
-        clientId: process.env.NUXT_OIDC_CLIENT_ID,
-        clientSecret: '', // PKCE flow
-        baseUrl: process.env.NUXT_OIDC_ISSUER,
-        redirectUri: process.env.NUXT_OIDC_REDIRECT_URI,
-        logoutRedirectUri: process.env.NUXT_OIDC_POST_LOGOUT_REDIRECT_URI,
         authenticationScheme: 'none', // PKCE flow
+        authorizationUrl: '',
+        baseUrl: '',
+        clientId: '',
+        clientSecret: '', // PKCE flow
+        exposeAccessToken: true, // Enable access to tokens on server-side
+        logoutUrl: '',
+        logoutRedirectUri: '',
+        redirectUri: '',
         responseType: 'code',
         scope: ['openid', 'profile', 'email'],
-        exposeAccessToken: true, // Enable access to tokens on server-side
+        tokenUrl: '',
+        userInfoUrl: '',
       },
     },
     session: {
@@ -54,18 +57,12 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     public: {
-      MEMROK_APP_DOMAIN: process.env.MEMROK_APP_DOMAIN,
-      MEMROK_AUTH_CONFIGURED: !!process.env.NUXT_OIDC_CLIENT_ID,
-      MEMROK_AUTH_DOMAIN: process.env.MEMROK_AUTH_DOMAIN,
-      MEMROK_BUILD_YEAR:
-        process.env.NODE_ENV === 'production'
-          ? process.env.MEMROK_BUILD_YEAR || new Date().getFullYear().toString()
-          : new Date().getFullYear().toString(),
+      MEMROK_APP_DOMAIN: '',
+      MEMROK_AUTH_CONFIGURED: false,
+      MEMROK_AUTH_DOMAIN: '',
+      MEMROK_BUILD_YEAR: '',
       MEMROK_PROJECT_PATH: process.cwd(),
-      MEMROK_VERSION:
-        process.env.NODE_ENV === 'production'
-          ? process.env.MEMROK_VERSION || 'unknown'
-          : process.env.NODE_ENV,
+      MEMROK_VERSION: '',
     },
   },
   vite: {
