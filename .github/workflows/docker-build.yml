@@ -173,3 +173,67 @@ jobs:
         with:
           append_body: true
           body_path: release-notes.md
+
+      - name: Update deployment repo and create release
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ secrets.DEPLOYMENT_REPO_TOKEN }}
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          
+          # Clone the deployment repo
+          git clone https://github.com/memrok-com/memrok.git deployment-repo
+          cd deployment-repo
+          
+          # Configure git
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Update docker-compose.prod.yml to pin the image version
+          sed -i "s|ghcr.io/memrok-com/app:\${MEMROK_VERSION:-latest}|ghcr.io/memrok-com/app:${VERSION}|g" docker-compose.prod.yml
+          
+          # Commit the change
+          if git diff --quiet; then
+            echo "No changes needed in docker-compose.prod.yml"
+          else
+            git add docker-compose.prod.yml
+            git commit -m "feat: pin memrok image to ${VERSION}
+            
+            This release uses the verified Docker image: ghcr.io/memrok-com/app:${VERSION}
+            
+            🤖 Automated update from memrok-com/app release"
+            git push origin main
+          fi
+          
+          # Create release notes for deployment repo
+          cat > release-notes.md <<EOF
+          ## memrok ${VERSION}
+          
+          Ready-to-deploy release using Docker image: \`ghcr.io/memrok-com/app:${VERSION}\`
+          
+          ### Quick Start
+          
+          1. Clone this repository
+          2. Copy \`.env.example\` to \`.env\` and configure
+          3. Run \`docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d\`
+          
+          ### What's New
+          
+          See the [app repository release](https://github.com/memrok-com/app/releases/tag/${VERSION}) for detailed changes and features.
+          
+          ### Docker Image
+          
+          - **Image**: \`ghcr.io/memrok-com/app:${VERSION}\`
+          - **Platforms**: linux/amd64, linux/arm64
+          - **Security**: Signed with cosign, vulnerability scanned
+          
+          ---
+          *This is a stable deployment release corresponding to memrok-com/app ${VERSION}*
+          EOF
+          
+          # Create the release in the deployment repo
+          gh release create ${VERSION} \
+            --title "memrok ${VERSION}" \
+            --notes-file release-notes.md
+          
+          echo "✅ Created deployment repo release: ${VERSION}"
