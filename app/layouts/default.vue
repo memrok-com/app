@@ -3,7 +3,7 @@
     <UHeader>
       <template #left>
         <ULink :to="`/${locale}/`">
-          <MemrokLogo class="max-h-6" />
+          <MemrokLogo class="!h-6 !w-auto" />
         </ULink>
         <UBadge
           size="sm"
@@ -12,7 +12,7 @@
         >
       </template>
       <UNavigationMenu
-        :items="items"
+        :items="navigationMenuItems"
         highlight
       />
       <template #right>
@@ -52,7 +52,7 @@
       </template>
       <template #body>
         <UNavigationMenu
-          :items="items"
+          :items="navigationMenuItems"
           highlight
           orientation="vertical"
         />
@@ -61,6 +61,36 @@
     <UMain>
       <NuxtPage />
     </UMain>
+    <USeparator>
+      <MemrokLogogram class="!h-6 !w-auto" />
+    </USeparator>
+    <UFooter>
+      <template #left>
+        <MemrokLogo class="!h-6 !w-auto" />
+
+        <UBadge
+          size="sm"
+          variant="soft"
+          >{{ version }}</UBadge
+        >
+
+        <UBadge
+          color="success"
+          icon="i-ph-shield-check-fill"
+          :label="t('selfHosted')"
+          size="sm"
+          variant="soft"
+        />
+      </template>
+
+      <UNavigationMenu :items="footerNavigationMenuItems" />
+
+      <template #right>
+        <div class="text-muted text-sm">
+          {{ t('copyright', { year: year }) }}
+        </div>
+      </template>
+    </UFooter>
   </div>
 </template>
 
@@ -71,6 +101,7 @@ const { locale, t } = useI18n({ useScope: 'local' })
 const config = useRuntimeConfig()
 const { user, logout } = useOidcAuth()
 const version = config.public.MEMROK_VERSION
+const year = config.public.MEMROK_BUILD_YEAR
 const colorMode = useColorMode()
 const route = useRoute()
 
@@ -83,7 +114,7 @@ const isDark = computed({
   },
 })
 
-const items = computed<NavigationMenuItem[][]>(() => [
+const navigationMenuItems = computed<NavigationMenuItem[][]>(() => [
   [
     {
       label: t('apps'),
@@ -94,12 +125,6 @@ const items = computed<NavigationMenuItem[][]>(() => [
       label: t('memories'),
       to: `/${locale.value}/memories/`,
       active: route.path.includes('/memories'),
-    },
-    {
-      icon: 'i-ph-github-logo-fill',
-      label: t('github'),
-      target: '_blank',
-      to: 'https://github.com/memrok-com/memrok',
     },
   ],
 ])
@@ -139,6 +164,23 @@ const userMenuItems = computed<DropdownMenuItem[][]>(() => [
     },
   ],
 ])
+
+const footerNavigationMenuItems = computed<NavigationMenuItem[][]>(() => [
+  [
+    {
+      icon: 'i-ph-diamonds-four-fill',
+      label: 'www.memrok.com',
+      target: '_blank',
+      to: 'https://www.memrok.com',
+    },
+    {
+      icon: 'i-ph-github-logo-fill',
+      label: t('github'),
+      target: '_blank',
+      to: 'https://github.com/memrok-com/memrok',
+    },
+  ],
+])
 </script>
 
 <i18n lang="yaml">
@@ -150,4 +192,6 @@ en:
   darkMode: Dark Mode
   account: Account
   logout: Logout
+  selfHosted: Self-Hosted
+  copyright: © {year} memrok.com
 </i18n>

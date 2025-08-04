@@ -47,39 +47,40 @@
                   :ui="{ root: 'bg-inherit' }"
                 />
               </template>
-              <UAlert
-                color="info"
-                icon="i-ph-info-fill"
-                :title="t('config.instructions.title')"
-              >
-                <template #description>
-                  <i18n-t keypath="config.instructions.description">
-                    <template #key>
-                      <code class="prose">{{
-                        t('config.instructions.key')
-                      }}</code>
-                    </template>
-                  </i18n-t>
-                </template>
-              </UAlert>
-
-              <div class="relative overflow-hidden">
-                <pre class="prose">{{ formatConfigTemplate(app.id) }}</pre>
-                <CopyButton
-                  class="absolute top-3 right-4"
-                  :content="() => getMcpConfigTemplate(app.id)"
-                  :content-type="
-                    typeof getMcpConfigTemplate(app.id) === 'string'
-                      ? 'text'
-                      : 'json'
-                  "
-                  color="neutral"
-                  :label="t('config.copy')"
-                  :copied-label="t('config.copied')"
-                  size="xs"
-                />
-              </div>
             </UPageSection>
+
+            <UAlert
+              color="info"
+              icon="i-ph-info-fill"
+              :title="t('config.instructions.title')"
+            >
+              <template #description>
+                <i18n-t keypath="config.instructions.description">
+                  <template #key>
+                    <code class="prose">{{
+                      t('config.instructions.key')
+                    }}</code>
+                  </template>
+                </i18n-t>
+              </template>
+            </UAlert>
+
+            <div class="relative overflow-hidden">
+              <pre class="prose">{{ formatConfigTemplate(app.id) }}</pre>
+              <CopyButton
+                class="absolute top-3 right-4"
+                :content="() => getMcpConfigTemplate(app.id)"
+                :content-type="
+                  typeof getMcpConfigTemplate(app.id) === 'string'
+                    ? 'text'
+                    : 'json'
+                "
+                color="neutral"
+                :label="t('config.copy')"
+                :copied-label="t('config.copied')"
+                size="xs"
+              />
+            </div>
           </template>
 
           <!-- API Keys tab -->
