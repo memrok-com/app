@@ -182,7 +182,7 @@ jobs:
           VERSION=${{ steps.version.outputs.version }}
           
           # Clone the deployment repo
-          git clone https://github.com/memrok-com/memrok.git deployment-repo
+          git clone https://x-access-token:${GH_TOKEN}@github.com/memrok-com/memrok.git deployment-repo
           cd deployment-repo
           
           # Configure git
