@@ -8,6 +8,13 @@
       "when": 1754175980577,
       "tag": "0000_light_fenris",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1755088613766,
+      "tag": "0001_wakeful_ezekiel",
+      "breakpoints": true
     }
   ]
 }
