@@ -162,7 +162,9 @@ const userMenuItems = computed<DropdownMenuItem[][]>(() => [
       icon: 'i-ph-user',
       label: t('account'),
       target: '_blank',
-      to: `https://${config.public.MEMROK_AUTH_DOMAIN}/ui/console/users/me`,
+      to: config.public.MEMROK_AUTH_DOMAIN 
+        ? `https://${config.public.MEMROK_AUTH_DOMAIN}/ui/console/users/me`
+        : '#',
     },
     {
       class: 'cursor-pointer',
@@ -181,7 +183,9 @@ const footerNavigationMenuItems = computed<NavigationMenuItem[][]>(() => [
       icon: 'i-ph-users',
       label: t('userManagement'),
       target: '_blank',
-      to: `https://${config.public.MEMROK_AUTH_DOMAIN}`,
+      to: config.public.MEMROK_AUTH_DOMAIN 
+        ? `https://${config.public.MEMROK_AUTH_DOMAIN}`
+        : '#',
     },
     {
       icon: 'i-ph-diamonds-four-fill',

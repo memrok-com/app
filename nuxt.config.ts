@@ -57,12 +57,15 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     public: {
-      MEMROK_APP_DOMAIN: '',
-      MEMROK_AUTH_CONFIGURED: false,
-      MEMROK_AUTH_DOMAIN: '',
-      MEMROK_BUILD_YEAR: '',
+      MEMROK_APP_DOMAIN: process.env.MEMROK_APP_DOMAIN || '',
+      MEMROK_AUTH_DOMAIN: process.env.MEMROK_AUTH_DOMAIN || '',
+      MEMROK_BUILD_YEAR:
+        process.env.MEMROK_BUILD_YEAR || new Date().getFullYear().toString(),
       MEMROK_PROJECT_PATH: process.cwd(),
-      MEMROK_VERSION: '',
+      MEMROK_VERSION:
+        process.env.NODE_ENV === 'development'
+          ? 'development'
+          : process.env.MEMROK_VERSION || undefined,
     },
   },
   vite: {
