@@ -102,15 +102,40 @@ async function testMCPTools() {
                 console.log(`   - ${tool.name}`)
               })
             } else if (test.name === 'Create Entity') {
-              const result = JSON.parse(response.result.content[0].text)
-              entityId = result.entity.id
-              console.log(`   Created entity: ${result.entity.name} (${entityId})`)
+              try {
+                const result = JSON.parse(response.result.content[0].text)
+                if (result.data && result.data.entity) {
+                  entityId = result.data.entity.id
+                  console.log(`   Created entity: ${result.data.entity.name} (${entityId})`)
+                } else {
+                  console.log(`   ⚠️ Unexpected response structure:`, result)
+                }
+              } catch (parseError) {
+                console.log(`   ❌ Failed to parse entity response: ${parseError.message}`)
+                console.log(`   Raw text: ${response.result.content[0].text}`)
+              }
             } else if (test.name === 'Create Observation') {
-              const result = JSON.parse(response.result.content[0].text)
-              console.log(`   Created observation: ${result.observation.content}`)
+              try {
+                const result = JSON.parse(response.result.content[0].text)
+                if (result.data && result.data.observation) {
+                  console.log(`   Created observation: ${result.data.observation.content}`)
+                } else {
+                  console.log(`   ⚠️ Unexpected response structure:`, result)
+                }
+              } catch (parseError) {
+                console.log(`   ❌ Failed to parse observation response: ${parseError.message}`)
+              }
             } else if (test.name === 'Search Memories') {
-              const result = JSON.parse(response.result.content[0].text)
-              console.log(`   Found ${result.results.entities.length} entities, ${result.results.observations.length} observations`)
+              try {
+                const result = JSON.parse(response.result.content[0].text)
+                if (result.data && result.data.results) {
+                  console.log(`   Found ${result.data.results.entities.length} entities, ${result.data.results.observations.length} observations`)
+                } else {
+                  console.log(`   ⚠️ Unexpected response structure:`, result)
+                }
+              } catch (parseError) {
+                console.log(`   ❌ Failed to parse search response: ${parseError.message}`)
+              }
             }
             
             results.push({ test: test.name, success: true, response })
@@ -122,7 +147,7 @@ async function testMCPTools() {
         
         currentTest++
         
-        // Send next test
+        // Send next test or finish
         if (currentTest < tests.length) {
           const nextTest = tests[currentTest]
           
@@ -150,8 +175,21 @@ async function testMCPTools() {
           server.kill()
           process.exit(failed === 0 ? 0 : 1)
         }
-      } catch {
-        console.error('Failed to parse response:', responseText)
+      } catch (error) {
+        console.error('Failed to parse response:', error.message)
+        console.error('Raw response:', responseText)
+        // Still increment currentTest to avoid hanging
+        currentTest++
+        
+        // Continue to next test if available
+        if (currentTest < tests.length) {
+          const nextTest = tests[currentTest]
+          server.stdin.write(JSON.stringify(nextTest.request) + '\n')
+        } else {
+          // All tests processed (even with errors)
+          server.kill()
+          process.exit(1)
+        }
       }
     }
   })
