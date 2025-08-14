@@ -57,7 +57,7 @@ jobs:
             --health-interval=5s \
             --health-timeout=3s \
             --health-retries=10 \
-            memrok:test-${{ matrix.platform }}
+            memrok:test-${{ matrix.platform == 'linux/amd64' && 'amd64' || 'arm64' }}
           
           # Wait for container to be healthy or timeout
           timeout=60
