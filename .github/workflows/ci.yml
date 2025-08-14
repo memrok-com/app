@@ -127,6 +127,11 @@ jobs:
         run: |
           cp .env.example .env.test
           echo "DATABASE_URL=postgresql://memrok:test-password@localhost:5432/memrok" >> .env.test
+          echo "MEMROK_DB_HOST=localhost" >> .env.test
+          echo "MEMROK_DB_PORT=5432" >> .env.test
+          echo "MEMROK_DB_USER=memrok" >> .env.test
+          echo "MEMROK_DB_PASSWORD=test-password" >> .env.test
+          echo "MEMROK_DB_NAME=memrok" >> .env.test
           echo "NUXT_OIDC_SESSION_SECRET=$(openssl rand -hex 32)" >> .env.test
           echo "NUXT_OIDC_AUTH_SESSION_SECRET=$(openssl rand -hex 32)" >> .env.test
           echo "NUXT_OIDC_TOKEN_KEY=$(openssl rand -hex 16)" >> .env.test
@@ -134,11 +139,21 @@ jobs:
       - name: Run database migrations
         env:
           DATABASE_URL: postgresql://memrok:test-password@localhost:5432/memrok
+          MEMROK_DB_HOST: localhost
+          MEMROK_DB_PORT: 5432
+          MEMROK_DB_USER: memrok
+          MEMROK_DB_PASSWORD: test-password
+          MEMROK_DB_NAME: memrok
         run: bun run db:migrate
 
       - name: Run MCP tests
         env:
           DATABASE_URL: postgresql://memrok:test-password@localhost:5432/memrok
+          MEMROK_DB_HOST: localhost
+          MEMROK_DB_PORT: 5432
+          MEMROK_DB_USER: memrok
+          MEMROK_DB_PASSWORD: test-password
+          MEMROK_DB_NAME: memrok
         run: bun run test:mcp
 
   build:
