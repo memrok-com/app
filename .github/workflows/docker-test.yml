@@ -40,6 +40,7 @@ jobs:
           context: .
           platforms: ${{ matrix.platform }}
           push: false
+          load: true
           tags: memrok:test-${{ matrix.platform == 'linux/amd64' && 'amd64' || 'arm64' }}
           build-args: |
             MEMROK_VERSION=${{ steps.pr.outputs.version }}
