@@ -182,9 +182,11 @@ export class QdrantService {
         score: result.score,
         payload: result.payload as VectorSearchResult['payload'],
       }))
-    } catch (error: any) {
+    } catch (error) {
       // Collection might not exist yet
-      if (error.message?.includes('Not found') || error.status === 404) {
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      const errorStatus = (error as { status?: number }).status
+      if (errorMessage.includes('Not found') || errorStatus === 404) {
         return []
       }
       throw error
@@ -218,8 +220,10 @@ export class QdrantService {
         score: 1.0, // Perfect match for direct retrieval
         payload: result.payload as VectorSearchResult['payload'],
       }
-    } catch (error: any) {
-      if (error.message?.includes('Not found') || error.status === 404) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      const errorStatus = (error as { status?: number }).status
+      if (errorMessage.includes('Not found') || errorStatus === 404) {
         return null
       }
       throw error
@@ -243,8 +247,10 @@ export class QdrantService {
       })
       
       return true
-    } catch (error: any) {
-      if (error.message?.includes('Not found') || error.status === 404) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      const errorStatus = (error as { status?: number }).status
+      if (errorMessage.includes('Not found') || errorStatus === 404) {
         return false
       }
       throw error
@@ -277,8 +283,10 @@ export class QdrantService {
       })
       
       return validIds.length
-    } catch (error: any) {
-      if (error.message?.includes('Not found') || error.status === 404) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      const errorStatus = (error as { status?: number }).status
+      if (errorMessage.includes('Not found') || errorStatus === 404) {
         return 0
       }
       throw error
@@ -307,8 +315,10 @@ export class QdrantService {
     
     try {
       return await this.client.getCollection(collectionName)
-    } catch (error: any) {
-      if (error.message?.includes('Not found') || error.status === 404) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      const errorStatus = (error as { status?: number }).status
+      if (errorMessage.includes('Not found') || errorStatus === 404) {
         return {
           vectors_count: 0,
           status: "green",
@@ -328,8 +338,10 @@ export class QdrantService {
     try {
       await this.client.deleteCollection(collectionName)
       return true
-    } catch (error: any) {
-      if (error.message?.includes('Not found') || error.status === 404) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      const errorStatus = (error as { status?: number }).status
+      if (errorMessage.includes('Not found') || errorStatus === 404) {
         return true // Already doesn't exist
       }
       throw error
