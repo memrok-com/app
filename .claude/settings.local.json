@@ -5,7 +5,9 @@
       "Bash(docker logs:*)",
       "Bash(gh issue view:*)",
       "mcp__ide__getDiagnostics",
-      "WebFetch(domain:ui.nuxt.com)"
+      "WebFetch(domain:ui.nuxt.com)",
+      "Bash(gh pr view:*)",
+      "Bash(gh pr diff:*)"
     ],
     "deny": []
   }

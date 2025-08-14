@@ -1,4 +1,5 @@
 import { QdrantClient } from "@qdrant/js-client-rest"
+import { createHash } from "node:crypto"
 import type { CreatorContext } from "./memory-service"
 import { getQdrantConfig, getUserCollectionName, validateQdrantConfig } from "../utils/vector-config"
 
@@ -225,15 +226,16 @@ export class QdrantService {
    * Get collection configuration optimized for specific vector type
    */
   private getCollectionConfig(type: VectorCollectionType, vectorSize: number) {
+    const config = getQdrantConfig()
     const baseConfig = {
       vectors: {
         size: vectorSize,
-        distance: "Cosine" as const, // Best for semantic similarity
+        distance: config.distance as "Cosine" | "Euclid" | "Dot",
       },
       replication_factor: 1,
     }
 
-    // Type-specific optimizations
+    // Type-specific optimizations using configuration
     switch (type) {
       case 'entities':
         return {
@@ -243,8 +245,8 @@ export class QdrantService {
             indexing_threshold: 10000, // Higher threshold for entity vectors
           },
           hnsw_config: {
-            m: 16,
-            ef_construct: 200, // Better for entity similarity
+            m: config.hnsw.entities.m,
+            ef_construct: config.hnsw.entities.efConstruct,
           },
         }
       case 'relations':
@@ -255,8 +257,8 @@ export class QdrantService {
             indexing_threshold: 5000, // Lower threshold for relationship vectors
           },
           hnsw_config: {
-            m: 32, // Higher connectivity for relationship graphs
-            ef_construct: 400,
+            m: config.hnsw.relations.m,
+            ef_construct: config.hnsw.relations.efConstruct,
           },
         }
       case 'contexts':
@@ -267,8 +269,8 @@ export class QdrantService {
             indexing_threshold: 1000, // Fewer context vectors expected
           },
           hnsw_config: {
-            m: 8, // Lower connectivity for context boundaries
-            ef_construct: 100,
+            m: config.hnsw.contexts.m,
+            ef_construct: config.hnsw.contexts.efConstruct,
           },
         }
       case 'triplets':
@@ -279,8 +281,8 @@ export class QdrantService {
             indexing_threshold: 5000,
           },
           hnsw_config: {
-            m: 24, // Balanced for triplet validation
-            ef_construct: 300,
+            m: config.hnsw.triplets.m,
+            ef_construct: config.hnsw.triplets.efConstruct,
           },
         }
       default:
@@ -633,17 +635,10 @@ export class QdrantService {
   // ==================== SEMANTIC VALIDATION METHODS ====================
 
   /**
-   * Calculate content hash for drift detection
+   * Calculate content hash for drift detection using crypto
    */
   private calculateContentHash(content: string): string {
-    // Simple hash implementation (in production, use crypto)
-    let hash = 0
-    for (let i = 0; i < content.length; i++) {
-      const char = content.charCodeAt(i)
-      hash = ((hash << 5) - hash) + char
-      hash = hash & hash // Convert to 32bit integer
-    }
-    return hash.toString(16)
+    return createHash('sha256').update(content, 'utf8').digest('hex').slice(0, 16)
   }
 
   /**
@@ -677,11 +672,19 @@ export class QdrantService {
    * Calculate coherence metrics for context vectors
    */
   private async calculateCoherenceMetrics(embedding: ContextVectorEmbedding): Promise<typeof embedding.payload.coherenceMetrics> {
-    // Simplified implementation - in production, use advanced semantic analysis
-    const { boundaryMarkers } = embedding.payload
+    const { boundaryMarkers, semanticAnchors } = embedding.payload
+    
+    // Calculate semantic similarity between related entities
+    let semanticSimilarity = 0.9 // Default baseline
+    if (semanticAnchors.keyEntityIds.length >= 2) {
+      // In production, calculate actual vector similarity between key entities
+      // For now, estimate based on entity relationship density
+      const entityDensity = semanticAnchors.keyEntityIds.length / Math.max(1, boundaryMarkers.topicIds.length)
+      semanticSimilarity = Math.min(0.95, 0.7 + (entityDensity * 0.25))
+    }
     
     return {
-      topicConsistency: 0.9, // Placeholder - implement topic analysis
+      topicConsistency: semanticSimilarity, // Enhanced with entity relationship analysis
       temporalCoherence: boundaryMarkers.conversationEnd 
         ? 1.0 
         : Math.max(0.5, 1.0 - (Date.now() - boundaryMarkers.conversationStart.getTime()) / (24 * 60 * 60 * 1000)), // Decay over time

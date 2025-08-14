@@ -14,6 +14,12 @@ export interface QdrantConfig {
     indexingThreshold: number
     memmapThreshold?: number
   }
+  hnsw: {
+    entities: { m: number; efConstruct: number }
+    relations: { m: number; efConstruct: number }
+    contexts: { m: number; efConstruct: number }
+    triplets: { m: number; efConstruct: number }
+  }
   retry: {
     maxAttempts: number
     initialDelay: number
@@ -52,6 +58,24 @@ export function getQdrantConfig(): QdrantConfig {
       defaultSegmentNumber: 4,
       indexingThreshold: 10000,
       memmapThreshold: isDevelopment ? undefined : 50000,
+    },
+    hnsw: {
+      entities: {
+        m: parseInt(process.env.QDRANT_HNSW_ENTITIES_M || '16'),
+        efConstruct: parseInt(process.env.QDRANT_HNSW_ENTITIES_EF_CONSTRUCT || '200'),
+      },
+      relations: {
+        m: parseInt(process.env.QDRANT_HNSW_RELATIONS_M || '32'),
+        efConstruct: parseInt(process.env.QDRANT_HNSW_RELATIONS_EF_CONSTRUCT || '400'),
+      },
+      contexts: {
+        m: parseInt(process.env.QDRANT_HNSW_CONTEXTS_M || '8'),
+        efConstruct: parseInt(process.env.QDRANT_HNSW_CONTEXTS_EF_CONSTRUCT || '100'),
+      },
+      triplets: {
+        m: parseInt(process.env.QDRANT_HNSW_TRIPLETS_M || '24'),
+        efConstruct: parseInt(process.env.QDRANT_HNSW_TRIPLETS_EF_CONSTRUCT || '300'),
+      },
     },
     retry: {
       maxAttempts: 3,
