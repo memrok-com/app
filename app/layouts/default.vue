@@ -64,7 +64,7 @@
     <USeparator>
       <MemrokLogogram class="!h-6 !w-auto" />
     </USeparator>
-    <UFooter>
+    <UFooter class="mb-12">
       <template #left>
         <MemrokLogo class="!h-6 !w-auto" />
 
@@ -162,7 +162,7 @@ const userMenuItems = computed<DropdownMenuItem[][]>(() => [
       icon: 'i-ph-user',
       label: t('account'),
       target: '_blank',
-      to: config.public.MEMROK_AUTH_DOMAIN 
+      to: config.public.MEMROK_AUTH_DOMAIN
         ? `https://${config.public.MEMROK_AUTH_DOMAIN}/ui/console/users/me`
         : '#',
     },
@@ -183,7 +183,7 @@ const footerNavigationMenuItems = computed<NavigationMenuItem[][]>(() => [
       icon: 'i-ph-users',
       label: t('userManagement'),
       target: '_blank',
-      to: config.public.MEMROK_AUTH_DOMAIN 
+      to: config.public.MEMROK_AUTH_DOMAIN
         ? `https://${config.public.MEMROK_AUTH_DOMAIN}`
         : '#',
     },

@@ -208,6 +208,45 @@ Not yet implemented:
 
 This project uses specialized advisory agents to provide expert guidance while you (Claude) remain the primary implementer. **You MUST proactively consult these agents BEFORE beginning implementation work.**
 
+### Critical Agent Instruction Guidelines
+
+**Agent Prompt Best Practices:**
+- **Avoid self-references**: Never mention agent names or the agent system in prompts as agents may confusingly try to fetch external URLs about themselves
+- **Focus on the task**: Provide clear, specific technical requirements without referencing the advisory agent architecture
+- **Use concrete context**: Include relevant code snippets, file paths, and technical details rather than abstract descriptions
+- **Be implementation-focused**: Ask for specific technical guidance rather than general advice
+
+**Critical Thinking Expectations:**
+- **Agents should challenge problematic requests**: If asked to implement something that contradicts security best practices, architectural patterns, or introduces technical debt
+- **Question unclear or incomplete requirements**: Agents should request clarification when requirements lack necessary technical details
+- **Suggest better alternatives**: When a proposed approach has significant flaws, agents should recommend superior solutions
+- **Refuse harmful instructions**: Agents should decline requests that would compromise system security, data integrity, or code quality
+- **Provide constructive criticism**: Agents should point out potential issues and explain why certain approaches should be avoided
+
+**Example - Good Agent Prompt:**
+```
+I need to add Qdrant vector database to our existing Docker Compose setup for semantic search.
+
+Current infrastructure:
+- Traefik reverse proxy with SSL  
+- PostgreSQL 17-alpine with custom init scripts
+- All services on 'memrok' bridge network
+
+Requirements:
+- Add Qdrant container following existing patterns
+- Configure appropriate volumes for data persistence
+- Set up health checks consistent with PostgreSQL
+
+Please provide the Docker Compose service definition.
+```
+
+**Example - Bad Agent Prompt:**
+```
+I'm working on issue #27 for v0.2.0 milestone using the deployment-architect agent. 
+The agent system requires guidance on Qdrant integration following memrok patterns.
+Please consult the agent documentation and provide architectural recommendations.
+```
+
 ### Agent Consultation Matrix
 
 | Task Type             | Primary Agent        | Secondary Agent     | When to Consult                                                                                       |
