@@ -148,12 +148,19 @@ export function validateQdrantConfig(config: QdrantConfig): void {
 }
 
 /**
- * Get collection name for a user
+ * Get collection name for a user and vector type
  */
-export function getUserCollectionName(userId: string, prefix?: string): string {
+export function getUserCollectionName(userId: string, type?: string): string {
   const safeUserId = userId.replace(/[^a-zA-Z0-9_-]/g, '_')
-  const collectionPrefix = prefix || getQdrantConfig().collectionPrefix
-  return `${collectionPrefix}_${safeUserId}_memories`
+  const config = getQdrantConfig()
+  
+  if (type) {
+    // New multi-collection approach
+    return `${config.collectionPrefix}_${safeUserId}_${type}`
+  } else {
+    // Legacy single collection for backward compatibility
+    return `${config.collectionPrefix}_${safeUserId}_memories`
+  }
 }
 
 /**
