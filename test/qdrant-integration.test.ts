@@ -6,6 +6,7 @@
 
 import { QdrantService } from '../server/services/qdrant-service'
 import type { VectorEmbedding } from '../server/services/qdrant-service'
+import { randomUUID } from 'crypto'
 
 // Test configuration
 const TEST_USER_ID = 'test-user-123'
@@ -40,11 +41,16 @@ async function runTests() {
   try {
     // Test 1: Health Check
     console.log('Test 1: Health Check')
-    const isHealthy = await qdrantService.healthCheck()
-    console.log(`✅ Qdrant service is ${isHealthy ? 'healthy' : 'unhealthy'}\n`)
-    
-    if (!isHealthy) {
-      throw new Error('Qdrant service is not healthy. Make sure Qdrant container is running.')
+    try {
+      const isHealthy = await qdrantService.healthCheck()
+      console.log(`✅ Qdrant service is ${isHealthy ? 'healthy' : 'unhealthy'}\n`)
+      
+      if (!isHealthy) {
+        throw new Error('Qdrant service is not healthy. Make sure Qdrant container is running.')
+      }
+    } catch (healthError) {
+      console.error('Health check error details:', healthError)
+      throw new Error(`Qdrant service is not healthy: ${healthError.message}`)
     }
     
     // Test 2: Collection Creation
@@ -56,12 +62,13 @@ async function runTests() {
     // Test 3: Store Single Vector
     console.log('Test 3: Store Single Vector')
     const testEmbedding = createTestEmbedding('This is a test memory about AI and machine learning')
-    await qdrantService.storeVector('test-vector-1', testEmbedding)
+    const vectorId1 = randomUUID()
+    await qdrantService.storeVector(vectorId1, testEmbedding)
     console.log('✅ Vector stored successfully\n')
     
     // Test 4: Retrieve Vector
     console.log('Test 4: Retrieve Vector')
-    const retrievedVector = await qdrantService.getVector('test-vector-1')
+    const retrievedVector = await qdrantService.getVector(vectorId1)
     if (!retrievedVector) {
       throw new Error('Failed to retrieve vector')
     }
@@ -69,10 +76,13 @@ async function runTests() {
     
     // Test 5: Batch Store Vectors
     console.log('Test 5: Batch Store Vectors')
+    const vectorId2 = randomUUID()
+    const vectorId3 = randomUUID()
+    const vectorId4 = randomUUID()
     const batchEmbeddings = [
-      { id: 'test-vector-2', embedding: createTestEmbedding('Memory about databases and SQL') },
-      { id: 'test-vector-3', embedding: createTestEmbedding('Memory about web development and React') },
-      { id: 'test-vector-4', embedding: createTestEmbedding('Memory about cloud computing and AWS') },
+      { id: vectorId2, embedding: createTestEmbedding('Memory about databases and SQL') },
+      { id: vectorId3, embedding: createTestEmbedding('Memory about web development and React') },
+      { id: vectorId4, embedding: createTestEmbedding('Memory about cloud computing and AWS') },
     ]
     await qdrantService.storeVectorsBatch(batchEmbeddings)
     console.log('✅ Batch vectors stored successfully\n')
@@ -109,7 +119,7 @@ async function runTests() {
     
     // Test 9: Delete Vector
     console.log('Test 9: Delete Vector')
-    const deleted = await qdrantService.deleteVector('test-vector-1')
+    const deleted = await qdrantService.deleteVector(vectorId1)
     if (!deleted) {
       throw new Error('Failed to delete vector')
     }
@@ -117,7 +127,7 @@ async function runTests() {
     
     // Test 10: Batch Delete
     console.log('Test 10: Batch Delete')
-    const deletedCount = await qdrantService.deleteVectorsBatch(['test-vector-2', 'test-vector-3', 'test-vector-4'])
+    const deletedCount = await qdrantService.deleteVectorsBatch([vectorId2, vectorId3, vectorId4])
     console.log(`✅ Deleted ${deletedCount} vectors\n`)
     
     // Cleanup: Delete test collection

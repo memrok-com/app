@@ -1,5 +1,6 @@
 import { QdrantClient } from "@qdrant/js-client-rest"
 import type { CreatorContext } from "./memory-service"
+import { getQdrantConfig, getUserCollectionName, validateQdrantConfig } from "../utils/vector-config"
 
 // Vector embedding interface
 export interface VectorEmbedding {
@@ -44,27 +45,14 @@ export class QdrantService {
   constructor(userId: string) {
     this.userId = userId
     
-    // Initialize Qdrant client with environment configuration
-    const apiKey = process.env.QDRANT_API_KEY
+    // Get and validate configuration
+    const config = getQdrantConfig()
+    validateQdrantConfig(config)
     
-    // Use HTTPS via Traefik in development, internal HTTP in production
-    let url: string
-    if (process.env.NODE_ENV === 'development' && process.env.MEMROK_VECTORS_DOMAIN) {
-      // Development: Use HTTPS via Traefik
-      url = `https://${process.env.MEMROK_VECTORS_DOMAIN}`
-    } else if (process.env.QDRANT_URL) {
-      // Custom URL if provided
-      url = process.env.QDRANT_URL
-    } else {
-      // Production: Internal container network
-      const host = process.env.QDRANT_HOST || 'memrok-qdrant'
-      const port = process.env.QDRANT_PORT || '6333'
-      url = `http://${host}:${port}`
-    }
-
+    // Initialize Qdrant client with configuration
     this.client = new QdrantClient({
-      url,
-      apiKey,
+      url: config.url,
+      apiKey: config.apiKey,
     })
   }
 
@@ -74,7 +62,7 @@ export class QdrantService {
    * Get user-specific collection name following RLS pattern
    */
   private getCollectionName(): string {
-    return `user_${this.userId}_memories`
+    return getUserCollectionName(this.userId)
   }
 
   /**
@@ -194,9 +182,9 @@ export class QdrantService {
         score: result.score,
         payload: result.payload as VectorSearchResult['payload'],
       }))
-    } catch (error: unknown) {
+    } catch (error: any) {
       // Collection might not exist yet
-      if ((error as Error).message?.includes('Not found')) {
+      if (error.message?.includes('Not found') || error.status === 404) {
         return []
       }
       throw error
@@ -230,8 +218,8 @@ export class QdrantService {
         score: 1.0, // Perfect match for direct retrieval
         payload: result.payload as VectorSearchResult['payload'],
       }
-    } catch (error) {
-      if (error.message?.includes('Not found')) {
+    } catch (error: any) {
+      if (error.message?.includes('Not found') || error.status === 404) {
         return null
       }
       throw error
@@ -255,8 +243,8 @@ export class QdrantService {
       })
       
       return true
-    } catch (error) {
-      if (error.message?.includes('Not found')) {
+    } catch (error: any) {
+      if (error.message?.includes('Not found') || error.status === 404) {
         return false
       }
       throw error
@@ -289,8 +277,8 @@ export class QdrantService {
       })
       
       return validIds.length
-    } catch (error) {
-      if (error.message?.includes('Not found')) {
+    } catch (error: any) {
+      if (error.message?.includes('Not found') || error.status === 404) {
         return 0
       }
       throw error
@@ -319,8 +307,8 @@ export class QdrantService {
     
     try {
       return await this.client.getCollection(collectionName)
-    } catch (error) {
-      if (error.message?.includes('Not found')) {
+    } catch (error: any) {
+      if (error.message?.includes('Not found') || error.status === 404) {
         return {
           vectors_count: 0,
           status: "green",
@@ -340,8 +328,8 @@ export class QdrantService {
     try {
       await this.client.deleteCollection(collectionName)
       return true
-    } catch (error) {
-      if (error.message?.includes('Not found')) {
+    } catch (error: any) {
+      if (error.message?.includes('Not found') || error.status === 404) {
         return true // Already doesn't exist
       }
       throw error
