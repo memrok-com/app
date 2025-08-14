@@ -49,10 +49,44 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Start PostgreSQL for integration tests
+        run: |
+          docker run -d --name test-postgres \
+            -e POSTGRES_DB=memrok \
+            -e POSTGRES_USER=memrok \
+            -e POSTGRES_PASSWORD=memrok \
+            -p 5432:5432 \
+            postgres:17-alpine
+          
+          # Wait for PostgreSQL to be ready
+          timeout=30
+          while [ $timeout -gt 0 ]; do
+            if docker exec test-postgres pg_isready -U memrok -d memrok; then
+              echo "PostgreSQL is ready!"
+              break
+            fi
+            sleep 1
+            ((timeout--))
+          done
+          
+          if [ $timeout -eq 0 ]; then
+            echo "PostgreSQL failed to start"
+            docker logs test-postgres
+            exit 1
+          fi
+
       - name: Test container startup
         run: |
           # Run container and check if it starts successfully
           docker run -d --name memrok-test \
+            --link test-postgres:postgres \
+            -e DATABASE_URL=postgres://memrok:memrok@postgres:5432/memrok \
+            -e NODE_ENV=production \
+            -e NUXT_OIDC_PROVIDERS_ZITADEL_CLIENT_ID=test \
+            -e NUXT_OIDC_PROVIDERS_ZITADEL_BASE_URL=http://test \
+            -e NUXT_OIDC_AUTH_SESSION_SECRET=test-secret-32-chars-long-minimum \
+            -e NUXT_OIDC_SESSION_SECRET=test-secret-32-chars-long-minimum \
+            -e NUXT_OIDC_TOKEN_KEY=test-token-key-32-chars-long-minimum \
             -p 3000:3000 \
             --health-cmd="curl -f http://localhost:3000/api/health || exit 1" \
             --health-interval=5s \
@@ -94,6 +128,8 @@ jobs:
         if: always()
         run: docker logs memrok-test
 
-      - name: Stop test container
+      - name: Stop test containers
         if: always()
-        run: docker stop memrok-test || true
+        run: |
+          docker stop memrok-test || true
+          docker stop test-postgres || true
