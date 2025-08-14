@@ -88,6 +88,8 @@ bun run preview                # Preview production build
 
 Test the production Docker image locally within the development stack:
 
+> **Note**: As of v0.2.0, Docker builds only target `linux/amd64` to improve CI/CD performance during development. ARM64 support is planned to return in v1.0.0 (see [issue #6](https://github.com/memrok-com/memrok/issues/6)).
+
 ```bash
 # Build the Docker image locally
 bun run build:image            # Build memrok/app:local from current code
