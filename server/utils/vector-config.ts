@@ -51,7 +51,7 @@ export function getQdrantConfig(): QdrantConfig {
   return {
     url,
     apiKey: process.env.QDRANT_API_KEY,
-    vectorSize: parseInt(process.env.QDRANT_VECTOR_SIZE || '1536'),
+    vectorSize: parseInt(process.env.QDRANT_VECTOR_SIZE || '384'), // MiniLM-L6 dimensions
     distance: 'Cosine', // Best for semantic similarity
     collectionPrefix: 'user',
     optimization: {
@@ -92,37 +92,19 @@ export interface EmbeddingConfig {
   model: string
   dimensions: number
   maxTokens: number
-  provider: 'openai' | 'local' | 'custom'
+  provider: 'local'
 }
 
 /**
  * Get embedding model configuration
+ * Uses local Transformers.js models for privacy-first processing
  */
 export function getEmbeddingConfig(): EmbeddingConfig {
-  const provider = process.env.EMBEDDING_PROVIDER || 'openai'
-  
-  switch (provider) {
-    case 'openai':
-      return {
-        model: process.env.OPENAI_EMBEDDING_MODEL || 'text-embedding-3-small',
-        dimensions: 1536,
-        maxTokens: 8191,
-        provider: 'openai',
-      }
-    case 'local':
-      return {
-        model: process.env.LOCAL_EMBEDDING_MODEL || 'all-MiniLM-L6-v2',
-        dimensions: 384,
-        maxTokens: 512,
-        provider: 'local',
-      }
-    default:
-      return {
-        model: process.env.CUSTOM_EMBEDDING_MODEL || 'custom',
-        dimensions: parseInt(process.env.CUSTOM_EMBEDDING_DIMENSIONS || '1536'),
-        maxTokens: parseInt(process.env.CUSTOM_EMBEDDING_MAX_TOKENS || '8191'),
-        provider: 'custom',
-      }
+  return {
+    model: process.env.EMBEDDING_MODEL || 'Xenova/all-MiniLM-L6-v2',
+    dimensions: parseInt(process.env.EMBEDDING_DIMENSIONS || '384'),
+    maxTokens: 512, // MiniLM max tokens
+    provider: 'local',
   }
 }
 

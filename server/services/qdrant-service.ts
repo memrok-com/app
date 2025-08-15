@@ -475,7 +475,11 @@ export class QdrantService {
     const collectionName = this.getLegacyCollectionName()
     
     // Ensure collection exists (use first vector's size)
-    await this.ensureCollection('entities', embeddings[0].embedding.vector.length)
+    const firstEmbedding = embeddings[0]
+    if (!firstEmbedding) {
+      throw new Error('No embeddings provided for batch operation')
+    }
+    await this.ensureCollection('entities', firstEmbedding.embedding.vector.length)
     
     // Prepare batch points
     const points = embeddings.map(({ id, embedding }) => ({
@@ -514,7 +518,7 @@ export class QdrantService {
         with_payload: true,
       })
       
-      return results.map((result: { id: string | number; score: number; payload: unknown }) => ({
+      return results.map((result) => ({
         id: result.id as string,
         score: result.score,
         payload: result.payload as VectorSearchResult['payload'],
@@ -541,12 +545,13 @@ export class QdrantService {
       const results = await this.client.retrieve(collectionName, {
         ids: [id],
         with_payload: true,
-        with_vectors: false,
+        with_vector: false,
       })
       
       if (results.length === 0) return null
       
       const result = results[0]
+      if (!result) return null
       
       // Verify user access (RLS-like check)
       if (result.payload?.userId !== this.userId) {
@@ -740,9 +745,11 @@ export class QdrantService {
     let norm2 = 0
     
     for (let i = 0; i < vector1.length; i++) {
-      dotProduct += vector1[i] * vector2[i]
-      norm1 += vector1[i] * vector1[i]
-      norm2 += vector2[i] * vector2[i]
+      const val1 = vector1[i] ?? 0
+      const val2 = vector2[i] ?? 0
+      dotProduct += val1 * val2
+      norm1 += val1 * val1
+      norm2 += val2 * val2
     }
     
     const similarity = dotProduct / (Math.sqrt(norm1) * Math.sqrt(norm2))
