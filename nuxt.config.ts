@@ -68,9 +68,25 @@ export default defineNuxtConfig({
           : process.env.MEMROK_VERSION || undefined,
     },
   },
+  nitro: {
+    experimental: {
+      wasm: true, // Enable WASM support for Transformers.js
+    },
+    rollupConfig: {
+      external: process.env.CI === 'true' ? ['@xenova/transformers'] : [],
+    },
+  },
   vite: {
     server: {
       allowedHosts: [process.env.MEMROK_APP_DOMAIN || 'app.dev.memrok.com'],
+    },
+    build: {
+      rollupOptions: {
+        external: process.env.NODE_ENV === 'test' ? ['@xenova/transformers'] : [],
+      },
+    },
+    optimizeDeps: {
+      exclude: ['@xenova/transformers'],
     },
   },
 })

@@ -1,7 +1,13 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeAll } from 'vitest'
 import { EmbeddingService } from '../server/services/embedding-service'
 
 describe('EmbeddingService', () => {
+  beforeAll(() => {
+    // Ensure we're in test mode for mock embeddings
+    process.env.NODE_ENV = 'test'
+    process.env.CI = 'true'
+  })
+
   it('should initialize without errors', () => {
     const service = new EmbeddingService('test-user')
     expect(service).toBeDefined()
