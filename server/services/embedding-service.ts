@@ -12,7 +12,7 @@ import {
 class LocalEmbeddingProvider {
   private model: string
   private dimensions: number
-  private extractor: any | null = null // Transformers.js pipeline type
+  private extractor: unknown | null = null // Transformers.js pipeline type
   private initPromise: Promise<void> | null = null
 
   constructor() {
@@ -55,7 +55,9 @@ class LocalEmbeddingProvider {
     }
     
     // Generate embeddings using Transformers.js
-    const output = await this.extractor(text, {
+    // Type assertion since we know this is a pipeline after initialization
+    const extractor = this.extractor as (text: string, options: Record<string, unknown>) => Promise<{ data: Float32Array }>
+    const output = await extractor(text, {
       pooling: "mean", // Mean pooling for sentence embeddings
       normalize: true, // Normalize for cosine similarity
     })
@@ -79,9 +81,10 @@ class LocalEmbeddingProvider {
     
     // Process texts in batch for efficiency
     const embeddings: number[][] = []
+    const extractor = this.extractor as (text: string, options: Record<string, unknown>) => Promise<{ data: Float32Array }>
     
     for (const text of texts) {
-      const output = await this.extractor(text, {
+      const output = await extractor(text, {
         pooling: "mean",
         normalize: true,
       })
