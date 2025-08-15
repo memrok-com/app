@@ -72,18 +72,29 @@ class LocalEmbeddingProvider {
       
       // Fill embedding with deterministic values based on hash
       for (let i = 0; i < this.dimensions; i++) {
-        embedding[i] = (hash[i % hash.length] / 255) * 2 - 1 // Normalize to [-1, 1]
+        const hashByte = hash[i % hash.length]
+        if (hashByte !== undefined) {
+          embedding[i] = (hashByte / 255) * 2 - 1 // Normalize to [-1, 1]
+        }
       }
       
       // Normalize the vector
       let norm = 0
       for (let i = 0; i < this.dimensions; i++) {
-        norm += embedding[i] * embedding[i]
+        const val = embedding[i]
+        if (val !== undefined) {
+          norm += val * val
+        }
       }
       norm = Math.sqrt(norm)
       
-      for (let i = 0; i < this.dimensions; i++) {
-        embedding[i] /= norm
+      if (norm > 0) {
+        for (let i = 0; i < this.dimensions; i++) {
+          const val = embedding[i]
+          if (val !== undefined) {
+            embedding[i] = val / norm
+          }
+        }
       }
       
       return { data: embedding }
